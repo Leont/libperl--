@@ -1,0 +1,174 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NAME</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#version">VERSION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<ul>
+
+		<li><a href="#scalar__base">Scalar::Base</a></li>
+		<li><a href="#numeric_classes">Numeric Classes</a></li>
+		<li><a href="#string__value">String::Value</a></li>
+		<li><a href="#ref_t___value">Ref&lt;T&gt;::Value</a></li>
+		<li><a href="#scalar__value">Scalar::Value</a></li>
+		<li><a href="#scalar__lvalue">Scalar::Lvalue</a></li>
+	</ul>
+
+	<li><a href="#diagnostics">DIAGNOSTICS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>libperl++ -</p>
+<p>
+</p>
+<hr />
+<h1><a name="version">VERSION</a></h1>
+<p>This documentation refers to libperl++ version 0.0.48</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    Scalar foo = universe.eval(&quot;1 + 1&quot;);</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Scalar classes provide interfaces to perl scalars. There are two kinds of classes: Abstract classes, <em>value</em> classes and <em>temporary</em> classes. Abstract classes provide an interface, but aren't instanciatable or copy-constructable. Both variable class X (Scalar, Integer, Ref&lt;T&gt;, etc…) and temporary class X::Temp will always be a subclass of abstract class X::Value. The main difference between the two is that variables have ownership over their resource, temporaries generally don't (or if they do, they give it away ASAP). Otherwise they act the same. You should <strong>never</strong> store temporaries. Doing so may result in crashes or data corruption.</p>
+<p>There are two families of Scalars, generic and specific. The generic classes can hold all kinds of scalars, but sometimes they are lacking some functionality. Specific classes can only hold one kind of value, but have a little more functionality for that specific type. In most cases you probably want to use the generic classes.</p>
+<p>
+</p>
+<h2><a name="scalar__base">Scalar::Base</a></h2>
+<p>Scalar::Base is the base class of <strong>all</strong> scalar classes. As such, it provides an extremely thin interface. It only provides 2 methods:</p>
+<dl>
+<dt><strong><a name="item_is_tainted">bool <code>is_tainted()</code> const;</a></strong></dt>
+
+<dd>
+<p>This method checks if the value is tainted.</p>
+</dd>
+<dt><strong><a name="item_taint">void <code>taint()</code> const;</a></strong></dt>
+
+<dd>
+<p>This method taints a variable.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="numeric_classes">Numeric Classes</a></h2>
+<p>Numeric values have the arithmetic operators you expect them to have. Bitwise operators will be implemented too soon. They are converted implicitly to the primitive they represent.</p>
+<p>
+</p>
+<h2><a name="string__value">String::Value</a></h2>
+<p>String::Value defines a simple string class/</p>
+<dl>
+<dt><strong><a name="item_replace">replace(unsigned offset, unsigned length, Raw_string other)</a></strong></dt>
+
+<dt><strong>replace(unsigned offset, unsigned length, const char* other, unsigned other_length)</strong></dt>
+
+<dd>
+<p>replaces a part of the current string with the <em>other</em> string.</p>
+</dd>
+<dt><strong><a name="item_insert">insert(unsigned offset, Raw_string other)</a></strong></dt>
+
+<dt><strong>insert(unsigned offset, const char* other, unsigned other_length)</strong></dt>
+
+<dd>
+<p>Inserts string other at position offset</p>
+</dd>
+<dt><strong><a name="item_operator__2b_3d_28argument_29">operator +=(argument)</a></strong></dt>
+
+<dd>
+<p>Appends a value to a string</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="ref_t___value">Ref&lt;T&gt;::Value</a></h2>
+<p>The exact capabitities of Reference values depends on the type they refer to. All reference types support method calling, as specified by <em>Functions</em>. <em>Ref&lt;Any&gt;</em> is a special type in that it can refer to any type. As a consequence it can't be dereferenced.  All other types define an operator*().</p>
+<dl>
+<dt><strong><a name="item_is_object">bool <code>is_object()</code> const;</a></strong></dt>
+
+<dd>
+<p>This method checks if an object is a blessed object.</p>
+</dd>
+<dt><strong><a name="item_isa">bool isa(const char* classname) const;</a></strong></dt>
+
+<dd>
+<p>This method checks if this object is of type <em>classname</em>.</p>
+</dd>
+<dt><strong><a name="item_is_exactly">bool is_exactly(const char* classname) const;</a></strong></dt>
+
+<dd>
+<p>This method checks if this object is of type <em>classname</em>. The difference between this method and the previous is that this method doesn't check inheritance relationship.</p>
+</dd>
+<dt><strong><a name="item_weaken">void <code>weaken()</code> const;</a></strong></dt>
+
+<dd>
+<p>Weaken a reference.</p>
+</dd>
+<dt><strong><a name="item_bless">void bless(const Package&amp;);</a></strong></dt>
+
+<dt><strong>void bless(const char* package_name);</strong></dt>
+
+<dd>
+<p>Bless a reference into a specific package.</p>
+</dd>
+<dt><strong><a name="item_t_3a_3atemp_operator_2a_28_29_const">T::Temp operator*() const</a></strong></dt>
+
+<dd>
+<p>This type will dereference the value and return the referee.</p>
+</dd>
+</dl>
+<p><em>Ref&lt;Code&gt;</em> also supports function calling. This is explained in <em>Functions</em>. Also, <em>Ref&lt;Array&gt;</em> and <em>Ref&lt;Hash&gt;</em> will define an operator[]();</p>
+<dl>
+<dt><strong><a name="item_scalar_3a_3alvalue_operator_5b_5d_28argument_29">Scalar::Lvalue operator[](argument)</a></strong></dt>
+
+<dd>
+<p>These are equivalent of <code>(*value)[argument]</code>.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="scalar__value">Scalar::Value</a></h2>
+<p>Scalar::Value is the base class of all generic classes. It can be converted into all primitive types. Also methods can be called on it if it is an object. If it isn't. Likewise if it is a reference to a <em>sub</em>, it can be used as a function. Lastly, it can be used as a reference to a hash or an array. There are two kinds of Scalar Values: the variable (<code>Scalar</code>) and the temporary value(<code>Scalar::Temp</code>)</p>
+<p>
+</p>
+<h2><a name="scalar__lvalue">Scalar::Lvalue</a></h2>
+<p>Scalar::Lvalue represents a scalar value than can be assigned to.</p>
+<p>
+</p>
+<hr />
+<h1><a name="diagnostics">DIAGNOSTICS</a></h1>
+<p>TODO:
+A list of every error and warning message that the module can generate
+(even the ones that will ``never happen''), with a full explanation of each
+problem, one or more likely causes, and any suggested remedies.
+(See also ``Documenting Errors'' in Chapter 13.)</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Leon Timmermans (<a href="mailto:fawaka@gmail.com">fawaka@gmail.com</a>)</p>
+
+</body>
+
+</html>

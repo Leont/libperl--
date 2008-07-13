@@ -1,0 +1,11 @@
+Currently the library is lacking Unit testing. The main reason for this is that it is actually pretty hard to cover all functionality. To really cover it all I'd need three different things all requiring a different approach.
+
+In correct order they would be:
+* Perl runtime
+* C++ runtime
+* C++ compilation
+
+The Perl runtime testing should cover things like 'does this sub being called correctly'. It is the easiest part to implement.
+C++ runtime testing is mostly a matter of testing the runtime typechecking system. It should use the Test Anything Protocol. This should also be doable too, I just have to implement a C++ TAP protocol, so C++ runtime checking is also doable. Static typechecking is used to prevent most insane things from happening. I suspect this is going to be a hard part to test. Some things should give a compiler error and some things shouldn't.
+
+Basically, the advanced features such as method calling seem easier to test for than the basics(such as assignment), specially because they are implemented using tricky template wizardry.

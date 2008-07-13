@@ -1,0 +1,11 @@
+TODO (more or less in order of urgency)
+
+*Add unit testing*
+  - Implement TAP library for C++
+Add documentation
+Replacing make with Module::Build
+Make perl++ a shared library
+ - Currently it builds a static library because IMO that's easier during development. This shouldn't be done in production use
+Test for memory leaks
+Integration of PerlIO & IOstreams
+ - Currently weird things might happen if iostreams or perl doesn't use stdio

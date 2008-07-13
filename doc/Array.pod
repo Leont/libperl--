@@ -1,0 +1,131 @@
+=head1 NAME
+
+libperl++ - 
+
+=head1 VERSION
+
+This documentation refers to libperl++ version 0.0.48
+
+=head1 SYNOPSIS
+
+	#Something
+
+=head1 DESCRIPTION
+
+An object of class C<Array> represents an interface to perl arrays. This class is very much a TIMTOWTDI one. It provides both STD style iterators and 
+
+=head1 SUBROUTINES/METHODS
+
+=head2 Array::Value
+
+=over 4
+
+=item C<const Scalar::Temp operator[](int) const>
+
+=item C<Scalar::Lvalue operator[](int)>
+
+Get and/or set a value of an array element. If a value doesn't exist, C<undefined> is returned.
+
+=item C<void push(...)>
+
+Pushes one or more values onto the end of the array. The array will grow automatically to accommodate the addition. It accepts various kinds of primitives, as well as scalar and array values.
+
+=item C<const Scalar::Temp pop()>
+
+Pops an SV off the end of the array. Returns undef if the array is empty.
+
+=item C<const Scalar::Temp shift()>
+
+Shifts a scalar off the beginning of the array.
+
+=item C<void unshift(..)>
+
+Unshift a scalar value at the beginning of an array.
+
+=item C<const Scalar::Return_value remove(int)>
+
+Deletes the element indexed by C<key> from the array. Returns the deleted element. 
+
+=itemC<bool exists(int) const>
+
+Returns true if the element indexed by C<key> exists.
+
+=item C<unsigned length() const>
+
+=item C<Length length()>
+
+Returns the length of the array. It is similar to C<scalar @array> in perl. It can be assigned to to change the length of the array.
+
+=item C<void clear()>
+
+Clears an array, making it empty. Does not free the memory used by the array itself.
+
+=item C<void undefine()>
+
+Undefines the array. Frees the memory used by the array itself.
+
+=item C<void extend(unsigned size)>
+
+Pre-extend an array. C<size> is the index to which the array should be extended.
+
+=item C<template<typename TE<gt> Array::Temp map(const T& functor) const>
+
+This method accepts a function or function object as its argument. It applies this function to each of the values in the array and makes a new array from that. The functor must accept one argument, which can be of any type Scalar::Value can convert to. The functor's return value can be of any type that can be pushed onto an array. Also note that the argument is B<not> passed as an lvalue. This is a design feature.
+
+=item C<template<typename TE<gt> Array::Temp grep(const T& functor) const>
+
+This method accepts a function or function object as its argument. It applies this function to each of the values in the array and if the return value is true, it pushes the original value into the array it returns. The functor must accept one argument, which can be of any type Scalar::Value can convert to. The functor's return value can be of any type that implicitly converts to bool. Also note that the argument is B<not> passed as an lvalue. This is a design feature.
+
+=item C<template<typename TE<gt> void each(const T& functor) const>
+
+=item C<template<typename TE<gt> void each(const T& functor)>
+
+This method accepts a function or function object as its sole argument. It applies this function to each of the values in the array. The functor must accept one argument, which can be of any type Scalar::Value can convert to. Note that the function will be offered an alias of the value, so the non-const version can be used to modify the array's values.
+
+=item C<template<typename TE<gt> void each_index(const T& functor) const>
+
+=item C<template<typename TE<gt> void each_index(const T& functor)>
+
+This method accepts a function or function object as its sole argument. It applies this function to each of the values in the array. The functor must accept two arguments; the first being an integer, and the second can be of any type Scalar::Value can convert to. Note that the function will be offered an alias of the value, so the non-const version can be used to modify the array's values.
+
+=item C<Const_iterator begin() const>
+
+=item C<Iterator begin()>
+
+Get a forward iterator pointing at the start of the array.
+
+=item C<Const_iterator end() const>
+
+=item C<Iterator end()>
+
+Get a forward iterator pointing to the end of the array.
+
+=item C<Const_reverse_iterator rbegin() const>
+
+=item C<Reverse_iterator rbegin()>
+
+Get a backwards iterator pointing at the end of the array.
+
+=item C<Const_reverse_iterator rend() const>
+
+=item C<Reverse_iterator rend()>
+
+Get a backwards iterator pointing to the beginning of the array.
+
+=back
+
+=head2 Array
+
+Array is a subclass of Array::Value. It supports all actions Array supports. It can be initialized in two ways:
+
+=head2 Iterators
+
+This class provides both forward and backward random access iterators. Iterators remain valid when values are changes or when values are added to the end, but will not remain valid when a value is added to the beginning or in the middle.
+
+=head1 DIAGNOSTICS
+
+...
+
+=head1 AUTHOR
+
+Leon Timmermans (fawaka@gmail.com)

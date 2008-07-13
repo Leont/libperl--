@@ -1,0 +1,1 @@
+Perl++ is designed as an easy to use framework for embedding the perl interpreter into C++ applications. It provides façade classes for the interpreter and all common perl datatypes. It supports function and method calls. It does not make use of macros in its interface. It uses C++ type system to achieve as much typesafety as possible.

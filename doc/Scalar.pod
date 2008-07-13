@@ -1,0 +1,125 @@
+=head1 NAME
+
+libperl++ - 
+
+=head1 VERSION
+
+This documentation refers to libperl++ version 0.0.48
+
+=head1 SYNOPSIS
+
+    Scalar foo = universe.eval("1 + 1");
+
+=head1 DESCRIPTION
+
+Scalar classes provide interfaces to perl scalars. There are two kinds of classes: Abstract classes, I<value> classes and I<temporary> classes. Abstract classes provide an interface, but aren't instanciatable or copy-constructable. Both variable class X (Scalar, Integer, Ref<T>, etc…) and temporary class X::Temp will always be a subclass of abstract class X::Value. The main difference between the two is that variables have ownership over their resource, temporaries generally don't (or if they do, they give it away ASAP). Otherwise they act the same. You should B<never> store temporaries. Doing so may result in crashes or data corruption.
+
+There are two families of Scalars, generic and specific. The generic classes can hold all kinds of scalars, but sometimes they are lacking some functionality. Specific classes can only hold one kind of value, but have a little more functionality for that specific type. In most cases you probably want to use the generic classes.
+
+=head2 Scalar::Base
+
+Scalar::Base is the base class of B<all> scalar classes. As such, it provides an extremely thin interface. It only provides 2 methods:
+
+=over
+
+=item bool is_tainted() const;
+
+This method checks if the value is tainted.
+
+=item void taint() const; 
+
+This method taints a variable.
+
+=back
+
+=head2 Numeric Classes
+
+Numeric values have the arithmetic operators you expect them to have. Bitwise operators will be implemented too soon. They are converted implicitly to the primitive they represent.
+
+=head2 String::Value
+
+String::Value defines a simple string class/
+
+=over 4
+
+=item replace(unsigned offset, unsigned length, Raw_string other)
+
+=item replace(unsigned offset, unsigned length, const char* other, unsigned other_length)
+
+replaces a part of the current string with the I<other> string.
+
+=item insert(unsigned offset, Raw_string other)
+
+=item insert(unsigned offset, const char* other, unsigned other_length)
+
+Inserts string other at position offset
+
+=item operator +=(argument)
+
+Appends a value to a string
+
+=back
+
+=head2 Ref<T>::Value
+
+The exact capabitities of Reference values depends on the type they refer to. All reference types support method calling, as specified by I<Functions>. I<Ref<AnyE<gt>> is a special type in that it can refer to any type. As a consequence it can't be dereferenced.  All other types define an operator*().
+
+=over 4
+
+=item bool is_object() const;
+
+This method checks if an object is a blessed object.
+
+=item bool isa(const char* classname) const;
+
+This method checks if this object is of type I<classname>.
+
+=item bool is_exactly(const char* classname) const;
+
+This method checks if this object is of type I<classname>. The difference between this method and the previous is that this method doesn't check inheritance relationship.
+
+=item void weaken() const;
+
+Weaken a reference. 
+
+=item void bless(const Package&);
+
+=item void bless(const char* package_name);
+
+Bless a reference into a specific package.
+
+=item T::Temp operator*() const
+
+This type will dereference the value and return the referee. 
+
+=back
+
+I<Ref<CodeE<gt>> also supports function calling. This is explained in I<Functions>. Also, I<Ref<ArrayE<gt>> and I<Ref<HashE<gt>> will define an operator[]();
+
+=over 4
+
+=item Scalar::Lvalue operator[](argument)
+
+These are equivalent of C<(*value)[argument]>.
+
+=back
+
+=head2 Scalar::Value
+
+Scalar::Value is the base class of all generic classes. It can be converted into all primitive types. Also methods can be called on it if it is an object. If it isn't. Likewise if it is a reference to a I<sub>, it can be used as a function. Lastly, it can be used as a reference to a hash or an array. There are two kinds of Scalar Values: the variable (C<Scalar>) and the temporary value(C<Scalar::Temp>)
+
+=head2 Scalar::Lvalue
+
+Scalar::Lvalue represents a scalar value than can be assigned to.
+
+=head1 DIAGNOSTICS
+
+TODO:
+A list of every error and warning message that the module can generate
+(even the ones that will "never happen"), with a full explanation of each
+problem, one or more likely causes, and any suggested remedies.
+(See also "Documenting Errors" in Chapter 13.)
+
+=head1 AUTHOR
+
+Leon Timmermans (fawaka@gmail.com)

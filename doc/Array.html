@@ -1,0 +1,196 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>NAME</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#version">VERSION</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#subroutines_methods">SUBROUTINES/METHODS</a></li>
+	<ul>
+
+		<li><a href="#array__value">Array::Value</a></li>
+		<li><a href="#array">Array</a></li>
+		<li><a href="#iterators">Iterators</a></li>
+	</ul>
+
+	<li><a href="#diagnostics">DIAGNOSTICS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>libperl++ -</p>
+<p>
+</p>
+<hr />
+<h1><a name="version">VERSION</a></h1>
+<p>This documentation refers to libperl++ version 0.0.48</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+        #Something</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>An object of class <code>Array</code> represents an interface to perl arrays. This class is very much a TIMTOWTDI one. It provides both STD style iterators and</p>
+<p>
+</p>
+<hr />
+<h1><a name="subroutines_methods">SUBROUTINES/METHODS</a></h1>
+<p>
+</p>
+<h2><a name="array__value">Array::Value</a></h2>
+<dl>
+<dt><strong><a name="item_const_scalar_3a_3atemp_operator_5b_5d_28int_29_con"><code>const Scalar::Temp operator[](int) const</code></a></strong></dt>
+
+<dt><strong><a name="item_scalar_3a_3alvalue_operator_5b_5d_28int_29"><code>Scalar::Lvalue operator[](int)</code></a></strong></dt>
+
+<dd>
+<p>Get and/or set a value of an array element. If a value doesn't exist, <code>undefined</code> is returned.</p>
+</dd>
+<dt><strong><a name="item_push"><code>void push(...)</code></a></strong></dt>
+
+<dd>
+<p>Pushes one or more values onto the end of the array. The array will grow automatically to accommodate the addition. It accepts various kinds of primitives, as well as scalar and array values.</p>
+</dd>
+<dt><strong><a name="item_pop"><code>const Scalar::Temp pop()</code></a></strong></dt>
+
+<dd>
+<p>Pops an SV off the end of the array. Returns undef if the array is empty.</p>
+</dd>
+<dt><strong><a name="item_shift"><code>const Scalar::Temp shift()</code></a></strong></dt>
+
+<dd>
+<p>Shifts a scalar off the beginning of the array.</p>
+</dd>
+<dt><strong><a name="item_unshift"><code>void unshift(..)</code></a></strong></dt>
+
+<dd>
+<p>Unshift a scalar value at the beginning of an array.</p>
+</dd>
+<dt><strong><a name="item_remove"><code>const Scalar::Return_value remove(int)</code></a></strong></dt>
+
+<dd>
+<p>Deletes the element indexed by <code>key</code> from the array. Returns the deleted element.</p>
+</dd>
+<dt><strong><a name="item_exists"><code>bool exists(int) const</code></a></strong></dt>
+
+<dd>
+<p>Returns true if the element indexed by <code>key</code> exists.</p>
+</dd>
+<dt><strong><a name="item_length"><code>unsigned length() const</code></a></strong></dt>
+
+<dt><strong><code>Length length()</code></strong></dt>
+
+<dd>
+<p>Returns the length of the array. It is similar to <code>scalar @array</code> in perl. It can be assigned to to change the length of the array.</p>
+</dd>
+<dt><strong><a name="item_clear"><code>void clear()</code></a></strong></dt>
+
+<dd>
+<p>Clears an array, making it empty. Does not free the memory used by the array itself.</p>
+</dd>
+<dt><strong><a name="item_undefine"><code>void undefine()</code></a></strong></dt>
+
+<dd>
+<p>Undefines the array. Frees the memory used by the array itself.</p>
+</dd>
+<dt><strong><a name="item_extend"><code>void extend(unsigned size)</code></a></strong></dt>
+
+<dd>
+<p>Pre-extend an array. <code>size</code> is the index to which the array should be extended.</p>
+</dd>
+<dt><strong><a name="item_map"><code>template&lt;typename T&gt; Array::Temp map(const T&amp; functor) const</code></a></strong></dt>
+
+<dd>
+<p>This method accepts a function or function object as its argument. It applies this function to each of the values in the array and makes a new array from that. The functor must accept one argument, which can be of any type Scalar::Value can convert to. The functor's return value can be of any type that can be pushed onto an array. Also note that the argument is <strong>not</strong> passed as an lvalue. This is a design feature.</p>
+</dd>
+<dt><strong><a name="item_grep"><code>template&lt;typename T&gt; Array::Temp grep(const T&amp; functor) const</code></a></strong></dt>
+
+<dd>
+<p>This method accepts a function or function object as its argument. It applies this function to each of the values in the array and if the return value is true, it pushes the original value into the array it returns. The functor must accept one argument, which can be of any type Scalar::Value can convert to. The functor's return value can be of any type that implicitly converts to bool. Also note that the argument is <strong>not</strong> passed as an lvalue. This is a design feature.</p>
+</dd>
+<dt><strong><a name="item_each"><code>template&lt;typename T&gt; void each(const T&amp; functor) const</code></a></strong></dt>
+
+<dt><strong><code>template&lt;typename T&gt; void each(const T&amp; functor)</code></strong></dt>
+
+<dd>
+<p>This method accepts a function or function object as its sole argument. It applies this function to each of the values in the array. The functor must accept one argument, which can be of any type Scalar::Value can convert to. Note that the function will be offered an alias of the value, so the non-const version can be used to modify the array's values.</p>
+</dd>
+<dt><strong><a name="item_each_index"><code>template&lt;typename T&gt; void each_index(const T&amp; functor) const</code></a></strong></dt>
+
+<dt><strong><code>template&lt;typename T&gt; void each_index(const T&amp; functor)</code></strong></dt>
+
+<dd>
+<p>This method accepts a function or function object as its sole argument. It applies this function to each of the values in the array. The functor must accept two arguments; the first being an integer, and the second can be of any type Scalar::Value can convert to. Note that the function will be offered an alias of the value, so the non-const version can be used to modify the array's values.</p>
+</dd>
+<dt><strong><a name="item_begin"><code>Const_iterator begin() const</code></a></strong></dt>
+
+<dt><strong><code>Iterator begin()</code></strong></dt>
+
+<dd>
+<p>Get a forward iterator pointing at the start of the array.</p>
+</dd>
+<dt><strong><a name="item_end"><code>Const_iterator end() const</code></a></strong></dt>
+
+<dt><strong><code>Iterator end()</code></strong></dt>
+
+<dd>
+<p>Get a forward iterator pointing to the end of the array.</p>
+</dd>
+<dt><strong><a name="item_rbegin"><code>Const_reverse_iterator rbegin() const</code></a></strong></dt>
+
+<dt><strong><code>Reverse_iterator rbegin()</code></strong></dt>
+
+<dd>
+<p>Get a backwards iterator pointing at the end of the array.</p>
+</dd>
+<dt><strong><a name="item_rend"><code>Const_reverse_iterator rend() const</code></a></strong></dt>
+
+<dt><strong><code>Reverse_iterator rend()</code></strong></dt>
+
+<dd>
+<p>Get a backwards iterator pointing to the beginning of the array.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="array">Array</a></h2>
+<p>Array is a subclass of Array::Value. It supports all actions Array supports. It can be initialized in two ways:</p>
+<p>
+</p>
+<h2><a name="iterators">Iterators</a></h2>
+<p>This class provides both forward and backward random access iterators. Iterators remain valid when values are changes or when values are added to the end, but will not remain valid when a value is added to the beginning or in the middle.</p>
+<p>
+</p>
+<hr />
+<h1><a name="diagnostics">DIAGNOSTICS</a></h1>
+<p>...</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Leon Timmermans (<a href="mailto:fawaka@gmail.com">fawaka@gmail.com</a>)</p>
+
+</body>
+
+</html>

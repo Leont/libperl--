@@ -1,0 +1,108 @@
+* decl perl internals
+* decl class interpreter
+* class runtime_exception
+* class out_of_bounds_exception
+* class cast_exception
+* class undefined_exception
+* assertion<T, U>()
+* class raw_string
+* class any
+	- class any::temp
+* namespace implementation
+	- class scalar::value
+	- namespace helper
+		+ dereference()
+		+ make_copy()
+		+ decrement()
+		+ set_scalar()
+	- class ownership<T>
+* class scalar
+	- decl scalar::temp
+	- decl scalar::lvalue
+* decl class lock
+* decl class string
+* decl class ref<T>
+* namespace implementation
+	- class undefined::value
+	- class integer::value
+	- class uinteger::value
+	- class number::value
+	- class string::value
+* class code
+* decl class array
+* namespace implementation
+	- decl class array::value
+	- decl class array::return_value
+	- decl class ref<any>::value
+	- decl class ref<code>::value
+	- class perl_stack
+	- class call_stack
+	- class method_calling<T>
+* class package
+* namespace implementation
+	- decl class element_callback
+	- decl class string_callback
+	- decl class scalar_callback
+* class scalar::temp
+* convert()
+* class scalar::lvalue
+* class scalar::assignable<T>
+* namespace implementation
+	- class scalar::return_value
+* decl class array
+* decl class array::value
+* namespace implentation
+	- class array::element_callback
+	- typedef array::element_type
+	- class array::const_iterator
+	- class array::iterator
+	- typedef array::reverse_iterator
+	- typedef array::const_reverse_iteratorA
+	- class array::value
+	- class array::return_value
+* class array
+	- typedef array::key_type
+	- decl class temp
+* class array::temp
+* decl class hash
+* decl class hash::value
+* namespace implementation
+	- class *::string_callback
+	- class *::scalar_callback
+	- typedef hash::string_entry
+	- typedef hash::scalar_entry
+	- class hash::kv
+	- class hash::value
+	- class kv::key_type
+* class hash
+* class glob
+* class lock
+* class undefined
+* class integer
+* class uinteger
+* class number
+* class string
+* namespace implementation
+	- class ref<any>::value
+	- class *::ref
+	- class ref<T>::value (T ~ scalar)
+	- class ref<array>::value
+	- class ref<hash>::value
+	- class ref<code>::value
+* class ref<any>
+* class ref<T> (T ~ scalar)
+* class ref<array>
+* class ref<hash>
+* class ref<code>
+* namespace implementation
+	- *magic*()
+* class magical<T>
+* namespace implementation
+	- class *::perl_mark
+	- class *::argument_stack
+	- export_as()
+	- typemap_cast<T, U>()
+	- class exporter<T>
+	- class exporter<void>
+class interpreter
+class interpreter::scalar_callback
