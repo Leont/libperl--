@@ -19,7 +19,7 @@ OBJS := $(patsubst %.C,%.o,$(SRCS))
 
 TODEL := $(wildcard *.o)
 
-all: $(LIB) example test
+all: $(LIB) example tap_tester
 
 #$(LIB): $(OBJS)
 #	ar -cr $(LIB) $(OBJS)
@@ -34,13 +34,13 @@ $(LIB): $(OBJS)
 %.C: %.h
 	
 
-test.o: test.C tap++.h
+tap_tester.o: tap_tester.C tap++.h
 	$(CXX) $(ACXXFLAGS) -c $<
 
 example.o: example.C
 	$(CXX) $(ACXXFLAGS) -c $<
 
-test: test.o
+tap_tester: tap_tester.o
 	$(CXX) -o $@ $< $(LDFLAGS)
 
 example: example.o
@@ -49,7 +49,7 @@ example: example.o
 #%.o: perl++.h
 
 clean:
-	-rm $(LIB) test example $(TODEL) 2>/dev/null
+	-rm $(LIB) tap_tester example $(TODEL) 2>/dev/null
 
 again: clean all
 
