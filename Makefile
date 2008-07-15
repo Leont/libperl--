@@ -40,10 +40,10 @@ example.o: example.C
 	$(CXX) $(CXXFLAGS) -c $<
 
 test: test.o
-	$(CXX) -o $@ $< $(LDFLAGS) $(LDFLAGS) 
+	$(CXX) -o $@ $< $(LDFLAGS)
 
 example: example.o
-	$(CXX) -o $@ $< $(LDFLAGS) $(LDFLAGS) 
+	$(CXX) -o $@ $< $(LDFLAGS)
 
 #%.o: perl++.h
 

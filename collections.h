@@ -210,9 +210,9 @@ namespace perl {
 				template<typename T> Temp map(const T& functor) const;
 				template<typename T> Temp grep(const T& functor) const;
 
-				template<typename T, typename R> R reduce(const T& functor, R ret = R()) const {
+				template<typename T, typename U> R reduce(const T& functor, U ret = U()) const {
 					const key_type size = length();
-					for(key_type current = 0; current < size; ++current) {
+					for (key_type current = 0; current < size; ++current) {
 						ret = functor(ret, operator[](current));
 					}
 					return ret;
@@ -221,8 +221,8 @@ namespace perl {
 				//Begin TODO
 				template<typename T> const Scalar::Temp first(const T& functor) const {
 					const key_type size = length();
-					for(key_type current = 0; current < size; ++current) {
-						if (T(operator[](current))) {
+					for (key_type current = 0; current < size; ++current) {
+						if (functor(operator[](current))) {
 							return operator[](current);
 						}
 //						return interp.undef();//...
@@ -232,12 +232,45 @@ namespace perl {
 				const Scalar::Temp min() const;
 				const Temp shuffled() const;
 				const int sum() const;
-				template<typename T> bool any(const T& functor) const;
-				template<typename T> bool all(const T& functor) const;
-				template<typename T> bool none(const T& functor) const;
-				template<typename T> bool notall(const T& functor) const;
 				//Endof TODO
-
+				template<typename T> bool any(const T& functor) const {
+					const key_type size = length();
+					for (key_type current = 0; current < size; ++current) {
+						if (functor(operator[](current))) {
+							return true;
+						}
+					}
+					return false;
+				}
+				template<typename T> bool all(const T& functor) const {
+					const key_type size = length();
+					for (key_type current = 0; current < size; ++current) {
+						if ( !functor(operator[](current))) {
+							return false;
+						}
+					}
+					return size != 0;
+				}
+				template<typename T> bool none(const T& functor) const {
+					const key_type size = length();
+					for (key_type current = 0; current < size; ++current) {
+						if ( functor(operator[](current))) {
+							return false;
+						}
+					}
+					return size != 0;
+				}
+				template<typename T> bool notall(const T& functor) const {
+					const key_type size = length();
+					for (key_type current = 0; current < size; ++current) {
+						if ( !functor(ret, operator[](current))) {
+							return true;
+						}
+					}
+					return false;
+				}
+				unsigned true_count() const;
+				unsigned false_count() const;
 
 				Const_iterator begin() const;
 				Const_iterator end() const;
