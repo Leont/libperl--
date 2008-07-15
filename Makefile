@@ -6,6 +6,7 @@ PERLCXX := $(shell perl -MExtUtils::Embed -e ccopts)
 DEBUG = -ggdb3 -DDEBUG
 DFLAGS = -fPIC $(PERLCXX) 
 CXXFLAGS = $(DEBUG) $(WARNINGS) $(DFLAGS)
+ACXXFLAGS = $(DEBUG) $(WARNINGS) -fPIC
 #CXXFLAGS = -Os -fomit-frame-pointer $(DFLAGS)
 LDFLAGS = -L. -lperl++
 LIBLDFLAGS := $(shell perl -MExtUtils::Embed -e ldopts)
@@ -37,7 +38,7 @@ test.o: test.C
 	$(CXX) $(CXXFLAGS) -c $<
 
 example.o: example.C
-	$(CXX) $(CXXFLAGS) -c $<
+	$(CXX) $(ACXXFLAGS) -c $<
 
 test: test.o
 	$(CXX) -o $@ $< $(LDFLAGS)
@@ -53,7 +54,7 @@ clean:
 again: clean all
 
 love:
-	@echo Not war
+	@echo Not war?
 
 lines:
 	@wc -l *.[Ch] | sort -gr
@@ -62,7 +63,10 @@ linesh:
 linesC:
 	@wc -l *.C | sort -gr
 
-.PHONY: wordsC wordsh words lines linesh linesC todo
+install: $(LIB)
+	cp -a libperl++.so /usr/local/lib/
+
+.PHONY: wordsC wordsh words lines linesh linesC todo install
 
 words: 
 	@make -s wordsC wordsh | sort -gr | column -t

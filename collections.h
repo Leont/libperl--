@@ -210,7 +210,7 @@ namespace perl {
 				template<typename T> Temp map(const T& functor) const;
 				template<typename T> Temp grep(const T& functor) const;
 
-				template<typename T, typename U> R reduce(const T& functor, U ret = U()) const {
+				template<typename T, typename U> U reduce(const T& functor, U ret = U()) const {
 					const key_type size = length();
 					for (key_type current = 0; current < size; ++current) {
 						ret = functor(ret, operator[](current));
@@ -263,7 +263,7 @@ namespace perl {
 				template<typename T> bool notall(const T& functor) const {
 					const key_type size = length();
 					for (key_type current = 0; current < size; ++current) {
-						if ( !functor(ret, operator[](current))) {
+						if ( !functor(operator[](current))) {
 							return true;
 						}
 					}
