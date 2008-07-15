@@ -19,7 +19,7 @@ OBJS := $(patsubst %.C,%.o,$(SRCS))
 
 TODEL := $(wildcard *.o)
 
-all: $(LIB) example
+all: $(LIB) example test
 
 #$(LIB): $(OBJS)
 #	ar -cr $(LIB) $(OBJS)
@@ -34,8 +34,8 @@ $(LIB): $(OBJS)
 %.C: %.h
 	
 
-test.o: test.C
-	$(CXX) $(CXXFLAGS) -c $<
+test.o: test.C tap++.h
+	$(CXX) $(ACXXFLAGS) -c $<
 
 example.o: example.C
 	$(CXX) $(ACXXFLAGS) -c $<

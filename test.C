@@ -2,15 +2,20 @@
 #include "tap++.h"
 
 using namespace perl;
+using namespace TAP;
 using std::cout;
 using std::endl;
 
 int main() {
-	SANE(Interpreter universe, "Can create interpreter");
+	TEST_START;
+	plan(3);
+	TRY_MESSAGE("Create interpreter");
+	Interpreter universe;
 
-	expect(2);
-	SANE(Package dbi = universe.use("DBI") , "Can use...");
+	TRY_MESSAGE("use DBI");
+	Package dbi = universe.use("DBI");
 
-	SANE(universe.eval("1"), "eval '1'");
+	TRY(universe.eval("1"), "eval '1'");
+	TEST_END;
 	return 0;
 }

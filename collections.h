@@ -431,8 +431,6 @@ namespace perl {
 				static const std::string& cast_error();
 
 				friend class perl::Hash;
-				friend class String_callback;
-				friend class Scalar_callback;
 				friend const scalar::Temp_template< reference::Nonscalar<Hash> > perl::take_ref(const Value&);
 				friend class perl::lock;
 			};

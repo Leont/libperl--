@@ -32,9 +32,9 @@ namespace perl {
 				
 				PERL_SYS_INIT(&arg_count, &const_cast<char**>(args));
 				atexit(terminator);
-#ifdef __GNUC__
-				std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
-#endif
+//#ifdef __GNUC__
+//				std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
+//#endif
 				inited = true;
 			}
 			interpreter* interp = perl_alloc();
