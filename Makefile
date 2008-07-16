@@ -46,6 +46,9 @@ tap_tester: tap_tester.o
 example: example.o
 	$(CXX) -o $@ $< $(LDFLAGS)
 
+test:
+	./run_all.pl
+
 #%.o: perl++.h
 
 clean:
@@ -66,7 +69,7 @@ linesC:
 install: $(LIB)
 	cp -a libperl++.so /usr/local/lib/
 
-.PHONY: wordsC wordsh words lines linesh linesC todo install
+.PHONY: wordsC wordsh words lines linesh linesC todo install test
 
 words: 
 	@make -s wordsC wordsh | sort -gr | column -t

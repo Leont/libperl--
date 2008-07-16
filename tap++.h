@@ -18,8 +18,10 @@ namespace TAP {
 
 #define TEST_END pop_message();\
 	}\
-	catch(...) {\
-		print_fail(get_message());\
+	catch (...) {\
+		if (get_message() != NULL) {\
+			print_fail(get_message());\
+		}\
 		std::cout << TAP::get_message();\
 		std::terminate();\
 	}
@@ -29,15 +31,16 @@ namespace TAP {
 	cond;\
 	TAP::print_ok(name);\
 }\
-catch(...) {\
+catch (...) {\
 	TAP::print_fail(name);\
 } } while (0)
 
 template<typename T, typename U> bool is(const T& left, const U& right, const char* message) {
+	TAP::pop_message();
 	try {
-		return left == right, message;
+		return left == right;
 	}
-	catch(...) {
+	catch (...) {
 		TAP::print_fail(message);
 	}
 }

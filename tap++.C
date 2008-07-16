@@ -18,12 +18,8 @@ namespace TAP {
 		std::cout << "ok " << ++counter << " - " << message << std::endl;
 	}
 	void ok(bool is_ok, const char* message) {
-		if (is_ok) {
-			print_ok(message);
-		}
-		else {
-			print_fail(message);
-		}
+		const char* hot_or_not = is_ok ? "" : "not ";
+		std::cout << hot_or_not << "ok " << ++counter << " - " << message << std::endl;
 	}
 	void not_ok(bool is_not_ok, const char* message) {
 		ok(!is_not_ok, message);
