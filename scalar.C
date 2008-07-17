@@ -213,6 +213,9 @@ namespace perl {
 	Scalar::Value::operator const char*() const {
 		return operator Raw_string();
 	}
+	const Array::Temp Scalar::Value::unpack(const Raw_string pattern) const {
+		return implementation::Call_stack(interp).unpack(pattern, *this);
+	}
 
 	SV* Scalar::Value::copy(const Scalar::Base& other) {
 		return copy_sv(other);

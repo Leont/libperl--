@@ -141,6 +141,7 @@ namespace perl {
 			class Value;
 			class Temp;
 		}
+		class String;
 
 		/*
 		 * class Perl_stack
@@ -175,13 +176,14 @@ namespace perl {
 			void prepare_call();
 			void finish_call(int, intptr_t);
 			void unwind_stack(int);
-			int call_sub(const char* name, intptr_t);
+			int call_sub(const char*, intptr_t);
 			int call_sub(SV* ref, intptr_t);
-			int call_method(const char* name, intptr_t);
+			int call_method(const char*, intptr_t);
 			SV* pop();
-			AV* pop_array(int count);
+			AV* pop_array(int);
 			public:
 			explicit Call_stack(interpreter*);
+
 			scalar::Temp method_scalar(const char* name);
 			array::Temp method_array(const char* name);
 			scalar::Temp sub_scalar(const char* name);
@@ -190,6 +192,9 @@ namespace perl {
 			array::Temp sub_array(const char* name);
 			array::Temp sub_array(const implementation::reference::Nonscalar<Code>& ref);
 			array::Temp sub_array(const scalar::Value& ref); //TODO
+
+			const scalar::Temp_template<implementation::String> pack(const Raw_string pattern);
+			const array::Temp unpack(const Raw_string pattern, const Raw_string value);
 			~Call_stack();
 			template<typename T> Call_stack& push(const T& t) {
 				Perl_stack::push(t);
@@ -416,6 +421,7 @@ namespace perl {
 				operator const char*() const;
 				operator bool() const;
 				bool as_bool() const;
+				const array::Temp unpack(const Raw_string) const;
 			
 				scalar::Temp operator[](int) const;
 				scalar::Temp operator[](Raw_string index) const;
@@ -650,6 +656,8 @@ namespace perl {
 			bool operator==(const std::string&) const;
 			bool operator<(const String&) const;
 			bool operator<(const std::string&) const;
+
+			const array::Temp unpack(const Raw_string) const;
 
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);

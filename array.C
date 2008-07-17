@@ -188,6 +188,10 @@ namespace perl {
 		Perl_av_extend(interp, handle, new_length);
 	}
 
+	const String::Temp Array::Value::pack(const Raw_string pattern) const {
+		return implementation::Call_stack(interp).push(*this).pack(pattern);
+	}
+
 	Array::Iterator Array::Value::begin() {
 		return Iterator(*this, 0);
 	}

@@ -11,6 +11,11 @@
 #define sv_2bool(a)        Perl_sv_2bool(aTHX_ a)
 #define sv_2pv_flags(a,b,c) Perl_sv_2pv_flags(aTHX_ a,b,c)
 
+#ifndef FLAG_UNPACK_DO_UTF8
+// perl fails to export unpack flags. This is not very future-proof, but it works.
+#define FLAG_UNPACK_DO_UTF8   0x08
+#endif
+
 namespace perl {
 	/*
 	 * Class Code
@@ -189,5 +194,18 @@ namespace perl {
 			return ret;
 		}
 
+		const perl::String::Temp Call_stack::pack(const Raw_string pattern) {
+			SV* ret = Perl_newSV(interp, 1);
+			SV** base = PL_stack_base - TOPMARK + 1;
+			Perl_packlist(interp, ret, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), base, SP + 1);
+			return perl::String::Temp(interp, ret, true);
+		}
+		const Array::Temp Call_stack::unpack(const Raw_string pattern, const Raw_string value) {
+			prepare_call();
+			int count = Perl_unpackstring(interp, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), const_cast<char*>(value.value), const_cast<char*>(value.value + value.length), value.utf8 && !IN_BYTES ? FLAG_UNPACK_DO_UTF8 : 0);
+			finish_call(count, G_ARRAY);
+			AV* ret = Perl_av_make(interp, count, SP - count + 1);
+			return Array::Temp(interp, ret, true);
+		}
 	}
 }

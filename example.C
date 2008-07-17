@@ -25,7 +25,7 @@ class mag {
 //	}
 	void set_value(Scalar::Value& val) {
 //		val = 1;
-		cout << "Setting value to '" << val << "'" << std::endl;
+		cout << "Setting value to '" << val << "'" << endl;
 	}
 };
 
@@ -122,6 +122,9 @@ int main() {
 		testr.call("set", 3);
 		testr.call("print");
 		}
+		String packed = universe.pack("Nni", 1001, 32768, -4096);
+		Array unpacked = packed.unpack("Nni");
+		test1(unpacked);
 		cout << "End of story" << endl;// */
 	} catch(Runtime_exception& ex) {
 		cout << "Exception '" << ex.what() << "', thrown" << endl;

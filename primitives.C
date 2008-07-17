@@ -297,6 +297,9 @@ namespace perl {
 		void String::insert(unsigned offset, const char* other, unsigned other_length) {
 			replace(offset, -1, other, other_length);
 		}
+		const Array::Temp String::unpack(const Raw_string pattern) const {
+			return implementation::Call_stack(interp).unpack(pattern, *this);
+		}
 
 		SV* String::copy(const Scalar::Base& other) {
 			interpreter* const interp = other.interp;

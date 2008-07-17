@@ -180,6 +180,8 @@ namespace perl {
 				void clear();
 				void undefine();
 				void extend(unsigned);
+
+				const perl::String::Temp pack(const Raw_string) const;
 				
 				template<typename T> void each(const T& functor) const {
 					const key_type size = length();

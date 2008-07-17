@@ -644,16 +644,29 @@ namespace perl {
 		}
 		
 		template<typename T1> Scalar::Temp call(const char* name, const T1& t1) {
-			return implementation::Call_stack(*this).push(t1).sub_scalar(name);
+			return implementation::Call_stack(get_interpreter()).push(t1).sub_scalar(name);
 		}
 		template<typename T1, typename T2> Scalar::Temp call(const char* name, const T1& t1, const T2& t2) {
-			return implementation::Call_stack(*this).push(t1, t2).sub_scalar(name);
+			return implementation::Call_stack(get_interpreter()).push(t1, t2).sub_scalar(name);
 		}
 		template<typename T1, typename T2, typename T3> Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3) {
-			return implementation::Call_stack(*this).push(t1, t2, t3).sub_scalar(name);
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3).sub_scalar(name);
 		}
 		template<typename T1, typename T2, typename T3, typename T4> Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) {
-			return implementation::Call_stack(*this).push(t1, t2, t3, t4).sub_scalar(name);
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).sub_scalar(name);
+		}
+
+		template<typename T1> String::Temp pack(const Raw_string pattern, const T1& t1) {
+			return implementation::Call_stack(get_interpreter()).push(t1).pack(pattern);
+		}
+		template<typename T1, typename T2> String::Temp pack(const Raw_string pattern, const T1& t1, const T2 t2) {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2).pack(pattern);
+		}
+		template<typename T1, typename T2, typename T3> String::Temp pack(const Raw_string pattern, const T1& t1, const T2 t2, const T3& t3) {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3).pack(pattern);
+		}
+		template<typename T1, typename T2, typename T3, typename T4> String::Temp pack(const Raw_string pattern, const T1& t1, const T2 t2, const T3& t3, const T4& t4) {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).pack(pattern);
 		}
 	};
 }
