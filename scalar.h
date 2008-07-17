@@ -184,14 +184,14 @@ namespace perl {
 			public:
 			explicit Call_stack(interpreter*);
 
-			scalar::Temp method_scalar(const char* name);
-			array::Temp method_array(const char* name);
-			scalar::Temp sub_scalar(const char* name);
-			scalar::Temp sub_scalar(const implementation::reference::Nonscalar<Code>& ref);
-			scalar::Temp sub_scalar(const scalar::Value& ref); //TODO
-			array::Temp sub_array(const char* name);
-			array::Temp sub_array(const implementation::reference::Nonscalar<Code>& ref);
-			array::Temp sub_array(const scalar::Value& ref); //TODO
+			const scalar::Temp method_scalar(const char* name);
+			const array::Temp method_array(const char* name);
+			const scalar::Temp sub_scalar(const char* name);
+			const scalar::Temp sub_scalar(const implementation::reference::Nonscalar<Code>& ref);
+			const scalar::Temp sub_scalar(const scalar::Value& ref); //TODO
+			const array::Temp sub_array(const char* name);
+			const array::Temp sub_array(const implementation::reference::Nonscalar<Code>& ref);
+			const array::Temp sub_array(const scalar::Value& ref); //TODO
 
 			const scalar::Temp_template<implementation::String> pack(const Raw_string pattern);
 			const array::Temp unpack(const Raw_string pattern, const Raw_string value);

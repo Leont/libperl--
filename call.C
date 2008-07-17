@@ -101,29 +101,29 @@ namespace perl {
 		 *  the clean methods 
 		 */
 		
-		Scalar::Temp Call_stack::method_scalar(const char* const name) {
+		const Scalar::Temp Call_stack::method_scalar(const char* const name) {
 			assertion<Runtime_exception>( call_method(name, G_SCALAR) == 1, "More than one value returned in scalar call");
 			return Scalar::Temp(interp, pop(), true);
 		}
-		Array::Temp Call_stack::method_array(const char* name) {
+		const Array::Temp Call_stack::method_array(const char* name) {
 			const int count = call_method(name, G_ARRAY);
 			return Array::Temp(interp, pop_array(count), true);
 		}
 
-		Scalar::Temp Call_stack::sub_scalar(const char* const name) {
+		const Scalar::Temp Call_stack::sub_scalar(const char* const name) {
 			assertion<Runtime_exception>( call_sub(name, G_SCALAR) == 1, "More than one value returned in scalar call");
 			return Scalar::Temp(interp, pop(), true);
 		}
-		Scalar::Temp Call_stack::sub_scalar(const Ref<Code>::Value& ref) {
+		const Scalar::Temp Call_stack::sub_scalar(const Ref<Code>::Value& ref) {
 			assertion<Runtime_exception>( call_sub(ref.get_SV(true), G_SCALAR) == 1, "More than one value returned in scalar call");
 			return Scalar::Temp(interp, pop(), true);
 		}
 
-		Array::Temp Call_stack::sub_array(const char* const name) {
+		const Array::Temp Call_stack::sub_array(const char* const name) {
 			const int count = call_sub(name, G_ARRAY);
 			return Array::Temp(interp, pop_array(count), true);
 		}
-		Array::Temp Call_stack::sub_array(const Ref<Code>::Value& ref) {
+		const Array::Temp Call_stack::sub_array(const Ref<Code>::Value& ref) {
 			const int count = call_sub(ref.get_SV(true), G_ARRAY);
 			return Array::Temp(interp, pop_array(count), true);
 		}
@@ -196,7 +196,7 @@ namespace perl {
 
 		const perl::String::Temp Call_stack::pack(const Raw_string pattern) {
 			SV* ret = Perl_newSV(interp, 1);
-			SV** base = PL_stack_base - TOPMARK + 1;
+			SV** base = PL_stack_base + TOPMARK + 1;
 			Perl_packlist(interp, ret, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), base, SP + 1);
 			return perl::String::Temp(interp, ret, true);
 		}
@@ -204,8 +204,7 @@ namespace perl {
 			prepare_call();
 			int count = Perl_unpackstring(interp, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), const_cast<char*>(value.value), const_cast<char*>(value.value + value.length), value.utf8 && !IN_BYTES ? FLAG_UNPACK_DO_UTF8 : 0);
 			finish_call(count, G_ARRAY);
-			AV* ret = Perl_av_make(interp, count, SP - count + 1);
-			return Array::Temp(interp, ret, true);
+			return Array::Temp(interp, Perl_av_make(interp, count, SP - count + 1), true);
 		}
 	}
 }
