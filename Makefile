@@ -47,7 +47,8 @@ example: example.o
 	$(CXX) -o $@ $< $(LDFLAGS)
 
 test:
-	./run_all.pl
+	@echo Running unit tests
+	@./run_tests.pl
 
 #%.o: perl++.h
 
