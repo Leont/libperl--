@@ -1,24 +1,28 @@
 #include "internal.h"
 #include "perl++.h"
-
-#define sv_2iv(a) Perl_sv_2iv(val.interp, a)
-#define sv_2uv(a) Perl_sv_2uv(val.interp, a)
-#define sv_2nv(a) Perl_sv_2nv(val.interp, a)
 #define sv_2pv_flags(a,b,c) Perl_sv_2pv_flags(val.interp, a,b,c)
 #define sv_setsv_flags(a,b,c)   Perl_sv_setsv_flags(aTHX_ a,b,c)
 #define mg_set(a)       Perl_mg_set(aTHX_ a)
 #define sv_2bool(a)     Perl_sv_2bool(aTHX_ a)
-#define sv_tainted(a)       Perl_sv_tainted(aTHX_ a)
+
+#undef SvIV
+#undef SvUV
+#undef SvNV
+#undef SvTAINTED
+#define SvIV(interp, sv) (SvIOK(sv) ? SvIVX(sv) : Perl_sv_2iv(interp, sv))
+#define SvUV(interp, sv) (SvIOK(sv) ? SvUVX(sv) : Perl_sv_2uv(interp, sv))
+#define SvNV(interp, sv) (SvNOK(sv) ? SvNVX(sv) : Perl_sv_2nv(interp, sv))
+#define SvTAINTED(interp, sv)     (SvMAGICAL(sv) && Perl_sv_tainted(interp, sv)) 
 
 namespace {
 	int int_value(const perl::Scalar::Base& val) {
-		return SvIV(val.get_SV(true));
+		return SvIV(val.interp, val.get_SV(true));
 	}
 	unsigned uint_value(const perl::Scalar::Base& val) {
-		return SvUV(val.get_SV(true));
+		return SvUV(val.interp, val.get_SV(true));
 	}
 	double number_value(const perl::Scalar::Base& val) {
-		return SvNV(val.get_SV(true));
+		return SvNV(val.interp, val.get_SV(true));
 	}
 	perl::Raw_string string_value(const perl::Scalar::Base& val) {
 		unsigned len;
@@ -37,7 +41,7 @@ namespace perl {
 			}
 
 			bool Base::is_tainted() const {
-				return SvTAINTED(handle);
+				return SvTAINTED(interp, handle);
 			}
 			void Base::taint() {
 				Perl_sv_taint(interp, handle);
