@@ -26,14 +26,16 @@ namespace TAP {
 		std::terminate();\
 	}
 
-#define TRY(cond, name) do { try {\
-	pop_message();\
-	cond;\
-	TAP::print_ok(name);\
-}\
-catch (...) {\
-	TAP::print_fail(name);\
-} } while (0)
+#define TRY(cond, name) do {\
+	try {\
+		pop_message();\
+		cond;\
+		TAP::print_ok(name);\
+	}\
+	catch (...) {\
+		TAP::print_fail(name);\
+	}\
+} while (0)
 
 template<typename T, typename U> bool is(const T& left, const U& right, const char* message) {
 	TAP::pop_message();
@@ -44,4 +46,7 @@ template<typename T, typename U> bool is(const T& left, const U& right, const ch
 		TAP::print_fail(message);
 	}
 }
-#define TRY_MESSAGE(new_message) replace_message(new_message)
+
+#define TRY_DECL(action, new_message) \
+	replace_message(new_message);\
+	action

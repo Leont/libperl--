@@ -46,7 +46,7 @@ tap_tester: tap_tester.o
 example: example.o
 	$(CXX) -o $@ $< $(LDFLAGS)
 
-test:
+test: $(LIB) tap_tester
 	@echo Running unit tests
 	@./run_tests.pl
 

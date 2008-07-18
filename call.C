@@ -152,8 +152,7 @@ namespace perl {
 		void Call_stack::finish_call(int count, intptr_t flags) {
 			SPAGAIN;
 	        if (SvTRUE(ERRSV)) {
-				unwind_stack(count);
-
+				POPs;
 				STRLEN len;
 				const char* mesg = SvPV(ERRSV, len);
 				throw Runtime_exception(mesg, len);
@@ -162,16 +161,13 @@ namespace perl {
 
 		/* End of unclean methods */
 
-		void Call_stack::unwind_stack(int count) {
+		AV* Call_stack::pop_array(int count) {
+			AV* ret = Perl_av_make(interp, count, SP - count + 1);
 			SP -= count;
 			int ax = (SP - PL_stack_base) + 1;
 			for(int i = 0; i < count; ++i) {
 				Perl_sv_free(interp, ST(i));
 			}
-		}
-		AV* Call_stack::pop_array(int count) {
-			AV* ret = Perl_av_make(interp, count, SP - count + 1);
-			unwind_stack(count);
 			return ret;
 		}
 
