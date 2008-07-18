@@ -13,7 +13,6 @@ namespace perl {
 			class Value;
 		}
 	}
-	const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Array> > take_ref(const implementation::array::Value&);
 
 	namespace implementation {
 		namespace array {
@@ -183,6 +182,12 @@ namespace perl {
 
 				const perl::String::Temp pack(const Raw_string) const;
 				
+				void tie_to(const Scalar::Base& tier);
+				void untie(); //TODO
+				template<typename T1, typename T2, typename T3, typename T4, typename T5> void tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
+
+				const scalar::Temp_template<reference::Nonscalar<Array> > take_ref() const;
+
 				template<typename T> void each(const T& functor) const {
 					const key_type size = length();
 					for(key_type current = 0; current < size; ++current) {
@@ -290,7 +295,6 @@ namespace perl {
 
 				friend class perl::Array;
 				friend class Length;
-				friend const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Array> > perl::take_ref(const Value&);
 
 				friend class perl::lock;
 			};
@@ -370,7 +374,6 @@ namespace perl {
 	 */
 
 	class Hash;
-	const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Hash> > take_ref(const implementation::hash::Value&);
 	namespace implementation {
 		namespace hash {
 			class Iterator {
@@ -410,6 +413,7 @@ namespace perl {
 				void clear();
 				void undefine();
 
+				const scalar::Temp_template<reference::Nonscalar<Hash> > take_ref() const;
 				private:
 				void foreach_init() const;
 				const Iterator next_value() const;
@@ -430,10 +434,13 @@ namespace perl {
 				const Array::Temp keys() const; //TODO
 				const Array::Temp values() const; //TODO
 
+				void tie_to(const Scalar::Base& tier);
+				template<typename T1, typename T2, typename T3, typename T4, typename T5> void tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
+				void untie(); //TODO
+
 				static const std::string& cast_error();
 
 				friend class perl::Hash;
-				friend const scalar::Temp_template< reference::Nonscalar<Hash> > perl::take_ref(const Value&);
 				friend class perl::lock;
 			};
 

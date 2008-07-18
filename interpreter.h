@@ -439,10 +439,24 @@ namespace perl {
 
 	namespace implementation {
 		namespace scalar {
-			template<class T> template<class T1, class T2, class T3, class T4, class T5> void Variable<T>::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
+			template<class T1, class T2, class T3, class T4, class T5> void Base::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
 				Package package(package_name);
 				Ref<Any> tier = package.call("TIESCALAR", t1, t2, t3, t4, t5);
-				helper::tie(*this, tier);
+				tie_to(tier);
+			}
+		}
+		namespace array {
+			template<class T1, class T2, class T3, class T4, class T5> void Value::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
+				Package package(package_name);
+				Ref<Any> tier = package.call("TIEARRAY", t1, t2, t3, t4, t5);
+				tie_to(tier);
+			}
+		}
+		namespace hash {
+			template<class T1, class T2, class T3, class T4, class T5> void Value::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
+				Package package(package_name);
+				Ref<Any> tier = package.call("TIEHASH", t1, t2, t3, t4, t5);
+				tie_to(tier);
 			}
 		}
 

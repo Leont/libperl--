@@ -58,17 +58,27 @@ namespace perl {
 			}
 
 			SV* Base::copy_sv(const Base& other) {
-				interpreter* const interp = other.interp;
-				return Perl_newSVsv(interp, other.get_SV(true));
+				return Perl_newSVsv(other.interp, other.get_SV(true));
 			}
 			const std::string& Base::cast_error() {
 				static const std::string message("Not a scalar");
 				return message;
 			}
+			void Base::tie_to(const Base& tier) {
+				Perl_sv_magic(interp, get_SV(false), tier.get_SV(false), PERL_MAGIC_tiedscalar, "", 0);
+			}
+			void Base::untie() {
+				if (MAGIC* mg = SvRMAGICAL(get_SV(false)) ? Perl_mg_find(interp, get_SV(false), PERL_MAGIC_tiedscalar) : NULL) {
+					Ref<Any> tier = mg->mg_obj != NULL ?  Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : take_ref();
+					if (tier.can("UNTIE")) {
+						tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
+					}
+				}
+				Perl_sv_unmagic(interp, get_SV(false), PERL_MAGIC_tiedscalar);
+			}
 			
-			const Scalar::Temp take_ref(const Scalar::Base& var) {
-				interpreter* const interp = var.interp;
-				return Scalar::Temp(interp, Perl_newRV(interp, var.get_SV(false)), true);
+			const Ref<Any>::Temp Base::take_ref() const {
+				return Ref<Any>::Temp(interp, Perl_newRV(interp, get_SV(false)), true);
 			}
 		}
 	}
@@ -113,9 +123,6 @@ namespace perl {
 			void share(const Scalar::Base& var) {
 				interpreter* const interp = var.interp;
 				SvSHARE(var.get_SV(false));
-			}
-			void tie(Scalar::Base& tied, const Scalar::Base& tier) {
-				Perl_sv_magic(tied.interp, tied.get_SV(false), tier.get_SV(false), PERL_MAGIC_tied, "", 0);
 			}
 			SV* take_ref(const Scalar::Base& var) {
 				interpreter* const interp = var.interp;

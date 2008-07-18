@@ -67,10 +67,10 @@ int main() {
 		bar[4] = "e";
 		cout << "Array is " << bar.length() << " elements long" << endl;
 		std::for_each(bar.begin(), bar.end(), test);
-		Ref<Array> baz = take_ref(bar);
+		Ref<Array> baz = bar.take_ref();
 
 		cout << "bla is " << baz[1] << endl;
-		Ref<Scalar> zab = take_ref(bar[1]);
+		Ref<Scalar> zab = bar[1].take_ref();
 		String zaab = *zab;
 		*zab = 4;
 		cout << "bla is " << baz[1] << endl;

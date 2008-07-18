@@ -137,6 +137,18 @@ namespace perl {
 			void Value::undefine() {
 				Perl_hv_undef(interp, handle);
 			}
+			void Value::tie_to(const Scalar::Base& tier) {
+				Perl_sv_magic(interp, reinterpret_cast<SV*>(handle), tier.get_SV(false), PERL_MAGIC_tied, "", 0);
+			}
+			void Value::untie() {
+				if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? Perl_mg_find(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
+					Ref<Any> tier(Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true));
+					if (tier.can("UNTIE")) {
+						tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
+					}
+				}
+				Perl_sv_unmagic(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);
+			}
 
 			void Value::foreach_init() const {
 				Perl_hv_iterinit(interp, handle);
@@ -211,8 +223,8 @@ namespace perl {
 		}
 	}
 
-	const Ref<Hash>::Temp take_ref(const Hash::Value& var) {
-		return Ref<Hash>::Temp(var.interp, Perl_newRV(var.interp, reinterpret_cast<SV*>(var.handle)), true);
+	const Ref<Hash>::Temp Hash::Value::take_ref() const {
+		return Ref<Hash>::Temp(interp, Perl_newRV(interp, reinterpret_cast<SV*>(handle)), true);
 	} 
 
 	/*

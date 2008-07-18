@@ -34,6 +34,9 @@ namespace perl {
 		}
 
 		namespace scalar {
+			class Value;
+			template<typename T> class Temp_template;
+			typedef Temp_template<Value> Temp;
 			/*
 			 * Class Scalar::Base
 			 * This class represents scalar values. It's a thin interface, as different kinds of scalar
@@ -52,6 +55,10 @@ namespace perl {
 				SV* get_SV(bool) const;
 				bool is_tainted() const;
 				void taint();
+				void tie_to(const Base& tier);
+				void untie();
+				template<typename T1, typename T2, typename T3, typename T4, typename T5> void tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
+				const Temp_template< reference::Nonscalar<Any> > take_ref() const;
 
 				protected:
 				static SV* copy_sv(const Base&);
@@ -67,7 +74,6 @@ namespace perl {
 			void set_scalar(scalar::Base&, const scalar::Base&);
 			void mortalize(const scalar::Base&);
 			void share(const scalar::Base&);
-			void tie(scalar::Base&, const scalar::Base&);
 			SV* take_ref(const scalar::Base&);
 		}
 
@@ -110,14 +116,13 @@ namespace perl {
 					}
 				}
 				using T::operator=;
+				const scalar::Temp_template<typename reference::Scalar_ref<T> > take_ref() const {
+					return scalar::Temp_template<typename reference::Scalar_ref<T> >(T::interp, helper::take_ref(*this), true);
+				}
 			};
 
 			class Value;
 			typedef Temp_template<Value> Temp;
-//			const Temp take_ref(const Base&);
-		}
-		template<typename T> const scalar::Temp_template<typename reference::Scalar_ref<T> > take_ref(const scalar::Temp_template<T>& val) {
-			return scalar::Temp_template<typename reference::Scalar_ref<T> >(val.interp, helper::take_ref(val), true);
 		}
 	}
 
@@ -469,17 +474,13 @@ namespace perl {
 				void share() {
 					helper::share(*this);
 				}
-				void tie_to(const scalar::Base& tier) {
-					helper::tie(*this, tier);
-				}
-				template<typename T1, typename T2, typename T3, typename T4, typename T5> void tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
 
 				using T::operator=;
+				const scalar::Temp_template<typename reference::Scalar_ref<T> > take_ref() const {
+					return scalar::Temp_template<typename reference::Scalar_ref<T> >(T::interp, helper::take_ref(*this), true);
+				}
 			};
 
-			template<typename T> const scalar::Temp_template<typename reference::Scalar_ref<T> > take_ref(const scalar::Variable<T>& val) {
-				return scalar::Temp_template<typename reference::Scalar_ref<T> >(val.interp, helper::take_ref(val), true);
-			}
 		}
 	}
 
@@ -708,6 +709,7 @@ namespace perl {
 				void bless(const Package&);
 				void bless(const char*);
 				const char* get_classname() const;
+				bool can(const char* method_name) const;
 
 				static SV* copy(const Scalar::Base&);
 				static bool is_compatible_type(const scalar::Base& var);

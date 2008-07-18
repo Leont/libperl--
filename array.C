@@ -192,6 +192,19 @@ namespace perl {
 		return implementation::Call_stack(interp).push(*this).pack(pattern);
 	}
 
+	void Array::Value::tie_to(const Scalar::Base& tier) {
+		Perl_sv_magic(interp, reinterpret_cast<SV*>(handle), tier.get_SV(false), PERL_MAGIC_tied, "", 0);
+	}
+	void Array::Value::untie() {
+		if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? Perl_mg_find(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
+			Ref<Any> tier(Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true));
+			if (tier.can("UNTIE")) {
+				tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
+			}
+		}
+		Perl_sv_unmagic(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);
+	}
+
 	Array::Iterator Array::Value::begin() {
 		return Iterator(*this, 0);
 	}
@@ -349,9 +362,8 @@ namespace perl {
 		return ref[index + diff];
 	}
 
-	const Ref<Array>::Temp take_ref(const Array::Value& referee) {
-		interpreter* const interp = referee.interp;
-		return Ref<Array>::Temp(interp, Perl_newRV(interp, reinterpret_cast<SV*>(referee.handle)), true);
+	const Ref<Array>::Temp Array::Value::take_ref() const {
+		return Ref<Array>::Temp(interp, Perl_newRV(interp, reinterpret_cast<SV*>(handle)), true);
 	}
 
     namespace implementation {
