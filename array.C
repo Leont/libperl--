@@ -204,6 +204,12 @@ namespace perl {
 		}
 		Perl_sv_unmagic(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);
 	}
+	const Scalar::Temp Array::Value::tied() const {
+		if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? Perl_mg_find(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
+			return (mg->mg_obj != NULL) ?  Scalar::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : Scalar::Temp(take_ref());
+		}
+		return Scalar::Temp(interp, Perl_newSV(interp, 0), true);
+	}
 
 	Array::Iterator Array::Value::begin() {
 		return Iterator(*this, 0);

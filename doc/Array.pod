@@ -88,6 +88,26 @@ This method accepts a function or function object as its sole argument. It appli
 
 This method accepts a function or function object as its sole argument. It applies this function to each of the values in the array. The functor must accept two arguments; the first being an integer, and the second can be of any type Scalar::Value can convert to. Note that the function will be offered an alias of the value, so the non-const version can be used to modify the array's values.
 
+=item Ref<Array>::Temp take_ref() const;
+
+Take a reference to this value.
+
+=item const Ref<Any>::Temp tie(const char* classname, list... );
+
+This method binds a variable to a package class that will provide the implementation for the variable. Classname is the name of a class implementing objects of correct type.  Any additional arguments are passed to the "new" method of the class, TIEARRAY. 
+
+=item void tie_to(const Scalar::Base& tier);
+
+This method ties a value to a different value. This can be used to tie a value to an already constructed implementation object.
+
+=item void untie();
+
+This method unties the value.
+
+=item Scalar::Temp tied() const;
+
+This method returns the implementation object of a variable. On non-tied arrays it returns undef.
+
 =item template<typename T> bool any(const T& functor) const;
 
 =item template<typename T> bool all(const T& functor) const;

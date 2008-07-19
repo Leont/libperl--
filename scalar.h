@@ -31,6 +31,7 @@ namespace perl {
 			template<typename T> class Nonscalar;
 			template<typename T> class Scalar_ref;
 			template<typename T, typename Enable = void> class ref;
+			class Reference_base;
 		}
 
 		namespace scalar {
@@ -56,8 +57,9 @@ namespace perl {
 				bool is_tainted() const;
 				void taint();
 				void tie_to(const Base& tier);
+				const Temp_template<Value> tied() const;
 				void untie();
-				template<typename T1, typename T2, typename T3, typename T4, typename T5> void tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
+				template<typename T1, typename T2, typename T3, typename T4, typename T5> const Temp_template<reference::Nonscalar<Any> > tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
 				const Temp_template< reference::Nonscalar<Any> > take_ref() const;
 
 				protected:
@@ -85,12 +87,23 @@ namespace perl {
 				typedef T Base_type;
 				mutable bool owns;
 				bool transferable;
+				template<typename U> struct accept_anything {
+						typedef typename boost::mpl::and_< typename boost::is_same<T, Value>::type , typename boost::mpl::not_<typename boost::is_same<U, Value>::type>::type >::type type;
+						// T == Value && U != Value
+				};
 				public:
 				Temp_template(interpreter* _interp, SV* _value, bool _owns) : Base_type(_interp, _value), owns(_owns), transferable(_owns) {
 				}
 				Temp_template(interpreter* _interp, SV* _value, bool _owns, bool _transferable) : Base_type(_interp, _value), owns(_owns), transferable(_transferable) {
 				}
 				Temp_template(const Temp_template& other) : Base_type(other.interp, other.get_SV(false)), owns(other.owns), transferable(other.transferable) {
+					other.owns = false;
+				}
+				template<typename U> friend class Temp_template;
+				template<typename U> Temp_template(const Temp_template<U>& other, typename boost::enable_if<typename accept_anything<U>::type, int>::type selector = 1) : Base_type(other.interp, other.get_SV(false)), owns(other.owns), transferable(other.transferable) {
+					other.owns = false;
+				}
+				template<typename U> Temp_template(const Temp_template<U>& other, const override&) : Base_type(other.interp, other.get_SV(false)), owns(other.owns), transferable(other.transferable) {
 					other.owns = false;
 				}
 				Temp_template& operator=(const Temp_template& other) {
@@ -242,6 +255,7 @@ namespace perl {
 			public:
 			typedef const scalar::Temp scalar_type;
 			typedef const array::Temp array_type;
+			typedef const scalar::Temp_template<reference::Nonscalar<Code> > code_type;
 		};
 
 		/*
@@ -281,6 +295,22 @@ namespace perl {
 			}
 			//TODO: call_array
 		};
+
+		/*
+		 * Stash
+		 * A helper class of method_calling
+		 */
+
+		class Stash {
+			interpreter* interp;
+			HV* stash;
+			public: 
+			Stash(const Package&);
+			Stash(const reference::Reference_base&);
+			Stash(const scalar::Value&);
+			bool can(Raw_string) const;
+			const scalar::Temp_template< reference::Nonscalar<Code> > get_method(Raw_string) const;
+		};
 		/*
 		 * Class method_calling.
 		 * A mixin to implement method calling. Not to be used directly.
@@ -291,7 +321,14 @@ namespace perl {
 			}
 			typedef typename implementation::return_type<T>::scalar_type scalar_type;
 			typedef typename implementation::return_type<T>::array_type array_type;
+			typedef typename implementation::return_type<T>::code_type code_type;
 			public:
+			bool can(Raw_string name) const {
+				return Stash(self()).can(name);
+			}
+			code_type get_method(Raw_string name) const {
+				return Stash(self).get_method(name);
+			}
 			scalar_type call(const char * name) const {
 				return implementation::Call_stack(self().interp).push(self()).method_scalar(name);
 			}
@@ -432,7 +469,6 @@ namespace perl {
 				scalar::Temp operator[](Raw_string index) const;
 				scalar::Temp operator[](const Base& index) const;
 
-				bool can(Raw_string name) const;
 				bool is_object() const;
 				bool isa(const char*) const;
 				bool is_exactly(const char*) const;
@@ -709,7 +745,6 @@ namespace perl {
 				void bless(const Package&);
 				void bless(const char*);
 				const char* get_classname() const;
-				bool can(const char* method_name) const;
 
 				static SV* copy(const Scalar::Base&);
 				static bool is_compatible_type(const scalar::Base& var);
@@ -810,7 +845,7 @@ namespace perl {
 		typedef typename implementation::scalar::Variable< typename implementation::reference::ref<T>::type> Parent;
 		template<typename U> struct scalar_assignment {
 			typedef typename boost::mpl::and_<typename boost::mpl::or_<typename boost::is_same<T, Scalar>::type, typename boost::is_same<T, Any>::type>::type, typename boost::is_base_of<Scalar::Base, U>::type, typename boost::mpl::not_<typename boost::is_same<U, typename T::Value>::type>::type>::type type;
-			// (is_same<T, Scalar> || is_same<T, Any>) && is_base_of<Scalar::Base, U> && !is_same<U, T::Value>
+			// (T == Scalar || T == Any>) && U isa Scalar::Base && U != T::Value
 		};
 		public:
 		typedef typename Parent::Value Value;

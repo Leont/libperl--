@@ -233,17 +233,6 @@ namespace perl {
 	Package::Package(interpreter* _interp, const char* _name, bool create) : interp(_interp), package_name(_name), stash(get_stash(interp, _name, create)) {
 	}
 	
-	Ref<Code>::Temp Package::get_method(Raw_string name) {
-		GV* const glob = Perl_gv_fetchmeth(interp, stash, name.value, name.length, -1);
-		if (glob == NULL) {
-			throw Runtime_exception("method doesn't exist");//TODO No such method exception??
-		}
-		CV* const codeval = GvCV(glob);
-		return take_ref(Code::Value(interp, codeval));
-	}
-	bool Package::can(Raw_string name) const {
-		return Perl_gv_fetchmeth(interp, stash, name.value, name.length, -1) != NULL;
-	}
 	const std::string& Package::get_name() const {
 		return package_name;
 	}

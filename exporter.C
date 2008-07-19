@@ -49,7 +49,7 @@ namespace perl {
 			SV* const* const ret = Perl_hv_fetch(interp, PL_modglobal, key.c_str(), key.length(), 0);
 			return Ref<Any>::Temp(interp, *ret, false);
 		}
-		Ref<Any>::Temp store_in_cache(interpreter* interp, const void* address, const implementation::classes::State& state) {
+		Ref<Any>::Temp store_in_cache(interpreter* interp, void* address, const implementation::classes::State& state) {
 			std::string key(cache_namespace);
 			key.append(reinterpret_cast<const char*>(&address), sizeof(void*));
 

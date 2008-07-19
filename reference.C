@@ -33,12 +33,6 @@ namespace perl {
 			const char* Reference_base::get_classname() const {
 				return HvNAME(SvSTASH(SvRV(get_SV(true))));
 			}
-			bool Reference_base::can(const char* method_name) const {
-				SV * const obj = SvRV(get_SV(false));
-				GV *gv;
-				CV *cv = NULL;
-				return (gv = Perl_gv_fetchmethod_autoload(interp, SvSTASH(obj), method_name, false)) && isGV(gv) && (cv = GvCV(gv));
-			}
 
 			bool Reference_base::is_compatible_type(const Scalar::Base& val) {
 				return SvROK(val.get_SV(false));

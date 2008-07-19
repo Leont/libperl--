@@ -76,6 +76,12 @@ namespace perl {
 				}
 				Perl_sv_unmagic(interp, get_SV(false), PERL_MAGIC_tiedscalar);
 			}
+			const Scalar::Temp Base::tied() const {
+				if (MAGIC* mg = SvRMAGICAL(get_SV(false)) ? Perl_mg_find(interp, get_SV(false), PERL_MAGIC_tiedscalar) : NULL) {
+					return (mg->mg_obj != NULL) ?  Scalar::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : Scalar::Temp(take_ref());
+				}
+				return Scalar::Temp(interp, Perl_newSV(interp, 0), true);
+			}
 			
 			const Ref<Any>::Temp Base::take_ref() const {
 				return Ref<Any>::Temp(interp, Perl_newRV(interp, get_SV(false)), true);
@@ -246,17 +252,6 @@ namespace perl {
 		}
 		Hash::Temp hash(ret.interp, reinterpret_cast<HV*>(ret.handle), false);
 		return hash[key];
-	}
-
-	bool Scalar::Value::can(Raw_string name) const {
-		SV* const handler = get_SV(true);
-		if (SvROK(handler) && Perl_sv_isobject(interp, handler)) { // Blessed reference
-			return Perl_gv_fetchmeth(interp, SvSTASH(SvRV(handler)), name.value, name.length, -1) != NULL;
-		}
-		else if (HV* stash = Perl_gv_stashsv(interp, handler, false)) { // Class name
-			return Perl_gv_fetchmeth(interp, stash, name.value, name.length, -1) != NULL;
-		}
-		return false;
 	}
 
 	bool Scalar::Value::is_object() const {

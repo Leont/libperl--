@@ -34,12 +34,12 @@ namespace perl {
 		}
 
 		struct Object_buffer {
-			const void* ref;
+			void* ref;
 			bool owns;
-			Object_buffer(const void* _ref, bool _owns) : ref(_ref), owns(_owns) {
+			Object_buffer(void* _ref, bool _owns) : ref(_ref), owns(_owns) {
 			}
-			template<typename T> const T* get() {
-				return reinterpret_cast<const T*>(ref);
+			template<typename T> T*& get() {
+				return reinterpret_cast<T*&>(ref);
 			}
 		};
 
@@ -56,7 +56,7 @@ namespace perl {
 				State(const State&);
 			};
 		}
-		SV* make_magic_object(interpreter*, const void*, const classes::State&);
+		SV* make_magic_object(interpreter*, void*, const classes::State&);
 	}
 
 	class Magic {
@@ -145,7 +145,7 @@ namespace perl {
 			return export_as(interp, name, glue, &func, sizeof func);
 		}
 
-		template<typename T> T get_function_pointer(interpreter* interp, CV* cef) {
+		template<typename T> T& get_function_pointer(interpreter* interp, CV* cef) {
 			Raw_string ret = get_magic_string(interp, reinterpret_cast<SV*>(cef));
 			if (ret.length < sizeof(T)) {
 				throw Runtime_exception("Magical error!");
@@ -395,7 +395,7 @@ namespace perl {
 #undef TRY_OR_THROW
 
 		Ref<Any>::Temp get_from_cache(interpreter*, const void*);
-		Ref<Any>::Temp store_in_cache(interpreter*, const void*, const implementation::classes::State&);
+		Ref<Any>::Temp store_in_cache(interpreter*, void*, const implementation::classes::State&);
 	 }
 
 	template<typename T> class Class;
@@ -407,6 +407,7 @@ namespace perl {
 		Package& operator=(const Package&);
 		friend class implementation::method_calling<Package>;
 		friend class implementation::reference::Reference_base;
+		friend class implementation::Stash;
 		template<typename T> friend class Class;
 		public:
 		Package(const Package&);
@@ -415,9 +416,6 @@ namespace perl {
 		const std::string& get_name() const;
 		operator const std::string&() const;
 		
-		Ref<Code>::Temp get_method(Raw_string name); //Is this needed?
-		bool can(Raw_string name) const;
-
 		template<typename T> Code::Value export_sub(const char* name, const T& func) {
 			return implementation::export_sub(interp, (package_name + "::" + name).c_str(), func);
 		}
@@ -439,24 +437,27 @@ namespace perl {
 
 	namespace implementation {
 		namespace scalar {
-			template<class T1, class T2, class T3, class T4, class T5> void Base::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
+			template<class T1, class T2, class T3, class T4, class T5> const Ref<Any>::Temp Base::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
 				Package package(package_name);
-				Ref<Any> tier = package.call("TIESCALAR", t1, t2, t3, t4, t5);
+				Ref<Any>::Temp tier(package.call("TIESCALAR", t1, t2, t3, t4, t5), override());
 				tie_to(tier);
+				return tier;
 			}
 		}
 		namespace array {
-			template<class T1, class T2, class T3, class T4, class T5> void Value::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
+			template<class T1, class T2, class T3, class T4, class T5> const Ref<Any>::Temp Value::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
 				Package package(package_name);
-				Ref<Any> tier = package.call("TIEARRAY", t1, t2, t3, t4, t5);
+				Ref<Any>::Temp tier(package.call("TIEARRAY", t1, t2, t3, t4, t5), override());
 				tie_to(tier);
+				return tier;
 			}
 		}
 		namespace hash {
-			template<class T1, class T2, class T3, class T4, class T5> void Value::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
+			template<class T1, class T2, class T3, class T4, class T5> const Ref<Any>::Temp Value::tie(const char* package_name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) {
 				Package package(package_name);
-				Ref<Any> tier = package.call("TIEHASH", t1, t2, t3, t4, t5);
+				Ref<Any>::Temp tier(package.call("TIEHASH", t1, t2, t3, t4, t5), override());
 				tie_to(tier);
+				return tier;
 			}
 		}
 

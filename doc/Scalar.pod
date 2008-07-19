@@ -18,7 +18,7 @@ There are two families of Scalars, generic and specific. The generic classes can
 
 =head2 Scalar::Base
 
-Scalar::Base is the base class of B<all> scalar classes. As such, it provides an extremely thin interface. It only provides 2 methods:
+Scalar::Base is the base class of B<all> scalar classes. As such, it provides a thin interface.
 
 =over
 
@@ -30,6 +30,26 @@ This method checks if the value is tainted.
 
 This method taints a variable.
 
+=item Ref<Any>::Temp take_ref() const;
+
+Take a reference to this value. The return type of this method in subclasses will be slightly different, but will always be a Ref<T>::Temp type.
+
+=item const Ref<Any>::Temp tie(const char* classname, list... );
+
+This method binds a variable to a package class that will provide the implementation for the variable. Classname is the name of a class implementing objects of correct type.  Any additional arguments are passed to the "new" method of the class, TIESCALAR. 
+
+=item void tie_to(const Scalar::Base& tier);
+
+This method ties a value to a different value. This can be used to tie a value to an already constructed implementation object.
+
+=item void untie();
+
+This method unties the value.
+
+=item Scalar::Temp tied() const;
+
+This method returns the implementation object of a variable. On non-tied values it returns undef.
+
 =back
 
 =head2 Numeric Classes
@@ -38,7 +58,7 @@ Numeric values have the arithmetic operators you expect them to have. Bitwise op
 
 =head2 String::Value
 
-String::Value defines a simple string class/
+String::Value defines a simple string class.
 
 =over 4
 

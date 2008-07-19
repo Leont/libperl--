@@ -30,7 +30,7 @@ namespace perl {
 			Perl_sv_magic(interp, var, NULL, PERL_MAGIC_ext, reinterpret_cast<const char*>(value), length);
 		}
 
-		SV* make_magic_object(interpreter* interp, const void* obj, const classes::State& state) {
+		SV* make_magic_object(interpreter* interp, void* obj, const classes::State& state) {
 			SV* const referee = state.hash ? reinterpret_cast<SV*>(Perl_newHV(interp)) : Perl_newSV(interp, 0);
 			Object_buffer buffer(obj, true);
 			Perl_sv_magicext(interp, referee, NULL, PERL_MAGIC_ext, state.magic_table, reinterpret_cast<const char*>(&buffer), sizeof buffer);

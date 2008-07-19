@@ -149,6 +149,12 @@ namespace perl {
 				}
 				Perl_sv_unmagic(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);
 			}
+			const Scalar::Temp Value::tied() const {
+				if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? Perl_mg_find(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
+					return (mg->mg_obj != NULL) ?  Scalar::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : Scalar::Temp(take_ref());
+				}
+				return Scalar::Temp(interp, Perl_newSV(interp, 0), true);
+			}
 
 			void Value::foreach_init() const {
 				Perl_hv_iterinit(interp, handle);

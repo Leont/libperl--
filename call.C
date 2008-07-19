@@ -42,10 +42,10 @@ namespace perl {
 		return implementation::is_this_type(value, SVt_PVCV);
 	}
 
-	/*
-	 * Class Perl_stack
-	 */
 	namespace implementation {
+		/*
+		 * Class Perl_stack
+		 */
 		Perl_stack::Perl_stack(interpreter* _interp) : interp(_interp), sp(PL_stack_sp) {
 		}
 
@@ -201,6 +201,36 @@ namespace perl {
 			int count = Perl_unpackstring(interp, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), const_cast<char*>(value.value), const_cast<char*>(value.value + value.length), value.utf8 && !IN_BYTES ? FLAG_UNPACK_DO_UTF8 : 0);
 			finish_call(count, G_ARRAY);
 			return Array::Temp(interp, Perl_av_make(interp, count, SP - count + 1), true);
+		}
+
+		/*
+		 * class Stash
+		 */
+
+		Stash::Stash(const Package& package) : interp(package.interp), stash(package.stash) {
+		}
+		Stash::Stash(const reference::Reference_base& value) : interp(value.interp), stash(SvSTASH(SvRV(value.get_SV(false)))) {
+		}
+		static inline HV* get_stash(const Scalar::Value& value) {
+			SV* const handler = value.get_SV(true);
+			return (SvROK(handler) && Perl_sv_isobject(value.interp, handler)) ?  SvSTASH(SvRV(handler)) : Perl_gv_stashsv(value.interp, handler, false);
+		}
+		Stash::Stash(const Scalar::Value& value) : interp(value.interp), stash(get_stash(value)) {
+		}
+		bool Stash::can(Raw_string name) const {
+			if (stash) {
+				GV* gv = Perl_gv_fetchmeth_autoload(interp, stash, name.value, name.length, -1);
+				return gv && isGV(gv) && CvGV(gv);
+			}
+			return false;
+		}
+		const Ref<Code>::Temp Stash::get_method(Raw_string name) const {
+			GV* const glob = Perl_gv_fetchmeth_autoload(interp, stash, name.value, name.length, -1);
+			if (glob == NULL || !isGV(glob) || CvGV(glob) == NULL) {
+				throw Runtime_exception("method doesn't exist");//TODO No such method exception??
+			}
+			CV* const codeval = GvCV(glob);
+			return take_ref(Code::Value(interp, codeval));
 		}
 	}
 }

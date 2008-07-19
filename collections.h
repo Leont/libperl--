@@ -182,9 +182,10 @@ namespace perl {
 
 				const perl::String::Temp pack(const Raw_string) const;
 				
-				void tie_to(const Scalar::Base& tier);
+				void tie_to(const Scalar::Base&);
 				void untie(); //TODO
-				template<typename T1, typename T2, typename T3, typename T4, typename T5> void tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
+				template<typename T1, typename T2, typename T3, typename T4, typename T5> const Ref<Any>::Temp tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
+				const Scalar::Temp tied() const;
 
 				const scalar::Temp_template<reference::Nonscalar<Array> > take_ref() const;
 
@@ -434,9 +435,10 @@ namespace perl {
 				const Array::Temp keys() const; //TODO
 				const Array::Temp values() const; //TODO
 
-				void tie_to(const Scalar::Base& tier);
-				template<typename T1, typename T2, typename T3, typename T4, typename T5> void tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
+				void tie_to(const Scalar::Base&);
+				template<typename T1, typename T2, typename T3, typename T4, typename T5> const Ref<Any>::Temp tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
 				void untie(); //TODO
+				const Scalar::Temp tied() const;
 
 				static const std::string& cast_error();
 
