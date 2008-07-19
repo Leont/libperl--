@@ -59,13 +59,4 @@ namespace perl {
 			};
 		}
 	}
-
-	class Code::Value {
-		interpreter* const interp;
-		CV* const handle;
-
-		public:
-		Value(interpreter*, CV*);
-		friend const Ref<Code>::Temp take_ref(const Value&);
-	};
 }

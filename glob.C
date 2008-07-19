@@ -2,47 +2,65 @@
 #include "perl++.h"
 
 #define sv_free(a) Perl_sv_free(aTHX_ a)
+#define gv_SVadd(gv) Perl_gv_SVadd(aTHX_ gv)
+#define gv_AVadd(gv) Perl_gv_AVadd(aTHX_ gv)
+#define gv_HVadd(gv) Perl_gv_HVadd(aTHX_ gv)
 
-#if 1
 namespace perl {
-	Glob::Glob(const Glob& other) : interp(other.interp), value(other.value) {
-		SvREFCNT_inc(reinterpret_cast<const SV*>(value));
+	Glob::Glob(interpreter* _interp, GV* _handle) : interp(_interp), handle(_handle) {
+	}
+	Glob::Glob(const Glob& other) : interp(other.interp), handle(other.handle) {
+		SvREFCNT_inc(reinterpret_cast<const SV*>(handle));
 	}
 	Glob::~Glob() {
-		SvREFCNT_dec(reinterpret_cast<const SV*>(value));
+		SvREFCNT_dec(reinterpret_cast<const SV*>(handle));
 	}
-//	Glob& Glob::operator=(const Glob& other);
 
-	//TODO fix refcounting?
-//	Glob& Glob::operator=(const scalar::value& other) {
-//		//This is all guesswork!
-//		if (GvSV(value) == NULL) {
-//			GvSV(value) = newSV(0);
-//		}
-//		SvSetSV(GvSV(value), other.get_SV(true));
-//		return *this;
-//	}
-//	Glob& Glob::operator=(const array& other) {
-//		GvAV(value) = other.value;
-//	}
-//	Glob& Glob::operator=(const Array::Rvalue&);
-//	Glob& Glob::operator=(const Hash&);
-//	Glob& Glob::operator=(const Hash::Rvalue&);
-//	Glob& Glob::operator=(const Code::Rvalue&);
+	Glob& Glob::operator=(const Scalar::Base& other) {
+		if (GvSV(handle) != NULL) {
+			SvREFCNT_dec(GvSV(handle));
+		}
+		GvSV(handle) = SvREFCNT_inc(other.get_SV(false));
+		return *this;
+	}
+	Glob& Glob::operator=(const Array::Value& other) {
+		if (GvAV(handle) != NULL) {
+			SvREFCNT_dec(reinterpret_cast<SV*>(GvAV(handle)));
+		}
+		SvREFCNT_inc(reinterpret_cast<SV*>(other.handle));
+		GvAV(handle) = other.handle;
+		return *this;
+	}
+	Glob& Glob::operator=(const Hash::Value& other) {
+		if (GvHV(handle) != NULL) {
+			SvREFCNT_dec(reinterpret_cast<SV*>(GvHV(handle)));
+		}
+		SvREFCNT_inc(reinterpret_cast<SV*>(other.handle));
+		GvHV(handle) = other.handle;
+		return *this;
+	}
+	Glob& Glob::operator=(const Code::Value& other) {
+		if (GvCV(handle) != NULL) {
+			SvREFCNT_dec(reinterpret_cast<SV*>(GvCV(handle)));
+		}
+		SvREFCNT_inc(reinterpret_cast<SV*>(other.handle));
+		GvCV(handle) = other.handle;
+		return *this;
+	}
 	Raw_string Glob::name() const {
-		return Raw_string(GvNAME(value), GvNAMELEN(value), true);
+		return Raw_string(GvNAME(handle), GvNAMELEN(handle), true);
 	}
 	const Scalar::Temp Glob::scalar_value() const {
-		return Scalar::Temp(interp, GvSV(value), false);
+		return Scalar::Temp(interp, GvSVn(handle), false);
 	}
 	Array::Temp Glob::array_value() const {
-		return Array::Temp(interp, GvAV(value), false);
+		return Array::Temp(interp, GvAVn(handle), false);
 	}
 	Hash::Temp Glob::hash_value() const {
-		return Hash::Temp(interp, GvHV(value), false);
+		return Hash::Temp(interp, GvHVn(handle), false);
 	}
 	const Code::Value Glob::code_value() const {
-		return Code::Value(interp, GvCV(value));
+		// Handle Nullcv
+		return Code::Value(interp, GvCVu(handle));
 	}
 }
-#endif

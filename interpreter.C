@@ -129,13 +129,13 @@ namespace perl {
 
 	namespace {
 		int scalar_store(interpreter* interp, SV* var, MAGIC* magic) {
-			SvSetMagicSV(Perl_get_sv(interp, magic->mg_ptr, TRUE), var);
+			SvSetMagicSV(Perl_get_sv(interp, magic->mg_ptr, true), var);
 			return 0;
 		}
 		MGVTBL scalar_set_magic = { 0, scalar_store, 0, 0, 0 };
 	}
 	Scalar::Temp Interpreter::scalar(const char* name) {
-		SV* const ret = Perl_get_sv(raw_interp.get(), name, FALSE);
+		SV* const ret = Perl_get_sv(raw_interp.get(), name, false);
 		if (ret == NULL) {
 			SV* magical = Perl_newSV(raw_interp.get(), 0);
 			Perl_sv_magicext(raw_interp.get(), magical, NULL, PERL_MAGIC_uvar, &scalar_set_magic, name, strlen(name) + 1);
@@ -148,8 +148,16 @@ namespace perl {
 		if (SvGMAGICAL(handle)) Perl_mg_get(interp, handle);
 	}
 
+	const Glob Interpreter::glob(const char* name) const {
+		GV* const ret = Perl_gv_fetchpv(raw_interp.get(), name, GV_ADD, SVt_PV);
+		return Glob(raw_interp.get(), ret);
+	}
+	Glob Interpreter::glob(const char* name) {
+		GV* const ret = Perl_gv_fetchpv(raw_interp.get(), name, GV_ADD, SVt_PV);
+		return Glob(raw_interp.get(), ret);
+	}
 	const Array::Temp Interpreter::array(const char* name) const {
-		AV* const ret = Perl_get_av(raw_interp.get(), name, FALSE);
+		AV* const ret = Perl_get_av(raw_interp.get(), name, false);
 		if (ret == NULL) {
 			return Array::Temp(raw_interp.get(), Perl_newAV(raw_interp.get()), true);
 		}
@@ -158,7 +166,7 @@ namespace perl {
 	}
 
 	Hash::Value Interpreter::hash(const char* name) const {
-		HV* const ret = Perl_get_hv(raw_interp.get(), name, FALSE);
+		HV* const ret = Perl_get_hv(raw_interp.get(), name, false);
 		if (ret == NULL) {
 			return Hash::Temp(raw_interp.get(), Perl_newHV(raw_interp.get()), true);
 		}

@@ -1,5 +1,6 @@
 namespace perl {
 	class lock;
+	class Glob;
 
 	/*
 	 * Section Array
@@ -296,7 +297,7 @@ namespace perl {
 
 				friend class perl::Array;
 				friend class Length;
-
+				friend class perl::Glob;
 				friend class perl::lock;
 			};
 
@@ -444,6 +445,7 @@ namespace perl {
 
 				friend class perl::Hash;
 				friend class perl::lock;
+				friend class perl::Glob;
 			};
 
 			class Iterator::Key_type {
@@ -493,13 +495,12 @@ namespace perl {
 		~Temp();
 	};
 
-	//TODO: everything
 	class Glob {
 		interpreter* const interp;
-		const GV* const value;
-		public:
+		GV* const handle;
+		Glob(interpreter*, GV*);
 		Glob(const Glob&);
-//		Glob(const rvalue&);
+		public:
 		Glob& operator=(const Glob&);
 
 		Glob& operator=(const Scalar::Base&);
@@ -513,6 +514,8 @@ namespace perl {
 		Array::Temp array_value() const;
 		Hash::Temp hash_value() const;
 		const Code::Value code_value() const;
+
+		friend class Interpreter;
 	};
 	
 }

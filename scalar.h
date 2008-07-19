@@ -146,7 +146,15 @@ namespace perl {
 		 * Class Code::Value
 		 * Represents a subroutine. Normally only used in references.
 		 */
-		class Value;
+		class Value {
+			interpreter* const interp;
+			CV* const handle;
+
+			public:
+			Value(interpreter*, CV*);
+			friend const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Code> > take_ref(const Value&);
+			friend class Glob;
+		};
 		static bool is_storage_type(const Any::Temp&);
 		static const std::string& cast_error();
 	};

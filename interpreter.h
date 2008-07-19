@@ -615,6 +615,9 @@ namespace perl {
 		Hash::Value hash(const char* name) const;
 //		Hash::Lvalue get_hash(const char* name); //TODO
 
+		const Glob glob(const char*) const;
+		Glob glob(const char*);
+
 		Scalar::Temp undef() const;
 		Integer::Temp value_of(int) const;
 		Uinteger::Temp value_of(unsigned) const;
