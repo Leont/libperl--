@@ -18,6 +18,17 @@ int test1(Array::Value& arg) {
 	return 42;
 }
 
+Ref<Code>* sub_ref = NULL;
+
+int test2(Argument_stack& stack) {
+//	Array arg = stack.get_arg();
+	cout << "Now calling tail" << endl;
+	stack.call(*sub_ref);
+	cout << "Called tail" << endl;
+//	return test1(arg);
+	return 42;
+}
+
 class mag {
 	public:
 //	void get_value(Scalar::Lvalue& val) {
@@ -93,13 +104,14 @@ int main() {
 		map["foo" ] = "bar"; 
 		map.each(printer);
 
-//		ref< ref<any> > bugz = universe.eval("\\\\1");
-
+//		Ref< Ref<Any> > doubleref = universe.eval("\\\\1");
 
 		universe.export_sub("test", test);
 		universe.eval("test('test works')");
 
-		universe.export_flat("complex", test1);
+		sub_ref = new Ref<Code>(rab);
+//		*sub_ref = rab;
+		universe.export_flat("complex", test2);
 		Ref<Code> complex = universe.eval("\\&complex");
 		int test = complex("foo", bar, quz);
 		cout << "complex('foo', bar, quz) : " << test << endl;

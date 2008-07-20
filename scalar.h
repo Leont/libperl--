@@ -160,7 +160,7 @@ namespace perl {
 	};
 
 	class Package;
-	template<typename T> class Magical;
+	enum context {VOID, SCALAR, LIST};
 
 	namespace implementation {
 		namespace array {
@@ -202,9 +202,11 @@ namespace perl {
 			void prepare_call();
 			void finish_call(int, intptr_t);
 			void unwind_stack(int);
+
 			int call_sub(const char*, intptr_t);
 			int call_sub(SV* ref, intptr_t);
 			int call_method(const char*, intptr_t);
+
 			SV* pop();
 			AV* pop_array(int);
 			public:
@@ -856,8 +858,11 @@ namespace perl {
 			// (T == Scalar || T == Any>) && U isa Scalar::Base && U != T::Value
 		};
 		public:
+		typedef implementation::reference::Reference_base Base;
 		typedef typename Parent::Value Value;
 		typedef typename Parent::Temp Temp;
+		Ref(const Ref& other) : Parent(other) {
+		}
 		Ref(const Scalar::Temp& val) : Parent(val) {
 		}
 		Ref(const Value& val) : Parent(val) {

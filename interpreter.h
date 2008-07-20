@@ -123,23 +123,30 @@ namespace perl {
 			SV* const * const mark;
 			const unsigned items;
 		};
-		class Argument_stack : public Perl_stack {
-			Perl_mark marker;
-			unsigned return_num;
-			public:
-			explicit Argument_stack(interpreter*);
-			const Scalar::Temp operator[](unsigned) const;
-//			Scalar::Value operator[](unsigned);
-			void pre_push();
-			template <typename T> void push(const T& t) {
-				pre_push();
-				Perl_stack::push(t);
-				return_num++;
-			}
-			~Argument_stack();
-			const Array::Temp make_array();
-		};
+	}
 
+	class Argument_stack : public implementation::Perl_stack {
+		implementation::Perl_mark marker;
+		unsigned return_num;
+		public:
+		explicit Argument_stack(interpreter*);
+		const Scalar::Temp operator[](unsigned) const;
+//			Scalar::Value operator[](unsigned);
+		void pre_push();
+		template <typename T> void returns(const T& t) {
+			pre_push();
+			Perl_stack::push(t);
+			return_num++;
+		}
+		~Argument_stack();
+		const Array::Temp get_arg() const;
+		Array::Temp get_arg();
+		const Scalar::Temp call(const char* name);
+		const Scalar::Temp call(const Ref<Code>::Value& name);
+		context get_contest() const;
+	};
+
+	namespace implementation {
 		const Code::Value export_as(interpreter*, const char* name, void (*)(interpreter*, CV*), const void*, int);
 		template<typename T> const Code::Value export_as(interpreter* interp, const char* name, void(*glue)(interpreter*, CV*), const T& func) {
 			return export_as(interp, name, glue, &func, sizeof func);
@@ -172,10 +179,9 @@ namespace perl {
 		template<typename R, typename A> struct export_flat {
 			typedef R (*func_ptr)(A);
 			static void subroutine(interpreter* me_perl, CV* cef) {
-				implementation::Argument_stack arg_stack(me_perl);
-				Array args(arg_stack.make_array());
+				Argument_stack stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack.push(ref(args)));
+				TRY_OR_THROW(stack.returns(ref(stack)));
 			}
 		};
 		template<typename R>struct export_sub_0 {
@@ -183,7 +189,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack.push(ref()));
+				TRY_OR_THROW(arg_stack.returns(ref()));
 			}
 		};
 		template<typename R, typename A1> struct export_sub_1 {
@@ -191,7 +197,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack.push(ref(typemap_cast<A1>(arg_stack[0]))));
+				TRY_OR_THROW(arg_stack.returns(ref(typemap_cast<A1>(arg_stack[0]))));
 			}
 		};
 		template<typename R, typename A1, typename A2> struct export_sub_2 {
@@ -199,7 +205,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack.push(ref(typemap_cast<A1>(arg_stack[0]), typemap_cast<A2>(arg_stack[1]))));
+				TRY_OR_THROW(arg_stack.returns(ref(typemap_cast<A1>(arg_stack[0]), typemap_cast<A2>(arg_stack[1]))));
 			}
 		};
 		template<typename R, typename A1, typename A2, typename A3> struct export_sub_3 {
@@ -214,10 +220,9 @@ namespace perl {
 		template<typename T> struct export_vflat {
 			typedef void (*func_ptr)(T&);
 			static void subroutine(interpreter* me_perl, CV* cef) {
-				Argument_stack arg_stack(me_perl);
-				Array args(arg_stack.make_array());
+				Argument_stack stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				ref(args);
+				ref(stack);
 			}
 		};
 		struct export_sub_v0 {
@@ -283,7 +288,7 @@ namespace perl {
 			static void method(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack.push((get_magic_object<T>(arg_stack[0])->*ref)()));
+				TRY_OR_THROW(arg_stack.returns((get_magic_object<T>(arg_stack[0])->*ref)()));
 			}
 		};
 
@@ -301,7 +306,7 @@ namespace perl {
 			static void method(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack.push((get_magic_object<T>(arg_stack[0])->*ref)(static_cast<A1>(arg_stack[1]))));
+				TRY_OR_THROW(arg_stack.returns((get_magic_object<T>(arg_stack[0])->*ref)(static_cast<A1>(arg_stack[1]))));
 			}
 		};
 
@@ -348,7 +353,7 @@ namespace perl {
 					Argument_stack arg_stack(me_perl);
 					const constructor_info data = implementation::get_function_pointer<constructor_info>(me_perl, cef);
 					const func_ptr ref = data.get<func_ptr>();
-					TRY_OR_THROW(arg_stack.push(store_in_cache(me_perl, ref(), data.class_state)));
+					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(), data.class_state)));
 				}
 			};
 			template<typename A1> struct arg1 {
@@ -357,7 +362,7 @@ namespace perl {
 					Argument_stack arg_stack(me_perl);
 					const constructor_info data = implementation::get_function_pointer<constructor_info>(me_perl, cef);
 					const func_ptr ref = data.get<func_ptr>();
-					TRY_OR_THROW(arg_stack.push(store_in_cache(me_perl, ref(static_cast<A1>(arg_stack[1])), data.class_state)));
+					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(static_cast<A1>(arg_stack[1])), data.class_state)));
 				}
 			};
 			template<typename A1, typename A2> struct arg2 {
@@ -366,7 +371,7 @@ namespace perl {
 					Argument_stack arg_stack(me_perl);
 					const constructor_info data = implementation::get_function_pointer<constructor_info>(me_perl, cef);
 					const func_ptr ref = data.get<func_ptr>();
-					TRY_OR_THROW(arg_stack.push(store_in_cache(me_perl, ref(static_cast<A1>(arg_stack[1]), static_cast<A2>(arg_stack[2])), data.class_state)));
+					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(static_cast<A1>(arg_stack[1]), static_cast<A2>(arg_stack[2])), data.class_state)));
 				}
 			};
 			template<typename A1, typename A2, typename A3> struct arg3 {
@@ -375,7 +380,7 @@ namespace perl {
 					Argument_stack arg_stack(me_perl);
 					const constructor_info data = implementation::get_function_pointer<constructor_info>(me_perl, cef);
 					const func_ptr ref = data.get<func_ptr>();
-					TRY_OR_THROW(arg_stack.push(store_in_cache(me_perl, ref(static_cast<A1>(arg_stack[1]), static_cast<A2>(arg_stack[2]), static_cast<A3>(arg_stack[3])), data.class_state)));
+					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(static_cast<A1>(arg_stack[1]), static_cast<A2>(arg_stack[2]), static_cast<A3>(arg_stack[3])), data.class_state)));
 				}
 			};
 			public:

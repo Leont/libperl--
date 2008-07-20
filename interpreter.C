@@ -19,8 +19,8 @@ extern "C" {
 
 namespace perl {
 	namespace {
-		static const char* args[] = {"", "-e", "0"};
-		static int arg_count = sizeof args / sizeof *args;
+		static const char* args[] = {"", "-ew", "0"};
+		static const int arg_count = sizeof args / sizeof *args;
 
 		void terminator() {
 			PERL_SYS_TERM();

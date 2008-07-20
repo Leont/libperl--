@@ -2,30 +2,11 @@
 #include "internal.h"
 #include "perl++.h"
 
+#define block_gimme() Perl_block_gimme(aTHX)
+
 namespace perl {
 	namespace implementation {
 		Perl_mark::Perl_mark(int _ax, SV** _mark, unsigned _items) : ax(_ax), mark(_mark), items(_items) {
-		}
-		Perl_mark make_mark(interpreter* interp) {
-			dXSARGS;
-			return Perl_mark(ax, mark, items);
-		}
-
-		Argument_stack::Argument_stack(interpreter* _interp) : Perl_stack(_interp), marker(make_mark(interp)), return_num(0) {
-		}
-#define ax marker.ax
-		Argument_stack::~Argument_stack() {
-			XSRETURN(return_num);
-		}
-		void Argument_stack::pre_push() {
-			XSprePUSH;
-		}
-		const Array::Temp Argument_stack::make_array() {
-			return Array::Temp(interp, Perl_av_make(interp, marker.items, sp - marker.items + 1), true);
-		}
-		const Scalar::Temp Argument_stack::operator[](unsigned pos) const {
-			assertion<Runtime_exception>(pos < marker.items, "No such argument!");
-			return Scalar::Temp(interp, ST(pos), false);
 		}
 
 		const Code::Value export_as(interpreter* interp, const char* name, void (*func)(interpreter* , CV*), const void* buffer, int length) {
@@ -60,5 +41,38 @@ namespace perl {
 			}
 			return Ref<Any>::Temp(interp, ret, true);
 		}
+	}
+
+	namespace {
+		implementation::Perl_mark make_mark(interpreter* interp) {
+			dXSARGS;
+			return implementation::Perl_mark(ax, mark, items);
+		}
+	}
+
+	Argument_stack::Argument_stack(interpreter* _interp) : Perl_stack(_interp), marker(make_mark(interp)), return_num(0) {
+	}
+#define ax marker.ax
+#define markstack_grow() Perl_markstack_grow(aTHX)
+	Argument_stack::~Argument_stack() {
+		XSRETURN(return_num);
+	}
+	void Argument_stack::pre_push() {
+		XSprePUSH;
+	}
+	const Array::Temp Argument_stack::get_arg() const {
+		return Array::Temp(interp, Perl_av_make(interp, marker.items, sp - marker.items + 1), true);
+	}
+	Array::Temp Argument_stack::get_arg() {
+		return Array::Temp(interp, Perl_av_make(interp, marker.items, sp - marker.items + 1), true);
+	}
+	const Scalar::Temp Argument_stack::operator[](unsigned pos) const {
+		assertion<Runtime_exception>(pos < marker.items, "No such argument!");
+		return Scalar::Temp(interp, ST(pos), false);
+	}
+	context Argument_stack::get_contest() const {
+		return GIMME_V == G_VOID  ? VOID : 
+			   GIMME_V == G_ARRAY ? LIST : 
+			   SCALAR;
 	}
 }
