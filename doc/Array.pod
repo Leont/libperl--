@@ -1,6 +1,6 @@
 =head1 NAME
 
-libperl++ - 
+libperl++ - Array
 
 =head1 VERSION
 
@@ -12,9 +12,9 @@ This documentation refers to libperl++ version 0.0.48
 
 =head1 DESCRIPTION
 
-An object of class C<Array> represents an interface to perl arrays. This class is very much a TIMTOWTDI one. It provides both STD style iterators and 
+An object of class C<Array> represents an interface to perl arrays. This class is very much a TIMTOWTDI one. It provides both STD style iterators and implicit iterators.
 
-=head1 SUBROUTINES/METHODS
+=head1 METHODS
 
 =head2 Array::Value
 

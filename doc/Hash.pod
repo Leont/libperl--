@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-libperl++ - 
+libperl++ - Hash
 
 =head1 VERSION
 
@@ -14,26 +14,83 @@ This documentation refers to libperl++ version 0.0.48
 
 =head1 DESCRIPTION
 
-A full description of the module and its features.
-May include numerous subsections (i.e., =head2, =head3, etc.).
+An object of this class represents a perl hash. Most methods have two versions: one by string value and the other by scalar value. In most cases using the string version will be easier.
 
 =head1 SUBROUTINES/METHODS
 
-A separate section listing the public components of the module's interface.
-These normally consist of either subroutines that may be exported, or methods
-that may be called on objects belonging to the classes that the module provides.
-Name the section accordingly.
+=over
 
-In an object-oriented module, this section should begin with a sentence of the
-form "An object of this class represents...", to give the reader a high-level
-context to help them understand the methods that are subsequently described.
+=item const Scalar::Temp operator[](const Raw_string) const;
+
+=item Scalar::Temp operator[](const Raw_string);
+
+Get/set a hash element.
+
+=item const Scalar::Temp operator[](const Scalar::Base&) const;
+
+=item Scalar::Temp operator[](const Scalar::Base&);
+
+Get/set a hash element. The element is looked up as a scalar key.
+
+=item bool exists(Raw_string);
+
+=item bool exists(const Scalar::Base&);
+
+Checks if an element exists.
+
+=item const Scalar::Temp erase(Raw_string);
+
+=item const Scalar::Temp erase(const Scalar::Base&);
+
+Erases an element from the hash. It returns the value from 
+
+=item void clear()
+
+Clears a hash, making it empty. Does not free the memory used by the hash itself.
+
+=item void undefine()
+
+Undefines the hash. Frees the memory used by the hash itself.
+
+=item const Ref<Hash>::Temp take_ref() const;
+
+Takes a reference to the hash.
+
+=item template<typename T> void each(const T& functor) const;
+
+=item template<typename T> void each(const T& functor);
+
+Call function functor over every key/value pair in the hash. The key will be a Hash::Key_type, which can automatically converts into a string or a scalar. The value is a Scalar::Value& and will be assignable to if the hash isn't const.
+
+=item const Array::Temp keys() const;
+
+This method returns a list of the keys of a hash.
+
+=item const Array::Temp values() const;
+
+This method returns a list of the values of a hash. This will be in the same order as keys().
+
+=item const Ref<Any>::Temp tie(const char* classname, list... );
+
+This method binds a variable to a package class that will provide the implementation for the variable. Classname is the name of a class implementing objects of correct type.  Any additional arguments are passed to the "new" method of the class, TIEHASH. 
+
+=item void tie_to(const Scalar::Base& tier);
+
+This method ties a value to a different value. This can be used to tie a value to an already constructed implementation object.
+
+=item void untie();
+
+This method unties the value.
+
+=item Scalar::Temp tied() const;
+
+This method returns the implementation object of a variable. On non-tied hashes it returns undef.
+
+=back
 
 =head1 DIAGNOSTICS
 
-A list of every error and warning message that the module can generate
-(even the ones that will "never happen"), with a full explanation of each
-problem, one or more likely causes, and any suggested remedies.
-(See also "Documenting Errors" in Chapter 13.)
+This class will not throw exceptions.
 
 =head1 AUTHOR
 

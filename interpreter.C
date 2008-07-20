@@ -82,6 +82,9 @@ namespace perl {
 	const Array::Temp Interpreter::list() {
 		return Array::Temp(raw_interp.get(), Perl_newAV(raw_interp.get()), true);
 	}
+	const Hash::Temp Interpreter::hash() {
+		return Hash::Temp(raw_interp.get(), Perl_newHV(raw_interp.get()), true);
+	}
 
 	Package Interpreter::use(const char* package) {
 		Perl_load_module(raw_interp.get(), 0, value_of(package).get_SV(true), NULL, NULL);

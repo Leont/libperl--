@@ -88,7 +88,7 @@ int main() {
 		Array singles = universe.list(1, 2, 3, 4);
 		singles.map(converter).each(test);
 
-		Hash map(universe);
+		Hash map = universe.hash();
 		map["test"] = "duck";
 		map["foo" ] = "bar"; 
 		map.each(printer);
@@ -112,7 +112,6 @@ int main() {
 
 		Class<tester> classr = universe.add_class("Tester");
 		classr.add(init<int>());
-//		classr.add(destroy());
 		classr.add("print", &tester::print);
 		classr.add("set", &tester::set);
 
@@ -128,7 +127,7 @@ int main() {
 		packed = universe.list(1001, 32768, -4096).pack("Nni");
 		unpacked = packed.unpack("Nni");
 		test1(unpacked);
-		cout << "End of story" << endl;// */
+		cout << "End of story" << endl;
 	} catch(Runtime_exception& ex) {
 		cout << "Exception '" << ex.what() << "', thrown" << endl;
 		std::terminate();

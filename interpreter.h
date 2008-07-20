@@ -660,6 +660,7 @@ namespace perl {
 			ret.push(t1, t2, t3, t4);
 			return ret;
 		}
+		const Hash::Temp hash();
 		
 		template<typename T1> Scalar::Temp call(const char* name, const T1& t1) {
 			return implementation::Call_stack(get_interpreter()).push(t1).sub_scalar(name);
