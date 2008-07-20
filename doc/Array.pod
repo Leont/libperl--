@@ -92,6 +92,10 @@ This method accepts a function or function object as its sole argument. It appli
 
 Take a reference to this value.
 
+=item String::Temp pack(const char* packstring) const;
+
+Pack a string using a packstring. The format is described as in perlfunc and perlpacktut.
+
 =item const Ref<Any>::Temp tie(const char* classname, list... );
 
 This method binds a variable to a package class that will provide the implementation for the variable. Classname is the name of a class implementing objects of correct type.  Any additional arguments are passed to the "new" method of the class, TIEARRAY. 

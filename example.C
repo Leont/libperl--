@@ -125,6 +125,9 @@ int main() {
 		String packed = universe.pack("Nni", 1001, 32768, -4096);
 		Array unpacked = packed.unpack("Nni");
 		test1(unpacked);
+		packed = universe.list(1001, 32768, -4096).pack("Nni");
+		unpacked = packed.unpack("Nni");
+		test1(unpacked);
 		cout << "End of story" << endl;// */
 	} catch(Runtime_exception& ex) {
 		cout << "Exception '" << ex.what() << "', thrown" << endl;

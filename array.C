@@ -189,7 +189,15 @@ namespace perl {
 	}
 
 	const String::Temp Array::Value::pack(const Raw_string pattern) const {
-		return implementation::Call_stack(interp).push(*this).pack(pattern);
+		if (SvMAGICAL(handle)) {
+			return implementation::Call_stack(interp).push(*this).pack(pattern);
+		}
+		else {
+			SV* ret = Perl_newSV(interp, 1);
+			SV** base = AvARRAY(handle);
+			Perl_packlist(interp, ret, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), base, base + length());
+			return perl::String::Temp(interp, ret, true);
+		}
 	}
 
 	void Array::Value::tie_to(const Scalar::Base& tier) {
