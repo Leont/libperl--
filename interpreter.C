@@ -20,7 +20,7 @@ extern "C" {
 namespace perl {
 	namespace {
 		static const char* args[] = {"", "-ew", "0"};
-		static const int arg_count = sizeof args / sizeof *args;
+		static int arg_count = sizeof args / sizeof *args;
 
 		void terminator() {
 			PERL_SYS_TERM();
@@ -30,7 +30,7 @@ namespace perl {
 			static bool inited;
 			if (!inited) {
 				
-				PERL_SYS_INIT(&arg_count, &const_cast<char**>(args));
+				PERL_SYS_INIT(&arg_count, const_cast<char***>(&(const char**&)args));
 				atexit(terminator);
 //#ifdef __GNUC__
 //				std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
