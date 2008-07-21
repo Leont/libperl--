@@ -7,3 +7,4 @@ Replacing make with Module::Build
 Test for memory leaks
 Integration of PerlIO & IOstreams
  - Currently weird things might happen if iostreams or perl doesn't use stdio
+Add proper regexp support.
