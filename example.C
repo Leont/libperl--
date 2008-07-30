@@ -93,6 +93,7 @@ int main() {
 		Ref<Code> rab = universe.eval("sub { print \"@_\n\"}");
 		rab("Hello", "World!");
 		rab(bar);
+		bar.each(rab);
 
 		Array singles = universe.list(1, 2, 3, 4);
 		singles.map(converter).each(test);

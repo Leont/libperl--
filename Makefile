@@ -3,7 +3,7 @@ ACK = ack-grep
 #WARNINGS = -Wall -Weffc++ -Wshadow -Wno-non-virtual-dtor
 WARNINGS = -Wall -Wshadow
 PERLCXX := $(shell perl -MExtUtils::Embed -e ccopts)
-#PERLCXX=-D_REENTRANT -D_GNU_SOURCE -DTHREADS_HAVE_PIDS -DDEBIAN -fno-strict-aliasing -pipe -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -I../../..//Programs/perl/perl-5.10.0/
+#PERLCXX=-D_REENTRANT -D_GNU_SOURCE -DTHREADS_HAVE_PIDS -DDEBIAN -fno-strict-aliasing -pipe -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -I../../../Programs/perl/perl-5.10.0/
 #PERLCXX=-D_REENTRANT -D_GNU_SOURCE -DTHREADS_HAVE_PIDS -DDEBIAN -fno-strict-aliasing -pipe -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -I../../../Programs/perl/perl-current/
 DEBUG = -ggdb3 -DDEBUG
 DFLAGS = -fPIC $(PERLCXX) 

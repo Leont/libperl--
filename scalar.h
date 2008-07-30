@@ -492,10 +492,9 @@ namespace perl {
 			 * Handles ownership in scalar types. 
 			 */
 			template<typename T> class Variable : public T {
-//				typedef Temp_template<typename implementation::reference::ref<T>::value> reference_of;
 				template <typename U> struct non_degenerate {
 					typedef typename boost::mpl::and_<typename boost::mpl::not_<typename boost::is_same<T, scalar::Value>::type>::type, typename boost::is_same<U, scalar::Value>::type>::type type;
-					// !is_same<T, Scalar::Value> && is_same<U, scalar::Temp>
+					// T != Scalar::Value && U == Scalar::Temp
 				};
 				public:
 				typedef T Value;

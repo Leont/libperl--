@@ -30,7 +30,7 @@ namespace perl {
 			static bool inited;
 			if (!inited) {
 				
-				PERL_SYS_INIT(&arg_count, const_cast<char***>(&(const char**&)args));
+				PERL_SYS_INIT(&arg_count, const_cast<char***>(&static_cast<const char**&>(args)));
 				atexit(terminator);
 //#ifdef __GNUC__
 //				std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
@@ -97,7 +97,7 @@ namespace perl {
 
 	const Scalar::Temp Interpreter::eval(const char* string) {
 		SAVETMPS;
-		SV* const ret = SvREFCNT_inc(Perl_eval_pv(raw_interp.get(), string, FALSE));
+		SV* const ret = SvREFCNT_inc(Perl_eval_pv(raw_interp.get(), string, false));
 		FREETMPS;
 		if (SvTRUE(ERRSV)) {
 			STRLEN length;
@@ -120,7 +120,7 @@ namespace perl {
 	}
 
 	const Scalar::Temp Interpreter::scalar(const char* name) const {
-		SV* const ret = Perl_get_sv(raw_interp.get(), name, FALSE);
+		SV* const ret = Perl_get_sv(raw_interp.get(), name, false);
 		if (ret == NULL) {
 			return undef();
 		}
