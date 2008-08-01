@@ -5,18 +5,23 @@ PODFLAGS =
 SRCS := $(wildcard *.pod)
 OBJS := $(patsubst %.pod, %.html, $(SRCS))
 
-all: $(OBJS)
+all: objects
+	
+objects: $(OBJS)
 
 %.html: %.pod
-	$(POD) $(PODFLAGS) $< -outfile=$@
+	$(POD) $(PODFLAGS) -infile=$< -outfile=$@
 
 clean:
-	-find ./ -name "*.html" | xargs rm
+	find ./ -name "*.html" -delete
+	find ./ -name "pod2htm*.tmp" -delete
 
 again: clean all
 
 love:
-	@echo Not war
+	@echo Not war.
 
 lines:
 	@wc -l *.pod | sort -gr
+
+.PHONY: all objects clean ahain love lines
