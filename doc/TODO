@@ -1,10 +1,10 @@
 TODO (more or less in order of urgency)
 
+Add more documentation
 *Add unit testing*
-  - Implement TAP library for C++
-Add documentation
-Replacing make with Module::Build
+  - To do this a TAP library for C++ is needed
 Test for memory leaks
+Replacing make with something else like Module::Build
 Integration of PerlIO & IOstreams
- - Currently weird things might happen if iostreams or perl doesn't use stdio
+ - Currently weird things might happen if iostreams or PerlIO doesn't use stdio
 Add proper regexp support.
