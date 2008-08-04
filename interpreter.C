@@ -29,8 +29,8 @@ namespace perl {
 		interpreter* initialize_interpreter() {
 			static bool inited;
 			if (!inited) {
-				
-				PERL_SYS_INIT(&arg_count, const_cast<char***>(&static_cast<const char**&>(args)));
+				const char** aargs = args;
+				PERL_SYS_INIT(&arg_count, const_cast<char***>(aargs));
 				atexit(terminator);
 //#ifdef __GNUC__
 //				std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
