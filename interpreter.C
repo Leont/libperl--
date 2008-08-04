@@ -1,13 +1,6 @@
 #include "internal.h"
 #include "perl++.h"
 
-#define save_int(a)     Perl_save_int(raw_interp.get(), a)
-#define free_tmps()     Perl_free_tmps(raw_interp.get())
-#define mg_set(a)       Perl_mg_set(aTHX_ a)
-#define sv_2bool(a)     Perl_sv_2bool(aTHX_ a)
-#define sv_setsv_flags(a,b,c)   Perl_sv_setsv_flags(aTHX_ a,b,c)
-#define sv_2pv_flags(a,b,c) Perl_sv_2pv_flags(aTHX_ a,b,c)
-
 extern "C" {
 	void boot_DynaLoader(pTHX_ CV* cv);
 
@@ -29,8 +22,8 @@ namespace perl {
 		interpreter* initialize_interpreter() {
 			static bool inited;
 			if (!inited) {
-				const char** aargs = args;
-				PERL_SYS_INIT(&arg_count, const_cast<char***>(aargs));
+				const char** aargs PERL_UNUSED_DECL = args;
+				PERL_SYS_INIT(&arg_count, const_cast<char***>(&aargs));
 				atexit(terminator);
 //#ifdef __GNUC__
 //				std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
@@ -55,6 +48,14 @@ namespace perl {
 	 * Class Interpreter
 	 */
 
+	namespace {
+		int scalar_store(interpreter* interp, SV* var, MAGIC* magic) {
+			SvSetMagicSV(get_sv(magic->mg_ptr, true), var);
+			return 0;
+		}
+		MGVTBL scalar_set_magic = { 0, scalar_store, 0, 0, 0 };
+	}
+
 #define interp raw_interp.get()
 
 	Interpreter::Interpreter() : raw_interp(initialize_interpreter(), destructor), modglobal(raw_interp.get(), PL_modglobal, false) {
@@ -62,13 +63,13 @@ namespace perl {
 	Interpreter::Interpreter(interpreter* other) : raw_interp(other, destructor), modglobal(raw_interp.get(), PL_modglobal, false) {
 	}
 	Interpreter Interpreter::clone() const {
-		return Interpreter(perl_clone(raw_interp.get(), CLONEf_KEEP_PTR_TABLE));
+		return Interpreter(perl_clone(interp, CLONEf_KEEP_PTR_TABLE));
 	}
 	bool operator==(const Interpreter& first, const Interpreter& second) {
 		return first.raw_interp == second.raw_interp;
 	}
 	interpreter* Interpreter::get_interpreter() const {
-		return raw_interp.get();
+		return interp;
 	}
 	const Package Interpreter::get_package(const char* name) const {
 		return Package(*this, name);
@@ -77,21 +78,21 @@ namespace perl {
 		return Package(*this, name, true);
 	}
 	void Interpreter::set_context() const {
-		PERL_SET_CONTEXT(raw_interp.get());
+		PERL_SET_CONTEXT(interp);
 	}
 	const Array::Temp Interpreter::list() {
-		return Array::Temp(raw_interp.get(), Perl_newAV(raw_interp.get()), true);
+		return Array::Temp(interp, newAV(), true);
 	}
 	const Hash::Temp Interpreter::hash() {
-		return Hash::Temp(raw_interp.get(), Perl_newHV(raw_interp.get()), true);
+		return Hash::Temp(interp, newHV(), true);
 	}
 
 	Package Interpreter::use(const char* package) {
-		Perl_load_module(raw_interp.get(), PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), NULL, NULL);
+		load_module(PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), NULL, NULL);
 		return get_package(package);
 	}
 	Package Interpreter::use(const char* package, double version) {
-		Perl_load_module(raw_interp.get(), PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), value_of(version).get_SV(true), NULL);
+		load_module(PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), value_of(version).get_SV(true), NULL);
 		return get_package(package);
 	}
 
@@ -100,95 +101,84 @@ namespace perl {
 	}
 
 	const Scalar::Temp Interpreter::eval(const Scalar::Base& string) {
-		return implementation::Call_stack(raw_interp.get()).eval_scalar(string.get_SV(true));
+		return implementation::Call_stack(interp).eval_scalar(string.get_SV(true));
 	}
 
 	const Array::Temp Interpreter::eval_list(const char* string) {
 		return eval_list(value_of(string));
 	}
 	const Array::Temp Interpreter::eval_list(const Scalar::Base& string) {
-		return implementation::Call_stack(raw_interp.get()).eval_list(string.get_SV(true));
+		return implementation::Call_stack(interp).eval_list(string.get_SV(true));
 	}
 
 	const Scalar::Temp Interpreter::scalar(const char* name) const {
-		SV* const ret = Perl_get_sv(raw_interp.get(), name, false);
+		SV* const ret = get_sv(name, false);
 		if (ret == NULL) {
 			return undef();
 		}
 //		SvGETMAGIC(ret);
-		return Scalar::Temp(raw_interp.get(), ret, false);
-	}
-
-#undef interp
-
-	namespace {
-		int scalar_store(interpreter* interp, SV* var, MAGIC* magic) {
-			SvSetMagicSV(Perl_get_sv(interp, magic->mg_ptr, true), var);
-			return 0;
-		}
-		MGVTBL scalar_set_magic = { 0, scalar_store, 0, 0, 0 };
+		return Scalar::Temp(interp, ret, false);
 	}
 	Scalar::Temp Interpreter::scalar(const char* name) {
-		SV* const ret = Perl_get_sv(raw_interp.get(), name, false);
+		SV* const ret = get_sv(name, false);
 		if (ret == NULL) {
-			SV* magical = Perl_newSV(raw_interp.get(), 0);
-			Perl_sv_magicext(raw_interp.get(), magical, NULL, PERL_MAGIC_uvar, &scalar_set_magic, name, strlen(name) + 1);
-			return Scalar::Temp(raw_interp.get(), magical, true, false);
+			SV* magical = newSV(0);
+			sv_magicext(magical, NULL, PERL_MAGIC_uvar, &scalar_set_magic, name, strlen(name) + 1);
+			return Scalar::Temp(interp, magical, true, false);
 		}
 		return Scalar::Temp(raw_interp.get(), ret, false);
 	}
 
-	static inline void get_magic(interpreter* interp, SV* handle) {
-		if (SvGMAGICAL(handle)) Perl_mg_get(interp, handle); //XXX
-	}
 
 	const Glob Interpreter::glob(const char* name) const {
-		GV* const ret = Perl_gv_fetchpv(raw_interp.get(), name, GV_ADD, SVt_PV);
-		return Glob(raw_interp.get(), ret);
+		GV* const ret = gv_fetchpv(name, GV_ADD, SVt_PV);
+		return Glob(interp, ret);
 	}
 	Glob Interpreter::glob(const char* name) {
-		GV* const ret = Perl_gv_fetchpv(raw_interp.get(), name, GV_ADD, SVt_PV);
+		GV* const ret = gv_fetchpv(name, GV_ADD, SVt_PV);
 		return Glob(raw_interp.get(), ret);
 	}
 	const Array::Temp Interpreter::array(const char* name) const {
-		AV* const ret = Perl_get_av(raw_interp.get(), name, false);
+		AV* const ret = get_av(name, false);
 		if (ret == NULL) {
-			return Array::Temp(raw_interp.get(), Perl_newAV(raw_interp.get()), true);
+			return Array::Temp(interp, newAV(), true);
 		}
-		get_magic(raw_interp.get(), reinterpret_cast<SV*>(ret));
+		SvGETMAGIC(reinterpret_cast<SV*>(ret));
 		return Array::Temp(raw_interp.get(), ret, false);
 	}
 
 	Hash::Value Interpreter::hash(const char* name) const {
-		HV* const ret = Perl_get_hv(raw_interp.get(), name, false);
+		HV* const ret = get_hv(name, false);
 		if (ret == NULL) {
-			return Hash::Temp(raw_interp.get(), Perl_newHV(raw_interp.get()), true);
+			return Hash::Temp(raw_interp.get(), newHV(), true);
 		}
-		get_magic(raw_interp.get(), reinterpret_cast<SV*>(ret));
+		SvGETMAGIC(reinterpret_cast<SV*>(ret));
 		return Hash::Temp(raw_interp.get(), ret, false);
 	}
 
 	Scalar::Temp Interpreter::undef() const {
-		return Scalar::Temp(raw_interp.get(), Perl_newSV(raw_interp.get(), 0), true);
+		return Scalar::Temp(raw_interp.get(), newSV(0), true);
 	}
 	Integer::Temp Interpreter::value_of(int value) const {
-		return Integer::Temp(raw_interp.get(), Perl_newSViv(raw_interp.get(), value), true);
+		return Integer::Temp(raw_interp.get(), newSViv(value), true);
 	}
 	Uinteger::Temp Interpreter::value_of(unsigned value) const {
-		return Uinteger::Temp(raw_interp.get(), Perl_newSVuv(raw_interp.get(), value), true);
+		return Uinteger::Temp(raw_interp.get(), newSVuv(value), true);
 	}
 	Number::Temp Interpreter::value_of(double value) const {
-		return Number::Temp(raw_interp.get(), Perl_newSVnv(raw_interp.get(), value), true);
+		return Number::Temp(raw_interp.get(), newSVnv(value), true);
 	}
 	String::Temp Interpreter::value_of(const std::string& value) const {
-		return String::Temp(raw_interp.get(), Perl_newSVpvn(raw_interp.get(), value.c_str(), value.length()), true);
+		return String::Temp(raw_interp.get(), newSVpvn(value.c_str(), value.length()), true);
 	}
 	String::Temp Interpreter::value_of(Raw_string value) const {
-		return String::Temp(raw_interp.get(), Perl_newSVpvn(raw_interp.get(), value.value, value.length), true);
+		return String::Temp(raw_interp.get(), newSVpvn(value.value, value.length), true);
 	}
 	String::Temp Interpreter::value_of(const char* value) const {
-		return String::Temp(raw_interp.get(), Perl_newSVpvn(raw_interp.get(), value, strlen(value)), true);
+		return String::Temp(raw_interp.get(), newSVpvn(value, strlen(value)), true);
 	}
+
+#undef interp
 
 	namespace implementation {
 		namespace classes {
@@ -221,7 +211,7 @@ namespace perl {
 	 */
 	namespace {
 		HV* get_stash(interpreter* interp, const char* name, bool create) {
-			HV* const ret = Perl_gv_stashpv(interp, name, create);
+			HV* const ret = gv_stashpv(name, create);
 			if (ret == NULL) {
 				throw Runtime_exception("Package does not exist");
 			}

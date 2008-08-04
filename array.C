@@ -1,9 +1,6 @@
 #include "internal.h"
 #include "perl++.h"
 
-//TODO: file bug report upstream
-#define mg_set(a) Perl_mg_set(aTHX_ a) 
-
 namespace perl {
 	namespace {
 		void copy_into(Array::Value& to, const Array::Value& from) {
@@ -15,10 +12,10 @@ namespace perl {
 
 	namespace {
 		AV* newav(interpreter* interp) {
-			return Perl_newAV(interp);
+			return newAV();
 		}
 		AV* newav(interpreter* interp, const perl::Array::Value& other) {
-			AV* const ret = Perl_newAV(interp);
+			AV* const ret = newAV();
 			Array::Temp tmp(interp, ret, false);
 			copy_into(tmp, other);
 			return ret;
@@ -40,7 +37,7 @@ namespace perl {
 			}
 			Length& Length::operator=(const unsigned new_length) {
 				interpreter* const interp = array.interp;
-				Perl_av_fill(interp, array.handle, new_length - 1);
+				av_fill(array.handle, new_length - 1);
 				return *this;
 			}
 		}
@@ -60,11 +57,11 @@ namespace perl {
 	}
 
 	void Array::Value::push(const Scalar::Base& value) {
-		Perl_av_push(interp, handle, Perl_newSVsv(interp, value.get_SV(true)));
+		av_push(handle, newSVsv(value.get_SV(true)));
 	}
 	void Array::Value::push(const Scalar::Temp & value) {
-		SV* const tmp = value.has_ownership() ? value.release() : Perl_newSVsv(interp, value.get_SV(true));
-		Perl_av_push(interp, handle, tmp);
+		SV* const tmp = value.has_ownership() ? value.release() : newSVsv(value.get_SV(true));
+		av_push(handle, tmp);
 	}
 	void Array::Value::push(const Array::Value& values) {
 		const unsigned size = values.length();
@@ -73,68 +70,68 @@ namespace perl {
 		}
 	}
 	void Array::Value::push(const int val) {
-		Perl_av_push(interp, handle, Perl_newSViv(interp, val));
+		av_push(handle, newSViv(val));
 	}
 	void Array::Value::push(const unsigned val) {
-		Perl_av_push(interp, handle, Perl_newSVuv(interp, val));
+		av_push(handle, newSVuv(val));
 	}
 	void Array::Value::push(const double val) {
-		Perl_av_push(interp, handle, Perl_newSVnv(interp, val));
+		av_push(handle, newSVnv(val));
 	}
 	void Array::Value::push(const char* const val) {
-		Perl_av_push(interp, handle, Perl_newSVpvn(interp, val, strlen(val)));
+		av_push(handle, newSVpvn(val, strlen(val)));
 	}
 	void Array::Value::push(Raw_string val) {
-		Perl_av_push(interp, handle, Perl_newSVpvn(interp, val.value, val.length));
+		av_push(handle, newSVpvn(val.value, val.length));
 	}
 	
 	const Scalar::Temp Array::Value::pop() {
-		return Scalar::Temp(interp, Perl_av_pop(interp, handle), true);
+		return Scalar::Temp(interp, av_pop(handle), true);
 	}
 	const Scalar::Temp Array::Value::shift() {
-		return Scalar::Temp(interp, Perl_av_shift(interp, handle), true);
+		return Scalar::Temp(interp, av_shift(handle), true);
 	}
 	void Array::Value::unshift(const Scalar::Base& next_value) {
-		Perl_av_unshift(interp, handle, 1);
+		av_unshift(handle, 1);
 		operator[](0) = next_value;
 	}
 	namespace {
 		inline void unshifter(interpreter* interp, AV* handle, SV* value) {
-			Perl_av_unshift(interp, handle, 1);
-			Perl_av_store(interp, handle, 0, value);
+			av_unshift(handle, 1);
+			av_store(handle, 0, value);
 			SvSETMAGIC(value);
 		}
 	}
 	void Array::Value::unshift(const int val) {
-		unshifter(interp, handle, Perl_newSViv(interp, val));
+		unshifter(interp, handle, newSViv(val));
 	}
 	void Array::Value::unshift(const unsigned val) {
-		unshifter(interp, handle, Perl_newSVuv(interp, val));
+		unshifter(interp, handle, newSVuv(val));
 	}
 	void Array::Value::unshift(const double val) {
-		unshifter(interp, handle, Perl_newSVnv(interp, val));
+		unshifter(interp, handle, newSVnv(val));
 	}
 	void Array::Value::unshift(const char* const val) {
-		unshifter(interp, handle, Perl_newSVpvn(interp, val, strlen(val)));
+		unshifter(interp, handle, newSVpvn(val, strlen(val)));
 	}
 	void Array::Value::unshift(Raw_string val) {
-		unshifter(interp, handle, Perl_newSVpvn(interp, val.value, val.length));
+		unshifter(interp, handle, newSVpvn(val.value, val.length));
 	}
 	void Array::Value::unshift(const Array::Value& handles) {
 		const unsigned len = handles.length();
-		Perl_av_unshift(interp, handle, len);
+		av_unshift(handle, len);
 		for(unsigned i = 0; i < len; i++) {
 			operator[](i) = handles[i];
 		}
 	}
 	void Array::Value::unshift_prepare(unsigned extra_length) {
-		Perl_av_unshift(interp, handle, extra_length);
+		av_unshift(handle, extra_length);
 	}
 	
 	const Scalar::Temp Array::Value::operator[](key_type index) const {
-		SV* const * const ret = Perl_av_fetch(interp, handle, index, false);
+		SV* const * const ret = av_fetch(handle, index, false);
 		if (ret == NULL) {
-			return Scalar::Temp(interp, Perl_newSV(interp, 0), true);
+			return Scalar::Temp(interp, newSV(0), true);
 		}
 //		SvGETMAGIC(*ret); //XXX: quite possible superfluous.
 		return Scalar::Temp(interp, *ret, false);
@@ -143,8 +140,8 @@ namespace perl {
 	namespace {
 		int array_store(interpreter* interp, SV* var, MAGIC* magic) {
 			int index = *reinterpret_cast<int*>(magic->mg_ptr);
-			SV* tmp = Perl_newSVsv(interp, var);
-			Perl_av_store(interp, reinterpret_cast<AV*>(magic->mg_obj), index, tmp);
+			SV* tmp = newSVsv(var);
+			av_store(reinterpret_cast<AV*>(magic->mg_obj), index, tmp);
 			SvSETMAGIC(tmp);
 			return 0;
 		}
@@ -152,10 +149,10 @@ namespace perl {
 	}
 
 	Scalar::Temp Array::Value::operator[](const key_type index) {
-		SV* const * const ret = Perl_av_fetch(interp, handle, index, false);
+		SV* const * const ret = av_fetch(handle, index, false);
 		if (ret == NULL) {
-			SV* magical = Perl_newSV(interp, 0);
-			Perl_sv_magicext(interp, magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &array_set_magic, reinterpret_cast<const char*>(&index), sizeof index);
+			SV* magical = newSV(0);
+			sv_magicext(magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &array_set_magic, reinterpret_cast<const char*>(&index), sizeof index);
 			return Scalar::Temp(interp, magical, true, false);
 		}
 //		SvGETMAGIC(*ret); //XXX: quite possible superfluous.
@@ -163,29 +160,29 @@ namespace perl {
 	}
 
 	const Scalar::Temp Array::Value::remove(key_type index) {
-		SV* ret = Perl_av_delete(interp, handle, index, 0);
+		SV* ret = av_delete(handle, index, 0);
 		return Scalar::Temp(interp, ret, true);
 	}
 
 	bool Array::Value::exists(key_type index) const {
-		return Perl_av_exists(interp, handle, index);
+		return av_exists(handle, index);
 	}
 
 	unsigned Array::Value::length() const {
-		return Perl_av_len(interp, handle) + 1;
+		return av_len(handle) + 1;
 	}
 	implementation::array::Length Array::Value::length() {
 		return Length(*this);
 	}
 
 	void Array::Value::clear() {
-		Perl_av_clear(interp, handle);
+		av_clear(handle);
 	}
 	void Array::Value::undefine() {
-		Perl_av_undef(interp, handle);
+		av_undef(handle);
 	}
 	void Array::Value::extend(const unsigned new_length) {
-		Perl_av_extend(interp, handle, new_length);
+		av_extend(handle, new_length);
 	}
 
 	const String::Temp Array::Value::pack(const Raw_string pattern) const {
@@ -193,30 +190,30 @@ namespace perl {
 			return implementation::Call_stack(interp).push(*this).pack(pattern);
 		}
 		else {
-			SV* ret = Perl_newSV(interp, 1);
+			SV* ret = newSV(1);
 			SV** base = AvARRAY(handle);
-			Perl_packlist(interp, ret, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), base, base + length());
+			packlist(ret, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), base, base + length());
 			return perl::String::Temp(interp, ret, true);
 		}
 	}
 
 	void Array::Value::tie_to(const Scalar::Base& tier) {
-		Perl_sv_magic(interp, reinterpret_cast<SV*>(handle), tier.get_SV(false), PERL_MAGIC_tied, "", 0);
+		sv_magic(reinterpret_cast<SV*>(handle), tier.get_SV(false), PERL_MAGIC_tied, "", 0);
 	}
 	void Array::Value::untie() {
-		if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? Perl_mg_find(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
+		if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? mg_find(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
 			Ref<Any> tier(Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true));
 			if (tier.can("UNTIE")) {
 				tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
 			}
 		}
-		Perl_sv_unmagic(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);
+		sv_unmagic(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);
 	}
 	const Scalar::Temp Array::Value::tied() const {
-		if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? Perl_mg_find(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
+		if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? mg_find(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
 			return (mg->mg_obj != NULL) ?  Scalar::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : Scalar::Temp(take_ref());
 		}
-		return Scalar::Temp(interp, Perl_newSV(interp, 0), true);
+		return Scalar::Temp(interp, newSV(0), true);
 	}
 
 	Array::Iterator Array::Value::begin() {
@@ -267,7 +264,7 @@ namespace perl {
 	}
 	Array::Temp::~Temp() {
 		if (owns) {
-			Perl_sv_free(interp, reinterpret_cast<SV*>(handle));
+			sv_free(reinterpret_cast<SV*>(handle));
 		}
 	}
 
@@ -377,7 +374,7 @@ namespace perl {
 	}
 
 	const Ref<Array>::Temp Array::Value::take_ref() const {
-		return Ref<Array>::Temp(interp, Perl_newRV(interp, reinterpret_cast<SV*>(handle)), true);
+		return Ref<Array>::Temp(interp, newRV_inc(reinterpret_cast<SV*>(handle)), true);
 	}
 
     namespace implementation {
@@ -408,7 +405,7 @@ namespace perl {
 	Array::Array(interpreter* _interp) : Value(_interp, newav(_interp)) {
 	}
 	Array::~Array() {
-		Perl_sv_free(interp, reinterpret_cast<SV*>(handle));
+		sv_free(reinterpret_cast<SV*>(handle));
 	}
 	bool Array::is_storage_type(const Any::Temp& val) {
 		return implementation::is_this_type(val, SVt_PVAV);

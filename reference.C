@@ -13,19 +13,19 @@ namespace perl {
 			Reference_base::Reference_base(interpreter* _interp, SV* _handle) : Scalar::Base(_interp, _handle) {
 			}
 			bool Reference_base::is_object() const {
-				return Perl_sv_isobject(interp, get_SV(true));
+				return sv_isobject(get_SV(true));
 			}
 			bool Reference_base::is_exactly(const char* classname) const {
-				return Perl_sv_isa(interp, get_SV(true), classname);
+				return sv_isa(get_SV(true), classname);
 			}
 			bool Reference_base::isa(const char* classname) const {
-				return Perl_sv_derived_from(interp, get_SV(true), classname);
+				return sv_derived_from(get_SV(true), classname);
 			}
 			void Reference_base::weaken() const { 
-				Perl_sv_rvweaken(interp, get_SV(false));
+				sv_rvweaken(get_SV(false));
 			}
 			void Reference_base::bless(const Package& type) {
-				Perl_sv_bless(interp, get_SV(false), type.stash);
+				sv_bless(get_SV(false), type.stash);
 			}
 			void Reference_base::bless(const char* classname) {
 				bless(Package(interp, classname, false));

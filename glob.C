@@ -1,11 +1,6 @@
 #include "internal.h"
 #include "perl++.h"
 
-#define sv_free(a) Perl_sv_free(aTHX_ a)
-#define gv_SVadd(gv) Perl_gv_SVadd(aTHX_ gv)
-#define gv_AVadd(gv) Perl_gv_AVadd(aTHX_ gv)
-#define gv_HVadd(gv) Perl_gv_HVadd(aTHX_ gv)
-
 namespace perl {
 	Glob::Glob(interpreter* _interp, GV* _handle) : interp(_interp), handle(_handle) {
 	}

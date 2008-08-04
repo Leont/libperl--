@@ -2,15 +2,6 @@
 #include "perl++.h"
 #include "XSUB.h"
 
-#define stack_grow(a,b,c)  Perl_stack_grow(aTHX_ a,b,c)
-#define markstack_grow() Perl_markstack_grow(aTHX)
-#define push_scope()        Perl_push_scope(aTHX)
-#define save_int(a)     Perl_save_int(aTHX_ a)
-#define free_tmps()     Perl_free_tmps(aTHX)
-#define pop_scope()     Perl_pop_scope(aTHX)
-#define sv_2bool(a)        Perl_sv_2bool(aTHX_ a)
-#define sv_2pv_flags(a,b,c) Perl_sv_2pv_flags(aTHX_ a,b,c)
-
 #ifndef FLAG_UNPACK_DO_UTF8
 // perl fails to export unpack flags. This is not very future-proof, but it works.
 #define FLAG_UNPACK_DO_UTF8   0x08
@@ -35,7 +26,7 @@ namespace perl {
 
 	const Ref<Code>::Temp take_ref(const Code::Value& var) {
 		interpreter* const interp = var.interp;
-		return Ref<Code>::Temp(interp, Perl_newRV(interp, reinterpret_cast<SV*>(var.handle)), true);
+		return Ref<Code>::Temp(interp, newRV_inc(reinterpret_cast<SV*>(var.handle)), true);
 	}
 
 	bool Code::is_storage_type(const Any::Temp& value) {
@@ -50,41 +41,41 @@ namespace perl {
 		}
 
 		void Perl_stack::push(int value) {
-			SV* const tmp = Perl_sv_2mortal(interp, Perl_newSViv(interp, value));
+			SV* const tmp = sv_2mortal(newSViv(value));
 			SvREADONLY_on(tmp);
 			XPUSHs(tmp);
 		}
 		void Perl_stack::push(unsigned value) {
-			SV* const tmp = Perl_sv_2mortal(interp, Perl_newSVuv(interp, value));
+			SV* const tmp = sv_2mortal(newSVuv(value));
 			SvREADONLY_on(tmp);
 			XPUSHs(tmp);
 		}
 		void Perl_stack::push(double value) {
-			SV* const tmp = Perl_sv_2mortal(interp, Perl_newSVnv(interp, value));
+			SV* const tmp = sv_2mortal(newSVnv(value));
 			SvREADONLY_on(tmp);
 			XPUSHs(tmp);
 		}
 		void Perl_stack::push(Raw_string value) {
-			SV* const tmp = Perl_sv_2mortal(interp, Perl_newSVpvn(interp, value.value, value.length));
+			SV* const tmp = sv_2mortal(newSVpvn(value.value, value.length));
 			SvREADONLY_on(tmp);
 			XPUSHs(tmp);
 		}
 		void Perl_stack::push(const char* value) {
-			SV* const tmp = Perl_sv_2mortal(interp, Perl_newSVpv(interp, value, 0));
+			SV* const tmp = sv_2mortal(newSVpv(value, 0));
 			SvREADONLY_on(tmp);
 			XPUSHs(tmp);
 		}
 		void Perl_stack::push(const std::string& string) {
-			SV* const tmp = Perl_sv_2mortal(interp, Perl_newSVpvn(interp, string.c_str(), string.length()));
+			SV* const tmp = sv_2mortal(newSVpvn(string.c_str(), string.length()));
 			SvREADONLY_on(tmp);
 			XPUSHs(tmp);
 		}
 
 		void Perl_stack::push(const Scalar::Base& value) {
-			XPUSHs(Perl_sv_2mortal(interp, SvREFCNT_inc(value.get_SV(false))));
+			XPUSHs(sv_2mortal(SvREFCNT_inc(value.get_SV(false))));
 		}
 		void Perl_stack::push(const Scalar::Temp& value) {
-			XPUSHs(Perl_sv_2mortal(interp, value.has_ownership() ? value.release() : SvREFCNT_inc(value.get_SV(false))));
+			XPUSHs(sv_2mortal(value.has_ownership() ? value.release() : SvREFCNT_inc(value.get_SV(false))));
 		}
 		void Perl_stack::push(const Array::Value& array) {
 			const unsigned length = array.length();
@@ -162,54 +153,54 @@ namespace perl {
 		/* End of unclean methods */
 
 		AV* Call_stack::pop_array(int count) {
-			AV* ret = Perl_av_make(interp, count, SP - count + 1);
+			AV* ret = av_make(count, SP - count + 1);
 			SP -= count;
 			int ax = (SP - PL_stack_base) + 1;
 			for(int i = 0; i < count; ++i) {
-				Perl_sv_free(interp, ST(i));
+				sv_free(ST(i));
 			}
 			return ret;
 		}
 
 		int Call_stack::call_sub(const char* name, intptr_t flags) {
 			prepare_call();
-			const int ret = Perl_call_pv(interp, name, flags|G_EVAL);
+			const int ret = call_pv(name, flags|G_EVAL);
 			finish_call();
 			return ret;
 		}
 		int Call_stack::call_sub(SV* ref, intptr_t flags) {
 			prepare_call();
-			const int ret = Perl_call_sv(interp, ref, flags|G_EVAL);
+			const int ret = call_sv(ref, flags|G_EVAL);
 			finish_call();
 			return ret;
 		}
 		int Call_stack::call_method(const char* name, intptr_t flags) {
 			prepare_call();
-			const int ret = Perl_call_method(interp, name, flags);
+			const int ret = call_method(name, flags);
 			finish_call();
 			return ret;
 		}
 
 		const perl::String::Temp Call_stack::pack(const Raw_string pattern) {
-			SV* ret = Perl_newSV(interp, 1);
+			SV* ret = newSV(1);
 			SV** base = PL_stack_base + TOPMARK + 1;
-			Perl_packlist(interp, ret, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), base, SP + 1);
+			packlist(ret, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), base, SP + 1);
 			return perl::String::Temp(interp, ret, true);
 		}
 		const Array::Temp Call_stack::unpack(const Raw_string pattern, const Raw_string value) {
 			prepare_call();
-			int count = Perl_unpackstring(interp, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), const_cast<char*>(value.value), const_cast<char*>(value.value + value.length), value.utf8 && !IN_BYTES ? FLAG_UNPACK_DO_UTF8 : 0);
+			int count = unpackstring(const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), const_cast<char*>(value.value), const_cast<char*>(value.value + value.length), value.utf8 && !IN_BYTES ? FLAG_UNPACK_DO_UTF8 : 0);
 			finish_call();
-			return Array::Temp(interp, Perl_av_make(interp, count, SP - count + 1), true);
+			return Array::Temp(interp, av_make(count, SP - count + 1), true);
 		}
 
 		const Scalar::Temp Call_stack::eval_scalar(SV* string) {
-			Perl_eval_sv(interp, string, G_SCALAR);
+			eval_sv(string, G_SCALAR);
 			finish_call();
 			return Scalar::Temp(interp, pop(), true);
 		}
 		const Array::Temp Call_stack::eval_list(SV* string) {
-			const int count = Perl_eval_sv(interp, string, G_ARRAY);
+			const int count = eval_sv(string, G_ARRAY);
 			finish_call();
 			return Array::Temp(interp, pop_array(count), true);
 		}
@@ -230,13 +221,13 @@ namespace perl {
 		}
 		bool Stash::can(Raw_string name) const {
 			if (stash) {
-				GV* gv = Perl_gv_fetchmeth_autoload(interp, stash, name.value, name.length, -1);
+				GV* gv = gv_fetchmeth_autoload(stash, name.value, name.length, -1);
 				return gv && isGV(gv) && CvGV(gv);
 			}
 			return false;
 		}
 		const Ref<Code>::Temp Stash::get_method(Raw_string name) const {
-			GV* const glob = Perl_gv_fetchmeth_autoload(interp, stash, name.value, name.length, -1);
+			GV* const glob = gv_fetchmeth_autoload(stash, name.value, name.length, -1);
 			if (glob == NULL || !isGV(glob) || CvGV(glob) == NULL) {
 				throw Runtime_exception("method doesn't exist");//TODO No such method exception??
 			}

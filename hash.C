@@ -1,22 +1,18 @@
 #include "internal.h"
 #include "perl++.h"
-#define sv_2pv_flags(a,b,c) Perl_sv_2pv_flags(aTHX_ a,b,c)
-#define sv_2mortal(a) Perl_sv_2mortal(aTHX_ a)
-#define newSVpvn(a,b) Perl_newSVpvn(aTHX_ a,b)
-#define mg_set(a) Perl_mg_set(aTHX_ a) 
 
 namespace perl {
 	namespace {
 		HV* copy_to(HV* to, interpreter* interp, HV* from) {
-			Perl_hv_iterinit(interp, from);
-			while (HE* iterator = Perl_hv_iternext(interp, from)) {
+			hv_iterinit(from);
+			while (HE* iterator = hv_iternext(from)) {
 				if (HeKLEN(iterator) == HEf_SVKEY) {
-					Perl_hv_store_ent(interp, to, SvREFCNT_inc(HeSVKEY(iterator)), SvREFCNT_inc(HeVAL(iterator)), HeHASH(iterator));
+					hv_store_ent(to, SvREFCNT_inc(HeSVKEY(iterator)), SvREFCNT_inc(HeVAL(iterator)), HeHASH(iterator));
 				} 
 				else {
 					STRLEN len;
 					char* tmp = HePV(iterator, len);
-					Perl_hv_store(interp, to, tmp, len, SvREFCNT_inc(HeVAL(iterator)), HeHASH(iterator));
+					hv_store(to, tmp, len, SvREFCNT_inc(HeVAL(iterator)), HeHASH(iterator));
 				}
 			}
 			return to;
@@ -38,9 +34,9 @@ namespace perl {
 			}
 
 			const Scalar::Temp Value::operator[](const Raw_string index) const {
-				SV* const * const ret = Perl_hv_fetch(interp, handle, index.value, index.length, false);
+				SV* const * const ret = hv_fetch(handle, index.value, index.length, false);
 				if (!ret) {
-					return Scalar::Temp(interp, Perl_newSV(interp, 0), true);
+					return Scalar::Temp(interp, newSV(0), true);
 				}
 				SvGETMAGIC(*ret);
 				return Scalar::Temp(interp, *ret, false);
@@ -48,18 +44,18 @@ namespace perl {
 
 			namespace {
 				int string_store(interpreter* interp, SV* var, MAGIC* magic) {
-					SV* tmp = Perl_newSVsv(interp, var);
-					Perl_hv_store(interp, reinterpret_cast<HV*>(magic->mg_obj), magic->mg_ptr, magic->mg_len, tmp, 0);
+					SV* tmp = newSVsv(var);
+					hv_store(reinterpret_cast<HV*>(magic->mg_obj), magic->mg_ptr, magic->mg_len, tmp, 0);
 					SvSETMAGIC(tmp);
 					return 0;
 				}
 				MGVTBL string_magic = { 0, string_store, 0, 0, 0 };
 			}
 			Scalar::Temp Value::operator[](const Raw_string index) {
-				SV* const * const ret = Perl_hv_fetch(interp, handle, index.value, index.length, false);
+				SV* const * const ret = hv_fetch(handle, index.value, index.length, false);
 				if (!ret) {
-					SV* magical = Perl_newSV(interp, 0);
-					Perl_sv_magicext(interp, magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &string_magic, index.value, index.length);
+					SV* magical = newSV(0);
+					sv_magicext(magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &string_magic, index.value, index.length);
 					return Scalar::Temp(interp, magical, true, false);
 				}
 				SvGETMAGIC(*ret);
@@ -68,9 +64,9 @@ namespace perl {
 
 
 			const Scalar::Temp Value::operator[](const Scalar::Base& key) const {
-				HE* const entry = Perl_hv_fetch_ent(interp, handle, key.get_SV(true), false, 0);
+				HE* const entry = hv_fetch_ent(handle, key.get_SV(true), false, 0);
 				if (!entry) {
-					return Scalar::Temp(interp, Perl_newSV(interp, 0), true);
+					return Scalar::Temp(interp, newSV(0), true);
 				}
 				SV* const ret = HeVAL(entry);
 				SvGETMAGIC(ret);
@@ -78,18 +74,18 @@ namespace perl {
 			}
 			namespace {
 				int scalar_store(interpreter* interp, SV* var, MAGIC* magic) {
-					SV* tmp = Perl_newSVsv(interp, var);
-					Perl_hv_store_ent(interp, reinterpret_cast<HV*>(magic->mg_obj), *reinterpret_cast<SV**>(magic->mg_ptr), tmp, 0);
+					SV* tmp = newSVsv(var);
+					hv_store_ent(reinterpret_cast<HV*>(magic->mg_obj), *reinterpret_cast<SV**>(magic->mg_ptr), tmp, 0);
 					SvSETMAGIC(tmp);
 					return 0;
 				}
 				MGVTBL scalar_magic = { 0, string_store, 0, 0, 0 };
 			}
 			Scalar::Temp Value::operator[](const Scalar::Base& key) {
-				HE* const entry = Perl_hv_fetch_ent(interp, handle, key.get_SV(true), false, 0);
+				HE* const entry = hv_fetch_ent(handle, key.get_SV(true), false, 0);
 				if (!entry) {
-					SV* magical = Perl_newSV(interp, 0);
-					Perl_sv_magicext(interp, magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &scalar_magic, reinterpret_cast<const char*>(key.get_SV(false)), sizeof(SV));
+					SV* magical = newSV(0);
+					sv_magicext(magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &scalar_magic, reinterpret_cast<const char*>(key.get_SV(false)), sizeof(SV));
 					return Scalar::Temp(interp, magical, true, false);
 				}
 				SV* const ret = HeVAL(entry);
@@ -115,56 +111,56 @@ namespace perl {
 			}
 
 			bool Value::exists(Raw_string index) {
-				return Perl_hv_exists(interp, handle, index.value, index.length);
+				return hv_exists(handle, index.value, index.length);
 			}
 
 			bool Value::exists(const Scalar::Base& index) {
-				return Perl_hv_exists_ent(interp, handle, index.get_SV(true), 0);
+				return hv_exists_ent(handle, index.get_SV(true), 0);
 			}
 
 			const Scalar::Temp Value::erase(Raw_string index) {
-				SV* const tmp = Perl_hv_delete(interp, handle, index.value, index.length, 0);
+				SV* const tmp = hv_delete(handle, index.value, index.length, 0);
 				return Scalar::Temp(interp, tmp, true);
 			}
 			const Scalar::Temp Value::erase(const Scalar::Base& index) {
-				SV* const tmp = Perl_hv_delete_ent(interp, handle, index.get_SV(true), 0, 0);
+				SV* const tmp = hv_delete_ent(handle, index.get_SV(true), 0, 0);
 				return Scalar::Temp(interp, tmp, true);
 			}
 			void Value::clear() {
-				Perl_hv_clear(interp, handle);
+				hv_clear(handle);
 			}
 
 			void Value::undefine() {
-				Perl_hv_undef(interp, handle);
+				hv_undef(handle);
 			}
 			void Value::tie_to(const Scalar::Base& tier) {
-				Perl_sv_magic(interp, reinterpret_cast<SV*>(handle), tier.get_SV(false), PERL_MAGIC_tied, "", 0);
+				sv_magic(reinterpret_cast<SV*>(handle), tier.get_SV(false), PERL_MAGIC_tied, "", 0);
 			}
 			void Value::untie() {
-				if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? Perl_mg_find(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
+				if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? mg_find(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
 					Ref<Any> tier(Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true));
 					if (tier.can("UNTIE")) {
 						tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
 					}
 				}
-				Perl_sv_unmagic(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);
+				sv_unmagic(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);
 			}
 			const Scalar::Temp Value::tied() const {
-				if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? Perl_mg_find(interp, reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
+				if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? mg_find(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
 					return (mg->mg_obj != NULL) ?  Scalar::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : Scalar::Temp(take_ref());
 				}
-				return Scalar::Temp(interp, Perl_newSV(interp, 0), true);
+				return Scalar::Temp(interp, newSV(0), true);
 			}
 
 			void Value::foreach_init() const {
-				Perl_hv_iterinit(interp, handle);
+				hv_iterinit(handle);
 			}
 
 			const Iterator Value::next_value() const {
-				return Iterator(interp, Perl_hv_iternext(interp, handle));
+				return Iterator(interp, hv_iternext(handle));
 			}
 			Iterator Value::next_value() {
-				return Iterator(interp, Perl_hv_iternext(interp, handle));
+				return Iterator(interp, hv_iternext(handle));
 			}
 
 			const std::string& Value::cast_error() {
@@ -230,7 +226,7 @@ namespace perl {
 	}
 
 	const Ref<Hash>::Temp Hash::Value::take_ref() const {
-		return Ref<Hash>::Temp(interp, Perl_newRV(interp, reinterpret_cast<SV*>(handle)), true);
+		return Ref<Hash>::Temp(interp, newRV_inc(reinterpret_cast<SV*>(handle)), true);
 	} 
 
 	/*
@@ -246,7 +242,7 @@ namespace perl {
 	}
 	Hash::Temp::~Temp() {
 		if (owns) {
-			Perl_sv_free(interp, reinterpret_cast<SV*>(handle));
+			sv_free(reinterpret_cast<SV*>(handle));
 		}
 	}
 
@@ -259,7 +255,7 @@ namespace perl {
 	}
 
 	Hash::~Hash() {
-		Perl_sv_free(interp, reinterpret_cast<SV*>(handle));
+		sv_free(reinterpret_cast<SV*>(handle));
 	}
 
 	bool Hash::is_storage_type(const Any::Temp& var) {
