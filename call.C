@@ -1,6 +1,6 @@
 #include "internal.h"
-#include "XSUB.h"
 #include "perl++.h"
+#include "XSUB.h"
 
 #define stack_grow(a,b,c)  Perl_stack_grow(aTHX_ a,b,c)
 #define markstack_grow() Perl_markstack_grow(aTHX)
