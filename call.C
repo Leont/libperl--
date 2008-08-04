@@ -149,7 +149,7 @@ namespace perl {
 		void Call_stack::prepare_call() {
 			PUTBACK;
 		}
-		void Call_stack::finish_call(int count, intptr_t flags) {
+		void Call_stack::finish_call() {
 			SPAGAIN;
 	        if (SvTRUE(ERRSV)) {
 				POPs;
@@ -174,19 +174,19 @@ namespace perl {
 		int Call_stack::call_sub(const char* name, intptr_t flags) {
 			prepare_call();
 			const int ret = Perl_call_pv(interp, name, flags|G_EVAL);
-			finish_call(ret, flags);
+			finish_call();
 			return ret;
 		}
 		int Call_stack::call_sub(SV* ref, intptr_t flags) {
 			prepare_call();
 			const int ret = Perl_call_sv(interp, ref, flags|G_EVAL);
-			finish_call(ret, flags);
+			finish_call();
 			return ret;
 		}
 		int Call_stack::call_method(const char* name, intptr_t flags) {
 			prepare_call();
 			const int ret = Perl_call_method(interp, name, flags);
-			finish_call(ret, flags);
+			finish_call();
 			return ret;
 		}
 
@@ -199,8 +199,19 @@ namespace perl {
 		const Array::Temp Call_stack::unpack(const Raw_string pattern, const Raw_string value) {
 			prepare_call();
 			int count = Perl_unpackstring(interp, const_cast<char*>(pattern.value), const_cast<char*>(pattern.value + pattern.length), const_cast<char*>(value.value), const_cast<char*>(value.value + value.length), value.utf8 && !IN_BYTES ? FLAG_UNPACK_DO_UTF8 : 0);
-			finish_call(count, G_ARRAY);
+			finish_call();
 			return Array::Temp(interp, Perl_av_make(interp, count, SP - count + 1), true);
+		}
+
+		const Scalar::Temp Call_stack::eval_scalar(SV* string) {
+			Perl_eval_sv(interp, string, G_SCALAR);
+			finish_call();
+			return Scalar::Temp(interp, pop(), true);
+		}
+		const Array::Temp Call_stack::eval_list(SV* string) {
+			const int count = Perl_eval_sv(interp, string, G_ARRAY);
+			finish_call();
+			return Array::Temp(interp, pop_array(count), true);
 		}
 
 		/*

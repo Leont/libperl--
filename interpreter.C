@@ -87,36 +87,27 @@ namespace perl {
 	}
 
 	Package Interpreter::use(const char* package) {
-		Perl_load_module(raw_interp.get(), 0, value_of(package).get_SV(true), NULL, NULL);
+		Perl_load_module(raw_interp.get(), PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), NULL, NULL);
 		return get_package(package);
 	}
 	Package Interpreter::use(const char* package, double version) {
-		Perl_load_module(raw_interp.get(), 0, value_of(package).get_SV(true), value_of(version).get_SV(true), NULL);
+		Perl_load_module(raw_interp.get(), PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), value_of(version).get_SV(true), NULL);
 		return get_package(package);
 	}
 
 	const Scalar::Temp Interpreter::eval(const char* string) {
-		SAVETMPS;
-		SV* const ret = SvREFCNT_inc(Perl_eval_pv(raw_interp.get(), string, false));
-		FREETMPS;
-		if (SvTRUE(ERRSV)) {
-			STRLEN length;
-			const char* message = SvPV(ERRSV, length);
-			throw Runtime_exception(message, length);
-		}
-		return Scalar::Temp(raw_interp.get(), ret, true);
+		return eval(value_of(string));
 	}
 
-	const Scalar::Temp Interpreter::eval(const Scalar::Base& sv) {
-		SAVETMPS;
-		SV* const ret = SvREFCNT_inc(Perl_eval_sv(raw_interp.get(), sv.get_SV(true), G_SCALAR));
-		FREETMPS;
-		if (SvTRUE(ERRSV)) {
-			STRLEN length;
-			const char* message = SvPV(ERRSV, length);
-			throw Runtime_exception(message, length);
-		}
-		return Scalar::Temp(raw_interp.get(), ret, true);
+	const Scalar::Temp Interpreter::eval(const Scalar::Base& string) {
+		return implementation::Call_stack(raw_interp.get()).eval_scalar(string.get_SV(true));
+	}
+
+	const Array::Temp Interpreter::eval_list(const char* string) {
+		return eval_list(value_of(string));
+	}
+	const Array::Temp Interpreter::eval_list(const Scalar::Base& string) {
+		return implementation::Call_stack(raw_interp.get()).eval_list(string.get_SV(true));
 	}
 
 	const Scalar::Temp Interpreter::scalar(const char* name) const {
@@ -148,7 +139,7 @@ namespace perl {
 	}
 
 	static inline void get_magic(interpreter* interp, SV* handle) {
-		if (SvGMAGICAL(handle)) Perl_mg_get(interp, handle);
+		if (SvGMAGICAL(handle)) Perl_mg_get(interp, handle); //XXX
 	}
 
 	const Glob Interpreter::glob(const char* name) const {

@@ -607,6 +607,8 @@ namespace perl {
 
 		const Scalar::Temp eval(const char*);
 		const Scalar::Temp eval(const Scalar::Base&);
+		const Array::Temp eval_list(const char*);
+		const Array::Temp eval_list(const Scalar::Base&);
 		Package use(const char* package_name);
 		Package use(const char* package_name, double version);
 

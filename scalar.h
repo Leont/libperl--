@@ -200,11 +200,11 @@ namespace perl {
 		 */
 		class Call_stack : public Perl_stack {
 			void prepare_call();
-			void finish_call(int, intptr_t);
+			void finish_call();
 			void unwind_stack(int);
 
 			int call_sub(const char*, intptr_t);
-			int call_sub(SV* ref, intptr_t);
+			int call_sub(SV*, intptr_t);
 			int call_method(const char*, intptr_t);
 
 			SV* pop();
@@ -223,6 +223,10 @@ namespace perl {
 
 			const scalar::Temp_template<implementation::String> pack(const Raw_string pattern);
 			const array::Temp unpack(const Raw_string pattern, const Raw_string value);
+
+			const scalar::Temp eval_scalar(SV*);
+			const array::Temp eval_list(SV*);
+
 			~Call_stack();
 			template<typename T> Call_stack& push(const T& t) {
 				Perl_stack::push(t);
