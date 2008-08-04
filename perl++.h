@@ -2,11 +2,10 @@
 
 #include <string>
 #include <cstring>
+#include <map>
 #include <exception>
 #include <iostream>
-#include <boost/ptr_container/ptr_map.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/scoped_ptr.hpp>
 #include <boost/type_traits/function_traits.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits/is_base_of.hpp>
@@ -14,9 +13,7 @@
 #include <boost/type_traits/is_member_object_pointer.hpp>
 #include <boost/utility/result_of.hpp>
 #include <boost/utility/enable_if.hpp>
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/or.hpp>
-#include <boost/mpl/not.hpp>
+#include <boost/mpl/logical.hpp>
 
 #ifdef DEBUG
 #include <cstdio>
