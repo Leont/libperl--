@@ -84,3 +84,7 @@ wordsh:
 
 todo:
 	@for i in FIX''ME XX''X TO''DO; do echo -n "$$i: "; $(ACK) $$i | wc -l; done;
+
+apicount: libperl++.so
+	@echo -n "Number of entries: "
+	@nm libperl++.so -C --defined-only | egrep -i " [TW] perl::" | wc -l
