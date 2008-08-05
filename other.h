@@ -57,6 +57,18 @@ namespace perl {
 
 				static bool is_compatible_type(const scalar::Base& var);
 			};
+
+			template<> struct type_traits<Glob> {
+				typedef Glob lvalue;
+				typedef HV* raw_type;
+			};
+
+			template<> class Nonscalar<Glob> : public Ref_specialized<Glob> {
+				protected:
+				Nonscalar(interpreter*, SV*);
+				public:
+				static bool is_compatible_type(const scalar::Base& var);
+			};
 		}
 	}
 }

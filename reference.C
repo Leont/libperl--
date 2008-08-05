@@ -55,7 +55,7 @@ namespace perl {
 			}
 
 			/*
-			 * Class Ref<array>::Value
+			 * Class Ref<Array>::Value
 			 */
 			Nonscalar<Array>::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Array>(_interp, _handle) {
 			}
@@ -68,7 +68,7 @@ namespace perl {
 			}
 
 			/*
-			 * Class Ref<hash>::Value
+			 * Class Ref<Hash>::Value
 			 */
 			Nonscalar<Hash>::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Hash>(_interp, _handle) {
 			}
@@ -84,17 +84,27 @@ namespace perl {
 			}
 
 			/*
-			 * Class Ref<code>::Value
+			 * Class Ref<Code>::Value
 			 */
 			Nonscalar<Code>::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Code>(_interp, _handle) {
 			}
 
 			bool Nonscalar<Code>::is_compatible_type(const Scalar::Base& var) {
-				return Nonscalar<Any>::is_compatible_type(var) and Code::is_storage_type(helper::dereference(var));
+				return Nonscalar<Any>::is_compatible_type(var) and is_this_type(helper::dereference(var), SVt_PVCV);
 			}
 			const std::string& Nonscalar<Code>::cast_error() {
 				static const std::string message("Not an code reference");
 				return message;
+			}
+
+			/*
+			 * Class Ref<Glob>::Value
+			 */
+			Nonscalar<Glob>::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Glob>(_interp, _handle) {
+			}
+
+			bool Nonscalar<Glob>::is_compatible_type(const Scalar::Base& var) {
+				return Nonscalar<Any>::is_compatible_type(var) and is_this_type(helper::dereference(var), SVt_PVGV);
 			}
 		}
 	}
