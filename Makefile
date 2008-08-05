@@ -66,9 +66,9 @@ love:
 	@echo Not war?
 
 lines:
-	@wc -l *.[Ch] | sort -gr
+	@wc -l `ls *.[Ch] | grep -v ppport.h` | sort -gr
 linesh:
-	@wc -l *.h | sort -gr
+	@wc -l `ls *.h | grep -v ppport.h` | sort -gr
 linesC:
 	@wc -l *.C | sort -gr
 
@@ -83,7 +83,7 @@ words:
 wordsC:
 	@(for i in *.C; do cpp -fpreprocessed $$i | sed 's/[_a-zA-Z0-9][_a-zA-Z0-9]*/x/g' | tr -d ' \012' | wc -c | tr "\n" " " ; echo $$i; done) | sort -gr | column -t;
 wordsh:
-	@(for i in *.h; do cat $$i | sed 's/[_a-zA-Z0-9][_a-zA-Z0-9]*/x/g' | tr -d ' \012' | wc -c | tr "\n" " " ; echo $$i; done) | sort -gr | column -t;
+	@(for i in `ls *.h | grep -v ppport.h`; do cat $$i | sed 's/[_a-zA-Z0-9][_a-zA-Z0-9]*/x/g' | tr -d ' \012' | wc -c | tr "\n" " " ; echo $$i; done) | sort -gr | column -t;
 
 todo:
 	@for i in FIX''ME XX''X TO''DO; do echo -n "$$i: "; $(ACK) $$i | wc -l; done;

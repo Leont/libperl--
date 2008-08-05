@@ -93,29 +93,29 @@ namespace perl {
 		 */
 		
 		const Scalar::Temp Call_stack::method_scalar(const char* const name) {
-			assertion<Runtime_exception>( call_method(name, G_SCALAR) == 1, "More than one value returned in scalar call");
+			assertion<Runtime_exception>( method_call(name, G_SCALAR) == 1, "More than one value returned in scalar call");
 			return Scalar::Temp(interp, pop(), true);
 		}
 		const Array::Temp Call_stack::method_array(const char* name) {
-			const int count = call_method(name, G_ARRAY);
+			const int count = method_call(name, G_ARRAY);
 			return Array::Temp(interp, pop_array(count), true);
 		}
 
 		const Scalar::Temp Call_stack::sub_scalar(const char* const name) {
-			assertion<Runtime_exception>( call_sub(name, G_SCALAR) == 1, "More than one value returned in scalar call");
+			assertion<Runtime_exception>( sub_call(name, G_SCALAR) == 1, "More than one value returned in scalar call");
 			return Scalar::Temp(interp, pop(), true);
 		}
 		const Scalar::Temp Call_stack::sub_scalar(const Ref<Code>::Value& ref) {
-			assertion<Runtime_exception>( call_sub(ref.get_SV(true), G_SCALAR) == 1, "More than one value returned in scalar call");
+			assertion<Runtime_exception>( sub_call(ref.get_SV(true), G_SCALAR) == 1, "More than one value returned in scalar call");
 			return Scalar::Temp(interp, pop(), true);
 		}
 
 		const Array::Temp Call_stack::sub_array(const char* const name) {
-			const int count = call_sub(name, G_ARRAY);
+			const int count = sub_call(name, G_ARRAY);
 			return Array::Temp(interp, pop_array(count), true);
 		}
 		const Array::Temp Call_stack::sub_array(const Ref<Code>::Value& ref) {
-			const int count = call_sub(ref.get_SV(true), G_ARRAY);
+			const int count = sub_call(ref.get_SV(true), G_ARRAY);
 			return Array::Temp(interp, pop_array(count), true);
 		}
 
@@ -162,19 +162,19 @@ namespace perl {
 			return ret;
 		}
 
-		int Call_stack::call_sub(const char* name, intptr_t flags) {
+		int Call_stack::sub_call(const char* name, intptr_t flags) {
 			prepare_call();
 			const int ret = call_pv(name, flags|G_EVAL);
 			finish_call();
 			return ret;
 		}
-		int Call_stack::call_sub(SV* ref, intptr_t flags) {
+		int Call_stack::sub_call(SV* ref, intptr_t flags) {
 			prepare_call();
 			const int ret = call_sv(ref, flags|G_EVAL);
 			finish_call();
 			return ret;
 		}
-		int Call_stack::call_method(const char* name, intptr_t flags) {
+		int Call_stack::method_call(const char* name, intptr_t flags) {
 			prepare_call();
 			const int ret = call_method(name, flags);
 			finish_call();

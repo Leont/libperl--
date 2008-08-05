@@ -13,5 +13,5 @@
 
 #undef aTHX
 #define aTHX interp
-#undef call_method
+#undef method_call
 #undef die

@@ -203,9 +203,9 @@ namespace perl {
 			void finish_call();
 			void unwind_stack(int);
 
-			int call_sub(const char*, intptr_t);
-			int call_sub(SV*, intptr_t);
-			int call_method(const char*, intptr_t);
+			int sub_call(const char*, intptr_t);
+			int sub_call(SV*, intptr_t);
+			int method_call(const char*, intptr_t);
 
 			SV* pop();
 			AV* pop_array(int);
