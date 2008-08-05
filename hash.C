@@ -110,11 +110,11 @@ namespace perl {
 				return ret;
 			}
 
-			bool Value::exists(Raw_string index) {
+			bool Value::exists(Raw_string index) const {
 				return hv_exists(handle, index.value, index.length);
 			}
 
-			bool Value::exists(const Scalar::Base& index) {
+			bool Value::exists(const Scalar::Base& index) const {
 				return hv_exists_ent(handle, index.get_SV(true), 0);
 			}
 

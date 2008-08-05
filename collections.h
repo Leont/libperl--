@@ -407,8 +407,8 @@ namespace perl {
 				const Scalar::Temp operator[](const Scalar::Base&) const;
 				Scalar::Temp operator[](const Scalar::Base&);
 
-				bool exists(Raw_string);
-				bool exists(const Scalar::Base&);
+				bool exists(Raw_string) const;
+				bool exists(const Scalar::Base&) const;
 				const Scalar::Temp erase(Raw_string);
 				const Scalar::Temp erase(const Scalar::Base&);
 				void clear();

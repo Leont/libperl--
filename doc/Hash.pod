@@ -32,9 +32,9 @@ Get/set a hash element.
 
 Get/set a hash element. The element is looked up as a scalar key.
 
-=item bool exists(Raw_string);
+=item bool exists(Raw_string) const;
 
-=item bool exists(const Scalar::Base&);
+=item bool exists(const Scalar::Base&) const;
 
 Checks if an element exists.
 
@@ -42,7 +42,7 @@ Checks if an element exists.
 
 =item const Scalar::Temp erase(const Scalar::Base&);
 
-Erases an element from the hash. It returns the value from 
+Erases an element from the hash and returns it to the caller.
 
 =item void clear()
 
