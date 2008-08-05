@@ -21,7 +21,10 @@ OBJS := $(patsubst %.C,%.o,$(SRCS))
 
 TODEL := $(wildcard *.o)
 
-all: $(LIB) example tap_tester
+all: ppport.h $(LIB) example tap_tester
+
+ppport.h:
+	perl -MDevel::PPPort -eDevel::PPPort::WriteFile
 
 #$(LIB): $(OBJS)
 #	ar -cr $(LIB) $(OBJS)

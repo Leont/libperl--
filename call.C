@@ -1,6 +1,6 @@
+#define INCLUDE_XSUB
 #include "internal.h"
 #include "perl++.h"
-#include "XSUB.h"
 
 #ifndef FLAG_UNPACK_DO_UTF8
 // perl fails to export unpack flags. This is not very future-proof, but it works.

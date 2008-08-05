@@ -6,6 +6,10 @@
 #include <EXTERN.h>
 #include <perl.h>
 //#include <perlio.h>
+#ifdef INCLUDE_XSUB
+#include <XSUB.h>
+#endif
+#include "ppport.h"
 
 #undef aTHX
 #define aTHX interp
