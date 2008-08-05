@@ -58,7 +58,7 @@ test: $(LIB) tap_tester
 #%.o: perl++.h
 
 clean:
-	-rm $(LIB) tap_tester example $(TODEL) 2>/dev/null
+	-rm $(LIB) tap_tester example ppport.h $(TODEL) 2>/dev/null
 
 again: clean all
 
