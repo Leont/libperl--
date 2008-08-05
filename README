@@ -5,9 +5,8 @@ C++ are finished, and should be beta quality. However, the functionality to expo
 functions, methods and variables to perl are alpha quality. 
 
 DEPENDENCIES
-The library should work on perl 5.8.1 or higher. It may work on lower versions,
-but that isn't tried. Also, some Boost headers are required to build it, but
-there are no dependencies on Boost runtime libraries.
+The library should work on perl 5.8.1 or higher. Also, some Boost headers are
+required to build it, but there are no dependencies on Boost runtime libraries.
 
 BUILDING
 It can be build using a simple `make`. This currently build the shared library
