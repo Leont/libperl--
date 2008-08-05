@@ -255,7 +255,7 @@ namespace perl {
 	Array::Temp::Temp(const Temp& other) : Value(other.interp, other.handle), owns(true) {
 		other.owns = false;
 	}
-	Array::Temp::Temp(interpreter* _interp) : Value(_interp, Perl_newAV(_interp)), owns(true) {
+	Array::Temp::Temp(interpreter* _interp) : Value(_interp, newav(_interp)), owns(true) {
 	}
 	Array::Temp::Temp(interpreter* _interp, AV* _handle, bool _owns) : Value(_interp, _handle), owns(_owns) {
 	}
@@ -264,7 +264,7 @@ namespace perl {
 	}
 	Array::Temp::~Temp() {
 		if (owns) {
-			sv_free(reinterpret_cast<SV*>(handle));
+			SvREFCNT_dec(reinterpret_cast<SV*>(handle));
 		}
 	}
 
@@ -402,10 +402,8 @@ namespace perl {
 	Array::Array(const Array::Temp& other) : Value(other.interp, other.owns ? other.handle : newav(other.interp, other)) {
 		other.release();
 	}
-	Array::Array(interpreter* _interp) : Value(_interp, newav(_interp)) {
-	}
 	Array::~Array() {
-		sv_free(reinterpret_cast<SV*>(handle));
+		SvREFCNT_dec(reinterpret_cast<SV*>(handle));
 	}
 	bool Array::is_storage_type(const Any::Temp& val) {
 		return implementation::is_this_type(val, SVt_PVAV);

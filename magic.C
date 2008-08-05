@@ -21,7 +21,8 @@ namespace perl {
 			return mg_find(var, PERL_MAGIC_ext) != NULL;
 		}
 		bool has_magic_string(const Scalar::Base& var) {
-			return Perl_mg_find(var.interp, var.get_SV(false), PERL_MAGIC_ext) != NULL;
+			interpreter* const interp = var.interp;
+			return mg_find(var.get_SV(false), PERL_MAGIC_ext) != NULL;
 		}
 		void set_magic_string(interpreter* interp, SV* var, Raw_string string) {
 			sv_magic(var, NULL, PERL_MAGIC_ext, string.value, string.length);

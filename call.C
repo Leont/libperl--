@@ -157,7 +157,7 @@ namespace perl {
 			SP -= count;
 			int ax = (SP - PL_stack_base) + 1;
 			for(int i = 0; i < count; ++i) {
-				sv_free(ST(i));
+				SvREFCNT_dec(ST(i));
 			}
 			return ret;
 		}
@@ -215,7 +215,8 @@ namespace perl {
 		}
 		static inline HV* get_stash(const Scalar::Value& value) {
 			SV* const handler = value.get_SV(true);
-			return (SvROK(handler) && Perl_sv_isobject(value.interp, handler)) ?  SvSTASH(SvRV(handler)) : Perl_gv_stashsv(value.interp, handler, false);
+			interpreter* const interp = value.interp;
+			return (SvROK(handler) && sv_isobject(handler)) ?  SvSTASH(SvRV(handler)) : gv_stashsv(handler, false);
 		}
 		Stash::Stash(const Scalar::Value& value) : interp(value.interp), stash(get_stash(value)) {
 		}

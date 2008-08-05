@@ -246,16 +246,20 @@ namespace perl {
 		}
 	}
 
-	Hash::Hash(const Interpreter& _interp) : Value(_interp.get_interpreter(), Perl_newHV(_interp.get_interpreter())) {
+	namespace {
+		HV* copy_hash(interpreter* interp, HV* other) {
+			return newHVhv(other);
+		}
 	}
-	Hash::Hash(const Hash& other) : Value(other.interp, Perl_newHVhv(other.interp, other.handle)) {
+
+	Hash::Hash(const Hash& other) : Value(other.interp, copy_hash(other.interp, other.handle)) {
 	}
-	Hash::Hash(const Temp& other) : Value(other.interp, other.owns ? other.handle : Perl_newHVhv(other.interp, other.handle)) {
+	Hash::Hash(const Temp& other) : Value(other.interp, other.owns ? other.handle : copy_hash(other.interp, other.handle)) {
 		other.release();
 	}
 
 	Hash::~Hash() {
-		sv_free(reinterpret_cast<SV*>(handle));
+		SvREFCNT_dec(reinterpret_cast<SV*>(handle));
 	}
 
 	bool Hash::is_storage_type(const Any::Temp& var) {

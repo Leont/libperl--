@@ -4,9 +4,9 @@
 extern "C" {
 	void boot_DynaLoader(pTHX_ CV* cv);
 
-	static void xs_init(pTHX) {
+	static void xs_init(interpreter* interp) {
 		dXSUB_SYS;
-		Perl_newXS(my_perl, const_cast<char*>("DynaLoader::boot_DynaLoader"), boot_DynaLoader, const_cast<char*>(__FILE__));
+		newXS(const_cast<char*>("DynaLoader::boot_DynaLoader"), boot_DynaLoader, const_cast<char*>(__FILE__));
 	}
 }
 

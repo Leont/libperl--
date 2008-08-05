@@ -329,10 +329,9 @@ namespace perl {
 		typedef implementation::array::Temp Temp;
 		typedef implementation::array::Length Length;
 
-		explicit Array(interpreter*);
-		//TODO template constructors?
 		Array(const Array&);
 		Array(const Temp&);
+		//TODO template constructors?
 
 		public:
 		~Array();
@@ -475,7 +474,6 @@ namespace perl {
 		typedef implementation::hash::Iterator Iterator;
 		typedef Iterator::Key_type Key_type;
 
-		explicit Hash(const Interpreter&);
 		Hash(const Hash&);
 		Hash(const Temp&);
 		

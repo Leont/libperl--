@@ -49,7 +49,8 @@ namespace perl {
 			}
 
 			SV* Base::copy_sv(const Base& other) {
-				return Perl_newSVsv(other.interp, other.get_SV(true));
+				interpreter* const interp = other.interp;
+				return newSVsv(other.get_SV(true));
 			}
 			const std::string& Base::cast_error() {
 				static const std::string message("Not a scalar");
@@ -102,8 +103,8 @@ namespace perl {
 		namespace helper {
 			void decrement(const Scalar::Base& variable) {
 				interpreter* const interp = variable.interp;
-				if (SvOK(variable.get_SV(true))) {
-					sv_free(variable.get_SV(false));
+				if (SvOK(variable.get_SV(true))) {//XXX
+					SvREFCNT_dec(variable.get_SV(false));
 				}
 			}
 			void set_scalar(Scalar::Base& sink, const Scalar::Base& source) {

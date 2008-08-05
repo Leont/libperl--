@@ -51,7 +51,6 @@ namespace perl {
 	Argument_stack::Argument_stack(interpreter* _interp) : Perl_stack(_interp), marker(make_mark(interp)), return_num(0) {
 	}
 #define ax marker.ax
-#define markstack_grow() Perl_markstack_grow(aTHX)
 	Argument_stack::~Argument_stack() {
 		XSRETURN(return_num);
 	}
