@@ -126,13 +126,13 @@ namespace perl {
 		};
 
 		template<typename T> static void readonly(const Scalar::Base& var, T& object) {
-			attach_getset_magic(var.interp, var.get_SV(false), Val_wrapper<T>::read, NULL, &object, sizeof(object));
+			attach_getset_magic(var.interp, var.get_SV(false), Val_wrapper<T>::read, NULL, &object, 0);
 		};
 		template<typename T> static void writeonly(const Scalar::Base& var, T& object) {
-			attach_getset_magic(var.interp, var.get_SV(false), NULL, Val_wrapper<T>::write, &object, sizeof(object));
+			attach_getset_magic(var.interp, var.get_SV(false), NULL, Val_wrapper<T>::write, &object, 0);
 		};
 		template<typename T> static void readwrite(const Scalar::Base& var, T& object) {
-			attach_getset_magic(var.interp, var.get_SV(false), Val_wrapper<T>::read, Val_wrapper<T>::write, &object, sizeof(object));
+			attach_getset_magic(var.interp, var.get_SV(false), Val_wrapper<T>::read, Val_wrapper<T>::write, &object, 0);
 		};
 	};
 
