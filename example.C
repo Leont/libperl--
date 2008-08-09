@@ -113,8 +113,8 @@ int main() {
 		int test = complex("foo", bar, quz);
 		cout << "complex('foo', bar, quz) : " << test << endl;
 
-		mag magic;
-		Magic::writeonly(zaab, magic, &mag::set_value);
+		mag set_magic;
+		magical::writeonly(zaab, set_magic, &mag::set_value);
 		cout << "zaab is " << zaab << endl;
 		zaab = "220 Boe!";
 		cout << "zaab is " << zaab << endl;

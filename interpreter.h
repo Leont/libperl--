@@ -57,83 +57,83 @@ namespace perl {
 			};
 		}
 		SV* make_magic_object(interpreter*, void*, const classes::State&);
-	}
 
-	class Magic {
-		struct read_type {};
-		struct write_type {};
-		template<typename T, typename U, typename V = U> class Wrapper {
-			typedef void (T::*read_method_type)(U&);
-			typedef void (T::*write_method_type)(V&);
-			typedef T return_type;
-			typedef U Argument_type;
-			T& object;
-			const read_method_type reader;
-			const write_method_type writer;
-			void read(U& arg) {
-				(object.*reader)(arg);
-			}
-			void write(V& arg) {
-				(object.*writer)(arg);
-			}
-			public:
-			static int read(interpreter* interp, SV* var, MAGIC* magic_ptr) {
-				Wrapper* tmp = implementation::get_magic_ptr<Wrapper>(magic_ptr);
-				Scalar::Temp val(interp, var, false);
-				tmp->read(val);
-				return 0;
-			}
-			static int write(interpreter* interp, SV* var, MAGIC* magic_ptr) {
-				Wrapper* tmp = implementation::get_magic_ptr<Wrapper>(magic_ptr);
-				Scalar::Temp val(interp, var, false);
-				tmp->write(val);
-				return 0;
-			}
-			Wrapper(T& _object, read_method_type method, const read_type&) : object(_object), reader(method), writer(NULL) {
-			}
-			Wrapper(T& _object, write_method_type method, const write_type&) : object(_object), reader(NULL), writer(method) {
-			}
-			Wrapper(T& _object, read_method_type _reader, write_method_type _writer) : object(_object), reader(_reader), writer(_writer) {
-			}
-		};
-		template<typename T> class Val_wrapper {
-			public:
-			static int read(interpreter* interp, SV* var, MAGIC* magic_ptr) {
+		namespace magic {
+			struct read_type {};
+			struct write_type {};
+			template<typename T, typename U, typename V = U> class Wrapper {
+				typedef void (T::*read_method_type)(U&);
+				typedef void (T::*write_method_type)(V&);
+				T& object;
+				const read_method_type reader;
+				const write_method_type writer;
+				void read(U& arg) const {
+					(object.*reader)(arg);
+				}
+				void write(V& arg) const {
+					(object.*writer)(arg);
+				}
+				public:
+				static int read(interpreter* interp, SV* var, MAGIC* magic_ptr) {
+					const Wrapper& tmp = *implementation::get_magic_ptr<Wrapper>(magic_ptr);
+					Scalar::Temp val(interp, var, false);
+					tmp.read(val);
+					return 0;
+				}
+				static int write(interpreter* interp, SV* var, MAGIC* magic_ptr) {
+					const Wrapper& tmp = *implementation::get_magic_ptr<Wrapper>(magic_ptr);
+					Scalar::Temp val(interp, var, false);
+					tmp.write(val);
+					return 0;
+				}
+				Wrapper(T& _object, read_method_type method, const read_type&) : object(_object), reader(method), writer(NULL) {
+				}
+				Wrapper(T& _object, write_method_type method, const write_type&) : object(_object), reader(NULL), writer(method) {
+				}
+				Wrapper(T& _object, read_method_type _reader, write_method_type _writer) : object(_object), reader(_reader), writer(_writer) {
+				}
+			};
+			template<typename T> int var_read(interpreter* interp, SV* var, MAGIC* magic_ptr) {
 				const T& tmp = *implementation::get_magic_ptr<T>(magic_ptr);
 				Scalar::Temp val(interp, var, false);
-				val = tmp.value;
+				if (val != tmp) {
+					val = tmp;
+				}
 				return 0;
 			}
-			static int write(interpreter* interp, SV* var, MAGIC* magic_ptr) {
+			template<typename T> int var_write(interpreter* interp, SV* var, MAGIC* magic_ptr) {
 				T& tmp = *implementation::get_magic_ptr<T>(magic_ptr);
-				Scalar::Temp const val(interp, var, false);
-				tmp.value = val;
+				Scalar::Temp val(interp, var, false);
+				tmp = val;
 				return 0;
 			}
-		};
-		public:
+		}
+	}
+
+	namespace magical {
+		using namespace implementation::magic;
 		template<typename T, typename U> static void readonly(const Scalar::Base& var, T& object, void (T::*get_value)(U&)) {
-			Wrapper<T, U> funcs(object, get_value, read_type());
+			const Wrapper<T, U> funcs(object, get_value, read_type());
 			attach_getset_magic(var.interp, var.get_SV(false), Wrapper<T, U>::read, NULL, &funcs, sizeof(funcs));
-		};
+		}
 		template<typename T, typename U> static void writeonly(const Scalar::Base& var, T& object, void (T::*set_value)(U&)) {
-			Wrapper<T, U> funcs(object, set_value, write_type());
+			const Wrapper<T, U> funcs(object, set_value, write_type());
 			attach_getset_magic(var.interp, var.get_SV(false), NULL, Wrapper<T, U>::write, &funcs, sizeof(funcs));
-		};
+		}
 		template<typename T, typename U, typename V> static void readwrite(const Scalar::Base& var, T& object, void (T::*get_value)(U&), void (T::*set_value)(V&)) {
-			Wrapper<T, U, V> funcs(object, get_value, set_value);
+			const Wrapper<T, U, V> funcs(object, get_value, set_value);
 			attach_getset_magic(var.interp, var.get_SV(false), Wrapper<T, U, V>::read, Wrapper<T, U, V>::write, &funcs, sizeof(funcs));
-		};
+		}
 
 		template<typename T> static void readonly(const Scalar::Base& var, T& object) {
-			attach_getset_magic(var.interp, var.get_SV(false), Val_wrapper<T>::read, NULL, &object, 0);
-		};
+			attach_getset_magic(var.interp, var.get_SV(false), var_read<T>, NULL, &object, 0);
+		}
 		template<typename T> static void writeonly(const Scalar::Base& var, T& object) {
-			attach_getset_magic(var.interp, var.get_SV(false), NULL, Val_wrapper<T>::write, &object, 0);
-		};
+			attach_getset_magic(var.interp, var.get_SV(false), NULL, var_write<T>, &object, 0);
+		}
 		template<typename T> static void readwrite(const Scalar::Base& var, T& object) {
-			attach_getset_magic(var.interp, var.get_SV(false), Val_wrapper<T>::read, Val_wrapper<T>::write, &object, 0);
-		};
+			attach_getset_magic(var.interp, var.get_SV(false), var_read<T>, var_write<T>, &object, 0);
+		}
 	};
 
 	namespace implementation {
@@ -155,7 +155,7 @@ namespace perl {
 		public:
 		explicit Argument_stack(interpreter*);
 		const Scalar::Temp operator[](unsigned) const;
-//			Scalar::Value operator[](unsigned);
+		Scalar::Temp operator[](unsigned);
 		void pre_push();
 		template <typename T> void returns(const T& t) {
 			pre_push();
