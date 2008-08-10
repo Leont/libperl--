@@ -9,7 +9,7 @@
 #ifdef INCLUDE_XSUB
 #include <XSUB.h>
 #endif
-#include "ppport.h"
+//#include "ppport.h"
 
 #undef aTHX
 #define aTHX interp
