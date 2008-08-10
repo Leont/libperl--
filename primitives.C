@@ -222,20 +222,15 @@ namespace perl {
 			return *this;
 		}
 
-		const Raw_string String::get_raw_string() const {
-			STRLEN len;
-			const char* ret = SvPV(get_SV(true), len);
-			return Raw_string(ret, len, SvUTF8(get_SV(false)));//only once!
-		}
 		String::operator const Raw_string() const {
-			return get_raw_string();
+			return string_value();
 		}
 		const char* String::get_raw() const {
-			return get_raw_string();
+			STRLEN len;
+			return SvPVx(get_SV(true), len);
 		}
 		String::operator const char*() const {
-			STRLEN len;
-			return SvPV(get_SV(true), len);
+			return get_raw();
 		}
 		unsigned String::length() const {
 			return sv_len(get_SV(true)); // Unicode!?
@@ -297,7 +292,7 @@ namespace perl {
 		SV* String::copy(const Scalar::Base& other) {
 			interpreter* const interp = other.interp;
 			STRLEN len;
-			const char* tmp = SvPV(other.get_SV(true), len);
+			const char* tmp = SvPVx(other.get_SV(true), len);
 			SV* ret = newSVpvn(tmp, len);
 			if (SvUTF8(other.get_SV(false))) {
 				SvUTF8_on(ret);

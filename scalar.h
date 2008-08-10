@@ -53,6 +53,12 @@ namespace perl {
 				private:
 				SV* const handle;
 				public:
+
+				int int_value() const;
+				unsigned uint_value() const;
+				double number_value() const;
+				Raw_string string_value() const;
+
 				SV* get_SV(bool) const;
 				bool is_tainted() const;
 				void taint();
@@ -465,10 +471,6 @@ namespace perl {
 				// End of TODO
 				
 				bool is_defined() const;
-				int int_value() const;
-				unsigned uint_value() const;
-				double number_value() const;
-				Raw_string string_value() const;
 
 				operator int() const;
 				operator unsigned() const;
@@ -681,7 +683,6 @@ namespace perl {
 			String(interpreter*, SV*);
 			public:
 
-			const Raw_string get_raw_string() const;
 			operator const Raw_string() const;
 			const char* get_raw() const;
 			operator const char*() const;
@@ -725,6 +726,15 @@ namespace perl {
 	typedef implementation::scalar::Variable<implementation::Uinteger> Uinteger;
 	typedef implementation::scalar::Variable<implementation::Number> Number;
 	typedef implementation::scalar::Variable<implementation::String> String;
+
+	enum compared {
+		LESS  = -1,
+		EQUAL = 0,
+		MORE  = 1
+	};
+
+	compared cmp(const Scalar::Base&, const Scalar::Base&);
+	bool eq(const Scalar::Base&, const Scalar::Base&);
 
 	namespace implementation {
 

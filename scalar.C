@@ -1,91 +1,79 @@
 #include "internal.h"
 #include "perl++.h"
 
-namespace {
-	int int_value(const perl::Scalar::Base& val) {
-		interpreter* const interp = val.interp;
-		return SvIV(val.get_SV(true));
-	}
-	unsigned uint_value(const perl::Scalar::Base& val) {
-		interpreter* const interp = val.interp;
-		return SvUV(val.get_SV(true));
-	}
-	double number_value(const perl::Scalar::Base& val) {
-		interpreter* const interp = val.interp;
-		return SvNV(val.get_SV(true));
-	}
-	perl::Raw_string string_value(const perl::Scalar::Base& val) {
-		interpreter* const interp = val.interp;
-		unsigned len;
-		const char* const tmp = SvPV(val.get_SV(true), len);
-		return perl::Raw_string(tmp, len, SvUTF8(val.get_SV(false)));
-	}
-}
-
 namespace perl {
-	namespace implementation {
-		/*
-		 * Class Scalar::Base
-		 */
-		namespace scalar {
-			Base::Base(interpreter* _interp, SV* _handle) : interp(_interp), handle(_handle) {
-			}
+	Scalar::Base::Base(interpreter* _interp, SV* _handle) : interp(_interp), handle(_handle) {
+	}
 
-			bool Base::is_tainted() const {
-				return SvTAINTED(handle);
-			}
-			void Base::taint() {
-				sv_taint(handle);
-			}
+	bool Scalar::Base::is_tainted() const {
+		return SvTAINTED(handle);
+	}
+	void Scalar::Base::taint() {
+		sv_taint(handle);
+	}
 
-			SV* Base::get_SV(bool do_magic) const {
-				if (do_magic) {
-					SvGETMAGIC(handle);
-				}
-				return handle;
-			}
-			bool Base::is_compatible_type(const Base&) {
-				return true;
-			}
+	SV* Scalar::Base::get_SV(bool do_magic) const {
+		if (do_magic) {
+			SvGETMAGIC(handle);
+		}
+		return handle;
+	}
 
-			SV* Base::copy_sv(const Base& other) {
-				interpreter* const interp = other.interp;
-				return newSVsv(other.get_SV(true));
-			}
-			const std::string& Base::cast_error() {
-				static const std::string message("Not a scalar");
-				return message;
-			}
-			void Base::tie_to(const Base& tier) {
-				sv_magic(get_SV(false), tier.get_SV(false), PERL_MAGIC_tiedscalar, "", 0);
-			}
-			void Base::untie() {
-				if (MAGIC* mg = SvRMAGICAL(get_SV(false)) ? mg_find(get_SV(false), PERL_MAGIC_tiedscalar) : NULL) {
-					Ref<Any> tier = mg->mg_obj != NULL ?  Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : take_ref();
-					if (tier.can("UNTIE")) {
-						tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
-					}
-				}
-				sv_unmagic(get_SV(false), PERL_MAGIC_tiedscalar);
-			}
-			const Scalar::Temp Base::tied() const {
-				if (MAGIC* mg = SvRMAGICAL(get_SV(false)) ? mg_find(get_SV(false), PERL_MAGIC_tiedscalar) : NULL) {
-					return (mg->mg_obj != NULL) ?  Scalar::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : Scalar::Temp(take_ref());
-				}
-				return Scalar::Temp(interp, newSV(0), true);
-			}
-			
-			const Ref<Any>::Temp Base::take_ref() const {
-				return Ref<Any>::Temp(interp, newRV_inc(get_SV(false)), true);
+	int Scalar::Base::int_value() const {
+		return SvIVx(get_SV(true));
+	}
+	unsigned Scalar::Base::uint_value() const {
+		return SvUVx(get_SV(true));
+	}
+	double Scalar::Base::number_value() const {
+		return SvNVx(get_SV(true));
+	}
+	perl::Raw_string Scalar::Base::string_value() const {
+		unsigned len;
+		const char* const tmp = SvPVx(get_SV(true), len);
+		return perl::Raw_string(tmp, len, SvUTF8(get_SV(false)));
+	}
+
+	void Scalar::Base::tie_to(const Scalar::Base& tier) {
+		sv_magic(get_SV(false), tier.get_SV(false), PERL_MAGIC_tiedscalar, "", 0);
+	}
+	void Scalar::Base::untie() {
+		if (MAGIC* mg = SvRMAGICAL(get_SV(false)) ? mg_find(get_SV(false), PERL_MAGIC_tiedscalar) : NULL) {
+			Ref<Any> tier = mg->mg_obj != NULL ?  Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : take_ref();
+			if (tier.can("UNTIE")) {
+				tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
 			}
 		}
+		sv_unmagic(get_SV(false), PERL_MAGIC_tiedscalar);
 	}
+	const Scalar::Temp Scalar::Base::tied() const {
+		if (MAGIC* mg = SvRMAGICAL(get_SV(false)) ? mg_find(get_SV(false), PERL_MAGIC_tiedscalar) : NULL) {
+			return (mg->mg_obj != NULL) ?  Scalar::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : Scalar::Temp(take_ref());
+		}
+		return Scalar::Temp(interp, newSV(0), true);
+	}
+	
+	const Ref<Any>::Temp Scalar::Base::take_ref() const {
+		return Ref<Any>::Temp(interp, newRV_inc(get_SV(false)), true);
+	}
+
+	bool Scalar::Base::is_compatible_type(const Scalar::Base&) {
+		return true;
+	}
+	SV* Scalar::Base::copy_sv(const Scalar::Base& other) {
+		interpreter* const interp = other.interp;
+		return newSVsv(other.get_SV(true));
+	}
+	const std::string& Scalar::Base::cast_error() {
+		static const std::string message("Not a scalar");
+		return message;
+	}
+
 	std::ostream& operator<<(std::ostream& stream, const Scalar::Base& val) {
-/*
- * Premature optimization...
+		interpreter* interp = val.interp;
 		SV* handle = val.get_SV(true);
 		if (SvPOK(handle)) {
-			return stream << string_value(val);
+			return stream << val.string_value();//FIXME: double magic
 		}
 		else if (SvIOK(handle)) {
 			return stream << SvIV(handle);
@@ -94,9 +82,8 @@ namespace perl {
 			return stream << SvUV(handle);
 		}
 		else {
-*/
-			return stream << string_value(val);
-//		}
+			return stream << val.string_value();
+		}
 	}
 
 	namespace implementation {
@@ -193,18 +180,6 @@ namespace perl {
 	Scalar::Value::operator bool() const {
 		return as_bool();
 	}
-	int Scalar::Value::int_value() const {
-		return ::int_value(*this);
-	}
-	unsigned Scalar::Value::uint_value() const {
-		return ::uint_value(*this);
-	}
-	double Scalar::Value::number_value() const {
-		return ::number_value(*this);
-	}
-	Raw_string Scalar::Value::string_value() const {
-		return ::string_value(*this);
-	}
 
 	Scalar::Value::operator int() const {
 		return int_value();
@@ -257,6 +232,15 @@ namespace perl {
 	}
 	const char* Scalar::Value::get_classname() const {
 		return HvNAME(SvSTASH(SvRV(get_SV(true))));
+	}
+
+	compared cmp(const Scalar::Base& left, const Scalar::Base& right) {
+		interpreter* interp = left.interp;
+		return static_cast<compared>(sv_cmp(left.get_SV(true), right.get_SV(true)));
+	}
+	bool eq(const Scalar::Base& left, const Scalar::Base& right) {
+		interpreter* interp = left.interp;
+		return sv_eq(left.get_SV(true), right.get_SV(true));
 	}
 
 	/*
