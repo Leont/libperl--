@@ -48,14 +48,6 @@ namespace perl {
 	 * Class Interpreter
 	 */
 
-	namespace {
-		int scalar_store(interpreter* interp, SV* var, MAGIC* magic) {
-			SvSetMagicSV(get_sv(magic->mg_ptr, true), var);
-			return 0;
-		}
-		MGVTBL scalar_set_magic = { 0, scalar_store, 0, 0, 0 };
-	}
-
 #define interp raw_interp.get()
 
 	Interpreter::Interpreter() : raw_interp(initialize_interpreter(), destructor), modglobal(raw_interp.get(), PL_modglobal, false) {
@@ -116,17 +108,11 @@ namespace perl {
 		if (ret == NULL) {
 			return undef();
 		}
-//		SvGETMAGIC(ret);
 		return Scalar::Temp(interp, ret, false);
 	}
 	Scalar::Temp Interpreter::scalar(const char* name) {
-		SV* const ret = get_sv(name, false);
-		if (ret == NULL) {
-			SV* magical = newSV(0);
-			sv_magicext(magical, NULL, PERL_MAGIC_uvar, &scalar_set_magic, name, strlen(name) + 1);
-			return Scalar::Temp(interp, magical, true, false);
-		}
-		return Scalar::Temp(raw_interp.get(), ret, false);
+		SV* const ret = get_sv(name, true);
+		return Scalar::Temp(interp, ret, false);
 	}
 
 

@@ -638,9 +638,9 @@ namespace perl {
 
 		const Package get_package(const char* name) const;
 		Package get_package(const char* name);
+
 		const Scalar::Temp scalar(const char*) const;
 		Scalar::Temp scalar(const char*);
-
 		const Array::Temp array(const char*) const;
 //		Array::Lvalue get_array(const char*); //TODO
 		Hash::Value hash(const char* name) const;
