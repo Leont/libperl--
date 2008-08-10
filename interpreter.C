@@ -124,6 +124,7 @@ namespace perl {
 		GV* const ret = gv_fetchpv(name, GV_ADD, SVt_PV);
 		return Glob(raw_interp.get(), ret);
 	}
+
 	const Array::Temp Interpreter::array(const char* name) const {
 		AV* const ret = get_av(name, false);
 		if (ret == NULL) {
@@ -132,12 +133,22 @@ namespace perl {
 		SvGETMAGIC(reinterpret_cast<SV*>(ret));
 		return Array::Temp(raw_interp.get(), ret, false);
 	}
+	Array::Temp Interpreter::array(const char* name) {
+		AV* const ret = get_av(name, true);
+		SvGETMAGIC(reinterpret_cast<SV*>(ret));
+		return Array::Temp(raw_interp.get(), ret, false);
+	}
 
-	Hash::Value Interpreter::hash(const char* name) const {
+	const Hash::Temp Interpreter::hash(const char* name) const {
 		HV* const ret = get_hv(name, false);
 		if (ret == NULL) {
 			return Hash::Temp(raw_interp.get(), newHV(), true);
 		}
+		SvGETMAGIC(reinterpret_cast<SV*>(ret));
+		return Hash::Temp(raw_interp.get(), ret, false);
+	}
+	Hash::Temp Interpreter::hash(const char* name) {
+		HV* const ret = get_hv(name, true);
 		SvGETMAGIC(reinterpret_cast<SV*>(ret));
 		return Hash::Temp(raw_interp.get(), ret, false);
 	}
