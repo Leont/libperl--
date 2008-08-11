@@ -214,6 +214,13 @@ namespace perl {
 			}
 			return ret;
 		}
+		HV* get_stash(interpreter* interp, SV* name, bool create) {
+			HV* const ret = gv_stashsv(name, create ? GV_ADD : 0);
+			if (ret == NULL) {
+				throw Runtime_exception("Package does not exist");
+			}
+			return ret;
+		}
 	}
 	Package::Package(const Package& other) : interp(other.interp), package_name(other.package_name), stash(other.stash) {
 	}
@@ -221,7 +228,7 @@ namespace perl {
 	}
 	Package::Package(interpreter* _interp, const char* _name, bool create) : interp(_interp), package_name(_name), stash(get_stash(interp, _name, create)) {
 	}
-	Package::Package(interpreter* _interp, const char* _name, bool create) : interp(_interp), package_name(_name), stash(get_stash(interp, _name, create)) {
+	Package::Package(interpreter* _interp, SV* _name, bool create) : interp(_interp), package_name(SvPV_nolen(_name)), stash(get_stash(interp, _name, create)) {
 	}
 	
 	const std::string& Package::get_name() const {
