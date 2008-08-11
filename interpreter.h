@@ -442,6 +442,7 @@ namespace perl {
 		Package(const Package&);
 		Package(const Interpreter&, const char*, bool = false);
 		Package(interpreter*, const char*, bool = false);
+		Package(interpreter*, SV*, bool = false);
 		const std::string& get_name() const;
 		operator const std::string&() const;
 		

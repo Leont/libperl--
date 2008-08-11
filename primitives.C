@@ -285,8 +285,12 @@ namespace perl {
 		void String::insert(unsigned offset, const char* other, unsigned other_length) {
 			replace(offset, -1, other, other_length);
 		}
+
 		const Array::Temp String::unpack(const Raw_string pattern) const {
 			return implementation::Call_stack(interp).unpack(pattern, *this);
+		}
+		Package String::get_package(bool create) const {
+			return Package(interp, get_SV(true), create);
 		}
 
 		SV* String::copy(const Scalar::Base& other) {

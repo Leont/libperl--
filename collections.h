@@ -413,6 +413,7 @@ namespace perl {
 				const Scalar::Temp erase(const Scalar::Base&);
 				void clear();
 				void undefine();
+				const Scalar::Temp scalar() const;
 
 				const scalar::Temp_template<reference::Nonscalar<Hash> > take_ref() const;
 				private:

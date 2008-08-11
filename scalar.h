@@ -709,6 +709,7 @@ namespace perl {
 			bool operator<(const std::string&) const;
 
 			const array::Temp unpack(const Raw_string) const;
+			Package get_package(bool) const;
 
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);

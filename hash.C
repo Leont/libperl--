@@ -133,6 +133,11 @@ namespace perl {
 			void Value::undefine() {
 				hv_undef(handle);
 			}
+
+			const Scalar::Temp Value::scalar() const {
+				return Scalar::Temp(interp, hv_scalar(handle), false);
+			}
+
 			void Value::tie_to(const Scalar::Base& tier) {
 				sv_magic(reinterpret_cast<SV*>(handle), tier.get_SV(false), PERL_MAGIC_tied, "", 0);
 			}
