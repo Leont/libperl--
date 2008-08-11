@@ -208,7 +208,7 @@ namespace perl {
 	 */
 	namespace {
 		HV* get_stash(interpreter* interp, const char* name, bool create) {
-			HV* const ret = gv_stashpv(name, create);
+			HV* const ret = gv_stashpv(name, create ? GV_ADD : 0);
 			if (ret == NULL) {
 				throw Runtime_exception("Package does not exist");
 			}
@@ -218,6 +218,8 @@ namespace perl {
 	Package::Package(const Package& other) : interp(other.interp), package_name(other.package_name), stash(other.stash) {
 	}
 	Package::Package(const Interpreter& _interp, const char* _name, bool create) : interp(_interp.get_interpreter()), package_name(_name), stash(get_stash(interp, _name, create)) {
+	}
+	Package::Package(interpreter* _interp, const char* _name, bool create) : interp(_interp), package_name(_name), stash(get_stash(interp, _name, create)) {
 	}
 	Package::Package(interpreter* _interp, const char* _name, bool create) : interp(_interp), package_name(_name), stash(get_stash(interp, _name, create)) {
 	}
