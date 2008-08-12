@@ -661,6 +661,8 @@ namespace perl {
 			return implementation::get_from_cache(raw_interp, object);
 		}
 
+		Ref<Glob>::Temp open(Raw_string);
+
 		template <typename T> const Ref<Code>::Temp export_sub(const char* name, T& fptr) {
 			return take_ref(implementation::export_sub(raw_interp.get(), name, fptr));
 		}

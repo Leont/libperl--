@@ -514,6 +514,8 @@ namespace perl {
 		Hash::Temp hash_value() const;
 		const Code::Value code_value() const;
 
+		const implementation::scalar::Temp_template< implementation::reference::Nonscalar<Glob> > take_ref() const;
+
 		friend class Interpreter;
 	};
 	

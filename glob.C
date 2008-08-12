@@ -58,4 +58,7 @@ namespace perl {
 		// Handle Nullcv
 		return Code::Value(interp, GvCVu(handle));
 	}
+	const Ref<Glob>::Temp Glob::take_ref() const {
+		return Ref<Glob>::Temp(interp, newRV_inc(reinterpret_cast<SV*>(handle)), true);
+	}
 }

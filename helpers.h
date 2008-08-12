@@ -79,6 +79,14 @@ namespace perl {
 		}
 	};
 
+	class IO_exception : public Runtime_exception {
+		public:
+		IO_exception(const std::string& _message) : Runtime_exception(_message) {
+		}
+		IO_exception(const char* _message) : Runtime_exception(_message) {
+		}
+	};
+
 	/*
 	 * Assertion templates
 	 */

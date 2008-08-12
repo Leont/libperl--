@@ -1,5 +1,6 @@
 #include "internal.h"
 #include "perl++.h"
+#include "XSUB.h"
 
 extern "C" {
 	void boot_DynaLoader(pTHX_ CV* cv);
@@ -173,6 +174,17 @@ namespace perl {
 	}
 	String::Temp Interpreter::value_of(const char* value) const {
 		return String::Temp(raw_interp.get(), newSVpvn(value, strlen(value)), true);
+	}
+
+	Ref<Glob>::Temp Interpreter::open(Raw_string filename) {
+		GV* out = newGVgen(const_cast<char*>("Symbol"));
+		bool success = do_open(out, const_cast<char*>(filename.value), filename.length, false, O_RDONLY, 0, Nullfp);
+		if(!success) {
+			std::string message("Couldn't open file");
+			message += SvPV_nolen(ERRSV)
+			throw IO_exception(message);
+		}
+		return Glob(interp, out).take_ref();
 	}
 
 #undef interp
