@@ -134,7 +134,8 @@ int main() {
 		Array unpacked = packed.unpack("Nni");
 		test1(unpacked);
 
-		Ref<Glob> out = universe.open("example.C");
+		Handle out = universe.open(">test.out");
+		out.print("Foo\n");
 		cout << "End of story" << endl;
 	} catch(Runtime_exception& ex) {
 		cout << "Exception '" << ex.what() << "', thrown" << endl;

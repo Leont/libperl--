@@ -38,7 +38,7 @@ namespace perl {
 				typedef Array::key_type key_type;
 				Scalar::Temp operator[](key_type index) const;
 
-				static bool is_compatible_type(const scalar::Base& var);
+				static bool is_compatible_type(const Scalar::Base& var);
 			};
 			
 			template<> struct type_traits<Hash> {
@@ -55,7 +55,7 @@ namespace perl {
 				Scalar::Temp operator[](Raw_string index) const;
 				Scalar::Temp operator[](const scalar::Base& index) const;
 
-				static bool is_compatible_type(const scalar::Base& var);
+				static bool is_compatible_type(const Scalar::Base& var);
 			};
 
 			template<> struct type_traits<Glob> {
@@ -67,7 +67,19 @@ namespace perl {
 				protected:
 				Nonscalar(interpreter*, SV*);
 				public:
-				static bool is_compatible_type(const scalar::Base& var);
+				static bool is_compatible_type(const Scalar::Base& var);
+			};
+
+			template<> struct type_traits<Handle> {
+				typedef Handle lvalue;
+				typedef IO* raw_type;
+			};
+
+			template<> class Nonscalar<Handle> : public Ref_specialized<Handle> {
+				protected:
+				Nonscalar(interpreter*, SV*);
+				public:
+				static bool is_compatible_type(const Scalar::Base& var);
 			};
 		}
 	}

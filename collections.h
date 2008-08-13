@@ -494,6 +494,34 @@ namespace perl {
 		~Temp();
 	};
 
+	class Handle {
+		interpreter* const interp;
+		IO* const handle;
+		Handle(interpreter*, IO*);
+		PerlIO* in_handle() const;
+		PerlIO* out_handle();
+		Handle& operator=(const Handle&);
+		public:
+		Handle(const Handle&);
+		void print(const Scalar::Base&);
+		void print(int);
+		void print(Raw_string);
+		void print(const Array::Value&);
+		String::Temp read(unsigned length);
+		template<typename T1, typename T2> void print(const T1& t1, const T2& t2) {
+			print(t1);
+			print(t2);
+		}
+		bool close();
+		bool eof() const;
+		bool is_open() const;
+		bool is_writable() const;
+		bool is_readable() const;
+		~Handle();
+
+		friend class Interpreter;
+		friend class Glob;
+	};
 	class Glob {
 		interpreter* const interp;
 		GV* const handle;
@@ -506,13 +534,15 @@ namespace perl {
 		Glob& operator=(const Array::Value&);
 		Glob& operator=(const Hash::Value&);
 		Glob& operator=(const Code::Value&);
+		Glob& operator=(const Handle&);
 		~Glob();
 
 		Raw_string name() const;
-		const Scalar::Temp scalar_value() const;
+		Scalar::Temp scalar_value() const;
 		Array::Temp array_value() const;
 		Hash::Temp hash_value() const;
-		const Code::Value code_value() const;
+		Code::Value code_value() const;
+		Handle handle_value() const;
 
 		const implementation::scalar::Temp_template< implementation::reference::Nonscalar<Glob> > take_ref() const;
 

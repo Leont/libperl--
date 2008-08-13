@@ -10,6 +10,8 @@
 	struct he;
 	struct cv;
 	struct gv;
+	struct io;
+	struct PerlIO;
 	struct magic;
 	struct mgvtbl;
 #endif
@@ -21,6 +23,7 @@ namespace perl {
 	typedef he HE;
 	typedef cv CV;
 	typedef gv GV;
+	typedef io IO;
 	typedef magic MAGIC;
 	typedef mgvtbl MGVTBL;
 
