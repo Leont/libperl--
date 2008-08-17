@@ -662,6 +662,9 @@ namespace perl {
 		}
 
 		Handle open(Raw_string);
+		Handle in() const;
+		Handle out() const;
+		Handle err() const;
 
 		template <typename T> const Ref<Code>::Temp export_sub(const char* name, T& fptr) {
 			return take_ref(implementation::export_sub(raw_interp.get(), name, fptr));
@@ -669,7 +672,7 @@ namespace perl {
 		template <typename T> const Code::Value export_flat(const char* name, T& fptr) {
 			return implementation::export_flatsub(raw_interp.get(), name, fptr);
 		}
-		implementation::classes::Temp add_class(const char* name) {
+		const implementation::classes::Temp add_class(const char* name) {
 			return implementation::classes::Temp(*this, name);
 		}
 

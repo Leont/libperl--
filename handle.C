@@ -28,16 +28,12 @@ namespace perl {
 		bool ret = Perl_do_print(interp, arg.get_SV(true), out_handle());
 		thrower(ret, "Could not print!");
 	}
-	void Handle::print(int val) {
-		SV* tmp = newSViv(val);
-		bool ret = Perl_do_print(interp, tmp, out_handle());
-		SvREFCNT_dec(tmp);
+	void Handle::print(Raw_string val) {
+		int ret = PerlIO_write(out_handle(), val.value, val.length);
 		thrower(ret, "Could not print!");
 	}
-	void Handle::print(Raw_string val) {
-		SV* tmp = newSVpvn(val.value, val.length);
-		bool ret = Perl_do_print(interp, tmp, out_handle());
-		SvREFCNT_dec(tmp);
+	void Handle::print(const std::string& val) {
+		int ret = PerlIO_write(out_handle(), val.data(), val.length());
 		thrower(ret, "Could not print!");
 	}
 	void Handle::print(const Array::Value& array) {
@@ -45,14 +41,13 @@ namespace perl {
 			print(array[i]);
 		}
 	}
-	bool Handle::close() {
+	void Handle::close() {
 		bool ret = Perl_io_close(interp, handle, true);
 		thrower(ret, "Could not close!");
 		IoLINES(handle) = 0;
 		IoPAGE(handle) = 0;
 		IoLINES_LEFT(handle) = IoPAGE_LEN(handle);
 		IoTYPE(handle) = IoTYPE_CLOSED;
-		return ret;
 	}
 	Handle::~Handle() {
 		if (is_open()) {

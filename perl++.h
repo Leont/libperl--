@@ -14,6 +14,7 @@
 #include <boost/utility/result_of.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/logical.hpp>
+#include <boost/lexical_cast.hpp>
 
 #ifdef DEBUG
 #include <cstdio>

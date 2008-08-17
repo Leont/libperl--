@@ -177,14 +177,23 @@ namespace perl {
 	}
 
 	Handle Interpreter::open(Raw_string filename) {
-		GV* out = newGVgen(const_cast<char*>("Symbol"));
-		bool success = do_open(out, const_cast<char*>(filename.value), filename.length, false, O_RDONLY, 0, Nullfp);
+		GV* ret = newGVgen(const_cast<char*>("Symbol"));
+		bool success = do_open(ret, const_cast<char*>(filename.value), filename.length, false, O_RDONLY, 0, Nullfp);
 		if (!success) {
 			std::string message("Couldn't open file");
 			message += SvPV_nolen(ERRSV);
 			throw IO_exception(message);
 		}
-		return Handle(interp, GvIO(out));
+		return Handle(interp, GvIO(ret));
+	}
+	Handle Interpreter::in() const {
+		return Handle(interp, GvIO(PL_stdingv));
+	}
+	Handle Interpreter::out() const {
+		return Handle(interp, GvIO(PL_defoutgv));
+	}
+	Handle Interpreter::err() const {
+		return Handle(interp, GvIO(PL_stderrgv));
 	}
 
 #undef interp

@@ -504,15 +504,24 @@ namespace perl {
 		public:
 		Handle(const Handle&);
 		void print(const Scalar::Base&);
-		void print(int);
 		void print(Raw_string);
+		void print(const std::string&);
 		void print(const Array::Value&);
-		String::Temp read(unsigned length);
+		template<typename T> typename boost::disable_if<typename boost::is_base_of<Scalar::Base, T>::type>::type print(const T& arg) {
+			const std::string value = boost::lexical_cast<std::string, T>(arg);
+			print(value);
+		}
 		template<typename T1, typename T2> void print(const T1& t1, const T2& t2) {
 			print(t1);
 			print(t2);
 		}
-		bool close();
+		template<typename T1, typename T2, typename T3> void print(const T1& t1, const T2& t2, const T3& t3) {
+			print(t1);
+			print(t2);
+			print(t3);
+		}
+		String::Temp read(unsigned length);
+		void close();
 		bool eof() const;
 		bool is_open() const;
 		bool is_writable() const;
