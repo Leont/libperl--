@@ -1,5 +1,18 @@
 namespace perl {
-	namespace implementation {	
+	class lock {
+		interpreter* const interp;
+		SV* const variable;
+		SV* lock_SV(SV*);
+		lock(const lock&);
+		lock& operator=(const lock&);
+		public:
+		template<typename T> lock(const implementation::scalar::Variable<T>& _variable) : interp(_variable.interp), variable(lockSV(_variable.handle)) {
+		}
+		lock(const Array&);
+		lock(const Hash&);
+		~lock();
+	};
+	namespace implementation {
 		/*
 		 * Magic subroutine functions
 		 */
