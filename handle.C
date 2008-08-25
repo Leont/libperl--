@@ -1,21 +1,22 @@
 #include "internal.h"
 #include "perl++.h"
 
+#ifndef do_print
+#define do_print(sv, handle) Perl_do_print(aTHX_ sv, handle)
+#endif
+#ifndef io_close
+#define io_close(io, non_implicit) Perl_io_close(aTHX_ io, non_implicit)
+#endif
+#define thrower assertion<IO_exception>
+
 namespace perl {
-	namespace {
-		void thrower(bool ret, const char* message) {
-			if (!ret) {
-				throw IO_exception(message);
-			}
-		}
-	}
 	Handle::Handle(interpreter* _interp, IO* _handle) : interp(_interp), handle(_handle) {
 	}
 	Handle::Handle(const Handle& other) : interp(other.interp), handle(other.handle) {
 		SvREFCNT_inc(reinterpret_cast<SV*>(handle));
 	}
 	PerlIO* Handle::in_handle() const {
-		PerlIO* out = IoOFP(handle);
+		PerlIO* out = IoIFP(handle);
 		thrower(out, "filehandle isn't readable!");
 		return out;
 	}
@@ -25,7 +26,7 @@ namespace perl {
 		return out;
 	}
 	void Handle::print(const Scalar::Base& arg) {
-		bool ret = Perl_do_print(interp, arg.get_SV(true), out_handle());
+		bool ret = do_print(arg.get_SV(true), out_handle());
 		thrower(ret, "Could not print!");
 	}
 	void Handle::print(Raw_string val) {
@@ -42,11 +43,8 @@ namespace perl {
 		}
 	}
 	void Handle::close() {
-		bool ret = Perl_io_close(interp, handle, true);
+		bool ret = io_close(handle, true);
 		thrower(ret, "Could not close!");
-		IoLINES(handle) = 0;
-		IoPAGE(handle) = 0;
-		IoLINES_LEFT(handle) = IoPAGE_LEN(handle);
 		IoTYPE(handle) = IoTYPE_CLOSED;
 	}
 	Handle::~Handle() {
