@@ -17,7 +17,7 @@ LIBLDFLAGS := $(shell $(PERL) -MExtUtils::Embed -e ldopts)
 LIB = libperl++.so
 
 HDRS := $(wildcard *.h)
-SRCS := array.C call.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C magic.C primitives.C reference.C scalar.C tap++.C
+SRCS := array.C call.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C magic.C parsed.C primitives.C reference.C scalar.C tap++.C
 OBJS := $(patsubst %.C,%.o,$(SRCS))
 
 TODEL := $(wildcard *.o)
@@ -38,7 +38,9 @@ $(LIB): $(OBJS)
 	$(CXX) $(CXXFLAGS) -c $< 
 
 %.C: %.h
-	
+
+parsed.C: parsed.pl
+	./parsed.pl > parsed.C
 
 tap_tester.o: tap_tester.C tap++.h
 	$(CXX) $(ACXXFLAGS) -c $<

@@ -52,8 +52,10 @@ namespace perl {
 #define interp raw_interp.get()
 
 	Interpreter::Interpreter() : raw_interp(initialize_interpreter(), destructor), modglobal(raw_interp.get(), PL_modglobal, false) {
+		eval(implementation::to_eval);
 	}
 	Interpreter::Interpreter(interpreter* other) : raw_interp(other, destructor), modglobal(raw_interp.get(), PL_modglobal, false) {
+		eval(implementation::to_eval);
 	}
 	Interpreter Interpreter::clone() const {
 		return Interpreter(perl_clone(interp, CLONEf_KEEP_PTR_TABLE));

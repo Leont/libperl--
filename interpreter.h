@@ -13,6 +13,7 @@ namespace perl {
 		~lock();
 	};
 	namespace implementation {
+		extern const char to_eval[];
 		/*
 		 * Magic subroutine functions
 		 */

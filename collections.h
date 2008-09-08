@@ -558,6 +558,14 @@ namespace perl {
 		friend class Interpreter;
 	};
 	
+	class Regex {
+		class Implementation;
+		boost::shared_ptr<Implementation> patter;
+		public:
+		Regex(const Implementation&);
+		const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Regex> > take_ref() const;
+	};
+
 	namespace implementation {
 		namespace reference {
 			template<> struct type_traits<Array> {
