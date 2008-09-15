@@ -717,6 +717,7 @@ namespace perl {
 			bool match(const perl::Regex&) const;
 			bool match(Raw_string) const;
 			bool substitute(const perl::Regex&, const String&);
+			bool substitute(const perl::Regex&, Raw_string);
 
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);

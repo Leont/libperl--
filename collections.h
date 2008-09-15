@@ -571,6 +571,7 @@ namespace perl {
 		const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Regex> > take_ref() const;
 		bool match(const String::Value&) const;
 		bool substitute(String::Value&, const String::Value&) const;
+		bool substitute(String::Value&, Raw_string) const;
 	};
 
 	namespace implementation {

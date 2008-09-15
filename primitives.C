@@ -299,6 +299,9 @@ namespace perl {
 		bool String::substitute(const perl::Regex& regex, const String& replacement) {
 			return regex.substitute(*this, replacement);
 		}
+		bool String::substitute(const perl::Regex& regex, Raw_string replacement) {
+			return regex.substitute(*this, replacement);
+		}
 
 		SV* String::copy(const Scalar::Base& other) {
 			interpreter* const interp = other.interp;
