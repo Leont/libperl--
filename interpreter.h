@@ -664,6 +664,9 @@ namespace perl {
 		const Glob glob(const char*) const;
 		Glob glob(const char*);
 
+		Regex regex(const String::Value&) const;
+		Regex regex(const char*) const;
+
 		Scalar::Temp undef() const;
 		Integer::Temp value_of(int) const;
 		Uinteger::Temp value_of(unsigned) const;

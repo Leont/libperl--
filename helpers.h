@@ -14,6 +14,7 @@
 	struct PerlIO;
 	struct magic;
 	struct mgvtbl;
+	struct regexp;
 #endif
 
 namespace perl {
@@ -26,6 +27,7 @@ namespace perl {
 	typedef io IO;
 	typedef magic MAGIC;
 	typedef mgvtbl MGVTBL;
+	typedef regexp REGEXP;
 
 	class Interpreter;
 	bool operator==(const Interpreter&, const Interpreter&);

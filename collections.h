@@ -558,12 +558,19 @@ namespace perl {
 		friend class Interpreter;
 	};
 	
+	namespace implementation {
+		class Regex;
+	}
+
 	class Regex {
-		class Implementation;
-		boost::shared_ptr<Implementation> patter;
+		typedef implementation::Regex Implementation;
+		boost::shared_ptr<Implementation> pattern;
+		friend class Interpreter;
+		Regex(std::auto_ptr<Implementation>);
 		public:
-		Regex(const Implementation&);
 		const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Regex> > take_ref() const;
+		bool match(const String::Value&) const;
+		bool substitute(String::Value&, const String::Value&) const;
 	};
 
 	namespace implementation {
@@ -620,6 +627,18 @@ namespace perl {
 			};
 
 			template<> class Nonscalar<Handle> : public Ref_specialized<Handle> {
+				protected:
+				Nonscalar(interpreter*, SV*);
+				public:
+				static bool is_compatible_type(const Scalar::Base& var);
+			};
+
+			template<> struct type_traits<perl::Regex> {
+				typedef Regex lvalue;
+				typedef REGEXP* raw_type;
+			};
+
+			template<> class Nonscalar<perl::Regex> : public Ref_specialized<perl::Regex> {
 				protected:
 				Nonscalar(interpreter*, SV*);
 				public:

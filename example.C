@@ -136,6 +136,10 @@ int main() {
 
 		Handle out = universe.open(">test.out");
 		out.print("Foo\n");
+		Regex regex = universe.regex("^\\w");
+		if ( zaab.match(regex)) {
+			cout << "It matches!" << endl;
+		}
 		cout << "End of story" << endl;
 	} catch(Runtime_exception& ex) {
 		cout << "Exception '" << ex.what() << "', thrown" << endl;

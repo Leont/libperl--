@@ -33,12 +33,12 @@ sub match {
 	return $string =~ /$regex/;
 }
 
-sub substr {
+sub substitute {
 	my ($string, $regex, $replacement) = @_;
 	return $string =~ s/$regex/$replacement/e;
 }
 
-sub substre {
+sub substitutee {
 	my ($string, $regex, $replacement) = @_;
 	return $string =~ s/$regex/$replacement/ee;
 }

@@ -166,6 +166,7 @@ namespace perl {
 	};
 
 	class Package;
+	class Regex;
 	enum context {VOID, SCALAR, LIST};
 
 	namespace implementation {
@@ -174,6 +175,7 @@ namespace perl {
 			class Temp;
 		}
 		class String;
+		class Regex;
 
 		/*
 		 * class Perl_stack
@@ -197,6 +199,7 @@ namespace perl {
 			void push(const scalar::Temp&);
 			void push(const implementation::array::Value& val);
 			void push(const null_type&);
+			void push(const Regex&);
 //			template<typename T> void push(T* arg);
 		};
 
@@ -710,6 +713,10 @@ namespace perl {
 
 			const array::Temp unpack(const Raw_string) const;
 			Package get_package(bool) const;
+
+			bool match(const perl::Regex&) const;
+			bool match(Raw_string) const;
+			bool substitute(const perl::Regex&, const String&);
 
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);

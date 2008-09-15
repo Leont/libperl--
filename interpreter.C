@@ -1,6 +1,7 @@
 #include "internal.h"
 #include "perl++.h"
 #include "XSUB.h"
+#include "regex_impl.h"
 
 extern "C" {
 	void boot_DynaLoader(pTHX_ CV* cv);
@@ -154,6 +155,15 @@ namespace perl {
 		HV* const ret = get_hv(name, true);
 		SvGETMAGIC(reinterpret_cast<SV*>(ret));
 		return Hash::Temp(raw_interp.get(), ret, false);
+	}
+
+	Regex Interpreter::regex(const char* regexp) const {
+		return regex(value_of(regexp));
+	}
+
+	Regex Interpreter::regex(const String::Value& regexp) const {
+		Scalar::Temp temp = implementation::Call_stack(raw_interp.get()).push(regexp).sub_scalar("Embed::Perlpp::regexp");
+		return Regex(std::auto_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), temp.release())));
 	}
 
 	Scalar::Temp Interpreter::undef() const {

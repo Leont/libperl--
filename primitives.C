@@ -293,6 +293,13 @@ namespace perl {
 			return Package(interp, get_SV(true), create);
 		}
 
+		bool String::match(const perl::Regex& regex) const {
+			return regex.match(*this);
+		}
+		bool String::substitute(const perl::Regex& regex, const String& replacement) {
+			return regex.substitute(*this, replacement);
+		}
+
 		SV* String::copy(const Scalar::Base& other) {
 			interpreter* const interp = other.interp;
 			STRLEN len;

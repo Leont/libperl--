@@ -1,6 +1,7 @@
 #define INCLUDE_XSUB
 #include "internal.h"
 #include "perl++.h"
+#include "regex_impl.h"
 
 #ifndef FLAG_UNPACK_DO_UTF8
 // perl fails to export unpack flags. This is not very future-proof, but it works.
@@ -82,6 +83,9 @@ namespace perl {
 			for(unsigned i = 0; i < length; i++) {
 				push(array[i]);
 			}
+		}
+		void Perl_stack::push(const Regex& regex) {
+			XPUSHs(sv_2mortal(SvREFCNT_inc(regex.get_SV())));
 		}
 		void Perl_stack::push(const null_type&) {
 			//NOOP
