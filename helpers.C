@@ -19,7 +19,13 @@ namespace perl {
 		if (left.length != right.length) {
 			return false;
 		}
-		return strnEQ(left.value, right.value, MIN(left.length, right.length));
+		return strnEQ(left.value, right.value, MIN(left.length, right.length) + 1);
+	}
+	bool operator==(const Raw_string left, const char* right) {
+		return strnEQ(left.value, right, left.length + 1);
+	}
+	bool operator==(const char* left, const Raw_string right) {
+		return strnEQ(left, right.value, right.length + 1);
 	}
 	bool operator!=(const Raw_string left, const Raw_string right) {
 		if (left.length != right.length) {

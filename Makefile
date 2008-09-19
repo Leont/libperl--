@@ -9,10 +9,11 @@ PERLCXX := $(shell $(PERL) -MExtUtils::Embed -e ccopts)
 DEBUG = -ggdb3 -DDEBUG
 DFLAGS = -fPIC $(PERLCXX) 
 CXXFLAGS = $(DEBUG) $(WARNINGS) $(DFLAGS)
-ACXXFLAGS = $(DEBUG) $(WARNINGS) -fPIC
+ACXXFLAGS = $(DEBUG) $(WARNINGS)
 #CXXFLAGS = -Os -fomit-frame-pointer $(DFLAGS)
 LDFLAGS = -L. -lperl++
 LIBLDFLAGS := $(shell $(PERL) -MExtUtils::Embed -e ldopts)
+PWD := $(shell pwd)
 
 LIB = libperl++.so
 
@@ -22,7 +23,10 @@ OBJS := $(patsubst %.C,%.o,$(SRCS))
 
 TODEL := $(wildcard *.o)
 
-all: $(LIB) example tap_tester
+TEST_SRCS := $(shell echo t/*.C)
+TEST_OBJS := $(patsubst %.C,%.t,$(TEST_SRCS))
+
+all: $(LIB) example
 
 ppport.h:
 	perl -MDevel::PPPort -eDevel::PPPort::WriteFile
@@ -39,22 +43,19 @@ $(LIB): $(OBJS)
 
 %.C: %.h
 
+%.t: %.C
+	$(CXX) $(ACXXFLAGS) -I $(PWD) -L $(PWD) -lperl++ -o $@ $< 
+
 parsed.C: parsed.pl
 	./parsed.pl > parsed.C
-
-tap_tester.o: tap_tester.C tap++.h
-	$(CXX) $(ACXXFLAGS) -c $<
 
 example.o: example.C
 	$(CXX) $(ACXXFLAGS) -c $<
 
-tap_tester: tap_tester.o
-	$(CXX) -o $@ $< $(LDFLAGS)
-
 example: example.o
 	$(CXX) -o $@ $< $(LDFLAGS)
 
-test: $(LIB) tap_tester
+test: $(LIB) $(TEST_OBJS)
 	@echo Running unit tests
 	@./run_tests.pl
 

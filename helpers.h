@@ -131,6 +131,8 @@ namespace perl {
 	};
 	int raw_cmp(const Raw_string left, const Raw_string right);
 	bool operator==(const Raw_string, const Raw_string);
+	bool operator==(const char*, const Raw_string);
+	bool operator==(const Raw_string, const char*);
 	bool operator!=(const Raw_string, const Raw_string);
 	bool operator<( const Raw_string, const Raw_string);
 	bool operator>( const Raw_string, const Raw_string);
@@ -141,15 +143,6 @@ namespace perl {
 
 	struct override { };
 
-	template<typename T, typename U> class this_binder {
-		T& object;
-		const U& method;
-		public:
-		this_binder(T& _object, const void (T::* _method)(const U&)) : object(_object), method(_method) {
-		}
-		template<typename V> void operator()(const V&) {
-		}
-	};
 	namespace implementation {
 		struct null_type { };
 	}

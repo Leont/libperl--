@@ -708,6 +708,7 @@ namespace perl {
 
 			bool operator==(const String&) const;
 			bool operator==(const std::string&) const;
+			bool operator==(const char*) const;
 			bool operator<(const String&) const;
 			bool operator<(const std::string&) const;
 
@@ -724,10 +725,14 @@ namespace perl {
 			static const std::string& cast_error();
 		};
 		bool operator==(const std::string&, const String&);
+		bool operator==(const char*, const String&);
 
 		bool operator!=(const String&,      const String&);
 		bool operator!=(const String&,      const std::string&);
 		bool operator!=(const std::string&, const String&);
+		
+		bool operator!=(const String&, const char*);
+		bool operator!=(const char*, const String&);
 	}
 
 	typedef implementation::scalar::Variable<implementation::Undefined> Undefined;

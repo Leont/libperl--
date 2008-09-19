@@ -3,32 +3,43 @@ namespace TAP {
 	void plan(unsigned);
 	unsigned planned();
 	unsigned encountered();
+	unsigned failed();
+
 	void skip(unsigned);
 	void print_ok(const char*);
-	void ok(bool, const char*);
-	void not_ok(bool, const char*);
 	void print_fail(const char*);
+
+	bool ok(bool, const char*);
+	bool not_ok(bool, const char*);
 	void skip();
 	void skip_todo();
 	void skip(std::string why);
 	void skip_todo(std::string why);
+	void diag(const char* information);
 }
 
 using TAP::ok;
+using TAP::not_ok;
 using TAP::skip;
 using TAP::skip_todo;
+using TAP::diag;
 
 
 #define TEST_START(num) {\
-	const char* _current_message = NULL;\
-	try {\
-		TAP::plan(num)
+		const char* _current_message = NULL;\
+		try {\
+			TAP::plan(num)
 
-#define TEST_END }\
+#define TEST_END \
+			if (TAP::encountered() != TAP::planned()) {\
+				diag("It seems the number of done tests doesn't matched the number of planned tests");\
+			}\
+		}\
 		catch (...) {\
 			TAP::print_fail(_current_message);\
-			exit(1);\
+			return TAP::failed();\
 		}\
+	return 0;\
 	}
 
 #define BLOCK_START(expected) \
@@ -74,19 +85,25 @@ using TAP::skip_todo;
 
 template<typename T, typename U> bool is(const T& left, const U& right, const char* message) {
 	try {
-		return left == right;
+		if(left == right) {
+			TAP::print_ok(message);
+			return true;
+		}
 	}
-	catch (...) {
-		TAP::print_fail(message);
-	}
+	catch(...) {}
+	TAP::print_fail(message);
+	return false;
 }
 
 template<typename T, typename U> bool isnt(const T& left, const U& right, const char* message) {
 	try {
-		return left != right;
+		if(left != right) {
+			TAP::print_ok(message);
+			return true;
+		}
 	}
-	catch (...) {
-		TAP::print_fail(message);
-	}
+	catch(...) {}
+	TAP::print_fail(message);
+	return false;
 }
 

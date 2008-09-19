@@ -256,10 +256,17 @@ namespace perl {
 			return sv_eq(get_SV(true), right.get_SV(true));
 		}
 		bool String::operator==(const std::string& right) const {
-			return *this == Raw_string(right);
+			return strnEQ(get_raw(), right.c_str(), std::min(length(), right.length()) + 1);
 		}
+		bool String::operator==(const char* right) const {
+			return strnEQ(get_raw(), right, length() + 1);
+		}
+
 		
 		bool operator==(const std::string& left, const String& right) {
+			return right == left;
+		}
+		bool operator==(const char* left, const String& right) {
 			return right == left;
 		}
 
@@ -270,6 +277,13 @@ namespace perl {
 			return !(left == right);
 		}
 		bool operator!=(const std::string& left, const String& right) {
+			return !(left == right);
+		}
+
+		bool operator!=(const String& left, const char* right) {
+			return !(left == right);
+		}
+		bool operator!=(const char* left, const String& right) {
 			return !(left == right);
 		}
 
