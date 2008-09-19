@@ -49,6 +49,17 @@ namespace perl {
 			Nonscalar<Any>::Nonscalar(interpreter* _interp, SV* _handle) : Reference_base(_interp, _handle) {
 			}
 			
+			Nonscalar<Any>& Nonscalar<Any>::operator=(const Nonscalar<Any>& other) {
+				helper::set_scalar(*this, other);
+				return *this;
+			}
+			Nonscalar<Any>& Nonscalar<Any>::operator=(const Scalar::Temp& other) {
+				if (!implementation::reference::Reference_base::is_compatible_type(other)) {
+					throw Cast_exception(cast_error());
+				}
+				helper::set_scalar(*this, other);
+				return *this;
+			}
 			const std::string& Nonscalar<Any>::cast_error() {
 				static const std::string message("Not a reference");
 				return message;

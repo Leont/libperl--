@@ -880,26 +880,47 @@ namespace perl {
 	 */
 	template<typename T = Any> class Ref : public implementation::scalar::Variable< typename implementation::reference::ref<T>::type> {
 		typedef typename implementation::scalar::Variable< typename implementation::reference::ref<T>::type> Parent;
-		template<typename U> struct scalar_assignment {
-			typedef typename boost::mpl::and_<typename boost::mpl::or_<typename boost::is_same<T, Scalar>::type, typename boost::is_same<T, Any>::type>::type, typename boost::is_base_of<Scalar::Base, U>::type, typename boost::mpl::not_<typename boost::is_same<U, typename T::Value>::type>::type>::type type;
-			// (T == Scalar || T == Any>) && U isa Scalar::Base && U != T::Value
-		};
 		public:
-		typedef implementation::reference::Reference_base Base;
-		typedef typename Parent::Value Value;
-		typedef typename Parent::Temp Temp;
 		Ref(const Ref& other) : Parent(other) {
 		}
 		Ref(const Scalar::Temp& val) : Parent(val) {
 		}
-		Ref(const Value& val) : Parent(val) {
+		Ref(const typename Parent::Value& val) : Parent(val) {
 		}
-		Ref(const Temp& val) : Parent(val) {
+		Ref(const typename Parent::Temp& val) : Parent(val) {
 		}
-		template<typename U> Ref(const implementation::reference::Nonscalar<U>& other, typename boost::enable_if<typename boost::mpl::and_<typename boost::is_same<T, Any>::type, typename boost::is_same<U, U>::type>::type, int>::type foo = 0) : Parent(other, override()) { // accept nonscalar references if T is Any but postpone resolution until it is used.
+		using Parent::operator=;
+	};
+	template<> class Ref<Scalar> : public implementation::scalar::Variable<implementation::reference::ref<Scalar>::type> {
+		typedef implementation::scalar::Variable< implementation::reference::ref<Scalar>::type> Parent;
+		public:
+		Ref(const Ref& other) : Parent(other) {
 		}
-		template<typename U> Ref(const implementation::reference::Scalar_ref<U>& other, typename boost::enable_if<typename scalar_assignment<U>::type, int>::type foo = 0) : Parent(other, override()) { // accept scalar references if T is Any or Scalar, but postpone resolution until it is used.
+		Ref(const Scalar::Temp& val) : Parent(val) {
 		}
-		using Parent::operator =;
+		Ref(const Parent::Value& val) : Parent(val) {
+		}
+		Ref(const Parent::Temp& val) : Parent(val) {
+		}
+		template<typename U> Ref(const implementation::reference::Scalar_ref<U>& other, typename boost::enable_if<typename boost::is_base_of<Scalar::Base, U>::type, int>::type foo = 0) : Parent(other, override()) { // accept scalar references if T is Any or Scalar, but postpone resolution until it is used.
+		}
+		using Parent::operator=;
+	};
+	template<> class Ref<Any> : public implementation::scalar::Variable<implementation::reference::ref<Any>::type> {
+		typedef implementation::scalar::Variable< implementation::reference::ref<Any>::type> Parent;
+		public:
+		Ref(const Ref& other) : Parent(other) {
+		}
+		Ref(const Scalar::Temp& val) : Parent(val) {
+		}
+		Ref(const Parent::Value& val) : Parent(val) {
+		}
+		Ref(const Parent::Temp& val) : Parent(val) {
+		}
+		template<typename U> Ref(const implementation::reference::Nonscalar<U>& other) : Parent(other, override()) {
+		}
+		template<typename U> Ref(const implementation::reference::Scalar_ref<U>& other, typename boost::enable_if<typename boost::is_base_of<Scalar::Base, U>::type, int>::type foo = 0) : Parent(other, override()) { // accept scalar references if T is Any or Scalar, but postpone resolution until it is used.
+		}
+		using Parent::operator=;
 	};
 }

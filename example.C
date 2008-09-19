@@ -85,6 +85,7 @@ int main() {
 		cout << "bla is " << baz[1] << endl;
 
 		Ref<Any> baaz = baz;
+		baaz = zab;
 		Array oof = *baz; 
 
 		Array quz = universe.list("foo", 42);
