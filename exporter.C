@@ -71,7 +71,7 @@ namespace perl {
 		assertion<Runtime_exception>(pos < marker.items, "No such argument!");
 		return Scalar::Temp(interp, ST(pos), false);
 	}
-	context Argument_stack::get_contest() const {
+	context Argument_stack::get_context() const {
 		return GIMME_V == G_VOID  ? VOID : 
 			   GIMME_V == G_ARRAY ? LIST : 
 			   SCALAR;

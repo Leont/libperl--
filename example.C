@@ -136,6 +136,7 @@ int main() {
 
 		Handle out = universe.open(">test.out");
 		out.print("Foo\n");
+
 		Regex regex = universe.regex("^\\w");
 		if ( zaab.match(regex)) {
 			cout << "It matches!" << endl;
@@ -143,6 +144,7 @@ int main() {
 		universe.eval("printf 'substitute is %s\n', defined &Embed::Perlpp::substitute ? 'defined' : 'not defined'");
 		zaab.substitute(universe.regex("(B\\w{2})"), "Muah $1");
 		cout << "zaab is " << zaab << endl;
+
 		cout << "End of story" << endl;
 	} catch(Runtime_exception& ex) {
 		cout << "Exception '" << ex.what() << "', thrown" << endl;

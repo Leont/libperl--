@@ -181,7 +181,7 @@ namespace perl {
 		Array::Temp get_arg();
 		const Scalar::Temp call(const char* name);
 		const Scalar::Temp call(const Ref<Code>::Value& name);
-		context get_contest() const;
+		context get_context() const;
 	};
 
 	namespace implementation {
@@ -203,12 +203,13 @@ namespace perl {
 
 		//TODO: make it throw an object
 #define TRY_OR_THROW(a) try {\
-		a;\
+			a;\
 		}\
 		catch(std::exception& e) {\
 			die(me_perl, e.what());\
 		}\
 		catch(...) {\
+			std::cerr << "Cought unknown exception, terminating" << std::endl;\
 			std::terminate();\
 		}
 

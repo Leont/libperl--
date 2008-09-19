@@ -4,14 +4,29 @@ namespace TAP {
 	static unsigned expected = 0;
 	static unsigned counter = 0;
 	const char* current_message = NULL;
-	void plan(int planned) {
+	void plan(unsigned planned) {
 		if (expected == 0) {
 			std::cout << "1.." << planned << std::endl;
 		}
 		expected = planned;
 	}
-	int planned() {
+	unsigned planned() {
 		return expected;
+	}
+	unsigned encountered() {
+		return counter;
+	}
+	void skip() {
+		print_ok(" #skip");
+	}
+	void skip_todo() {
+		print_ok(" #TODO");
+	}
+	void skip(std::string why) {
+		print_ok((" #skip " + why).c_str());
+	}
+	void skip_todo(std::string why) {
+		print_ok((" #TODO " + why).c_str());
 	}
 
 	void print_ok(const char* message) {
@@ -28,9 +43,6 @@ namespace TAP {
 		std::cout << "not ok " << ++counter << " - " << message << std::endl;
 		current_message = NULL;
 	}
-	void skip(int count) {
-		counter += count;
-	}
 
 	void push_message(const char* new_message) {
 		current_message = new_message;
@@ -40,10 +52,6 @@ namespace TAP {
 			print_ok(current_message);
 		}
 		current_message = NULL;
-	}
-	void replace_message(const char* new_message) {
-		pop_message();
-		push_message(new_message);
 	}
 	void reset_message() {
 		current_message = NULL;
