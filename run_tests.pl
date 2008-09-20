@@ -14,7 +14,7 @@ use TAP::Parser::Aggregator qw/all/;
 printf "Report %s\n", strftime("%y%m%d-%H:%M", localtime);
 
 opendir my($dh), 't' or die "Couldn't open test dir: $!";
-my @files = map {"t/$_"} sort grep {/.t$/} readdir $dh;
+my @files = map {"t/$_"} sort grep { /.t$/ } readdir $dh;
 closedir $dh;
 
 foreach my $file (@files) {

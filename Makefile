@@ -14,6 +14,7 @@ ACXXFLAGS = $(DEBUG) $(WARNINGS)
 LDFLAGS = -L. -lperl++
 LIBLDFLAGS := $(shell $(PERL) -MExtUtils::Embed -e ldopts)
 PWD := $(shell pwd)
+LIBRARY_VAR=LD_LIBRARY_PATH
 
 LIB = libperl++.so
 
@@ -57,7 +58,7 @@ example: example.o
 
 test: $(LIB) $(TEST_OBJS)
 	@echo Running unit tests
-	@./run_tests.pl
+	@$(LIBRARY_VAR)=$(PWD) ./run_tests.pl
 
 #%.o: perl++.h
 
