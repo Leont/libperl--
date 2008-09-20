@@ -4,16 +4,16 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(15);
+	TEST_START(18);
 
 	FAIL(throw Runtime_exception("Runtime exception"), "Should throw a Runtime exception");
 	FAIL(assertion<Runtime_exception>(false, "Runtime exception"), "Should throw a Runtime exception too");
 	TRY(assertion<Runtime_exception>(true, "Runtime exception"), "Shouldn't throw a Runtime exception");
 
 	Raw_string test = "Test";
-	is(test, "Test", Raw_string("Raw_strings equal equal strings"));
-	is(test, "Test", "Raw_strings equal equal const char*");
-	diag("TODO: more test on Raw_strings");
+	is(test, "Test", Raw_string("a Raw_string equals an equal strings"));
+	is(test, "Test", "a Raw_string equals an equal const char*");
+	//TODO: more tests on Raw_string
 
 	TRY_DECL(Interpreter universe, "instantiating interpreter");
 	diag("so far so good...");
@@ -25,10 +25,13 @@ int main(int argc, char** argv) {
 	ok(universe.eval("1"), "eval 1");
 
 	ok(universe.value_of("Test"), "value_of(\"Test\")");
-//	not_ok(universe.value_of(""), "value_of(\"\")");
-	skip("value_of(\"\")");
+	not_ok(universe.value_of(""), "value_of(\"\")");
+//	skip("value_of(\"\")"); //How should this behave?
 	is(universe.value_of("Test"), "Test", "value_of(\"Test\") is \"Test\"");
 
+	not_ok(universe.scalar("_").defined(), "$_ is not defined");
+	ok(universe.scalar("_") = "Anything", "$_ is assigned to");
+	ok(universe.scalar("_").defined(), "$_ is defined");
 	TRY_DECL(Package dbi = universe.use("DBI"), "use DBI");
 
 	TEST_END;

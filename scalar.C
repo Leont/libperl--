@@ -197,6 +197,11 @@ namespace perl {
 	Scalar::Value::operator const char*() const {
 		return operator Raw_string();
 	}
+
+	bool Scalar::Value::defined() const {
+		return SvOK(get_SV(true));
+	}
+
 	const Array::Temp Scalar::Value::unpack(const Raw_string pattern) const {
 		return implementation::Call_stack(interp).unpack(pattern, *this);
 	}

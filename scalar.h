@@ -482,6 +482,8 @@ namespace perl {
 				operator const char*() const;
 				operator bool() const;
 				bool as_bool() const;
+
+				bool defined() const;
 				const array::Temp unpack(const Raw_string) const;
 			
 				scalar::Temp operator[](int) const;
