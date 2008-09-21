@@ -174,6 +174,27 @@ namespace perl {
 		return *this;
 	}
 
+	bool Scalar::Value::operator==(int right) const {
+		return int_value() == right;
+	}
+	bool Scalar::Value::operator==(unsigned right) const {
+		return uint_value() == right;
+	}
+	bool Scalar::Value::operator==(const char* right) const {
+		return string_value() == right;
+	}
+	bool Scalar::Value::operator==(Raw_string right) const {
+		return string_value() == right;
+	}
+	bool Scalar::Value::operator==(const std::string& right) const {
+		return string_value() == right;
+	}
+//	bool Scalar::Value::operator!=(int right) const;
+//	bool Scalar::Value::operator!=(unsigned right) const;
+//	bool Scalar::Value::operator!=(const char* right) const;
+//	bool Scalar::Value::operator!=(Raw_string right) const;
+//	bool Scalar::Value::operator!=(const std::string& right) const;
+
 	bool Scalar::Value::as_bool() const {
 		return SvTRUE(get_SV(true));
 	}
@@ -200,6 +221,9 @@ namespace perl {
 
 	bool Scalar::Value::defined() const {
 		return SvOK(get_SV(true));
+	}
+	unsigned Scalar::Value::length() const {
+		return sv_len(get_SV(true));
 	}
 
 	const Array::Temp Scalar::Value::unpack(const Raw_string pattern) const {

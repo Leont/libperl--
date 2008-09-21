@@ -229,8 +229,11 @@ namespace perl {
 			STRLEN len;
 			return SvPVx(get_SV(true), len);
 		}
-		String::operator const char*() const {
-			return get_raw();
+//		String::operator const char*() const {
+//			return get_raw();
+//		}
+		String::operator bool() const {
+			return length() > 0;
 		}
 		unsigned String::length() const {
 			return sv_len(get_SV(true)); // Unicode!?

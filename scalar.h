@@ -449,6 +449,18 @@ namespace perl {
 				Value& operator=(const std::string&);
 				Value& operator=(const char*);
 
+				bool operator==(int) const;
+				bool operator==(unsigned) const;
+				bool operator==(const char*) const;
+				bool operator==(Raw_string) const;
+				bool operator==(const std::string&) const;
+
+				bool operator!=(int) const;
+				bool operator!=(unsigned) const;
+				bool operator!=(const char*) const;
+				bool operator!=(Raw_string) const;
+				bool operator!=(const std::string&) const;
+
 				//Begin of TODO
 				Value& operator+=(int);
 				Value& operator-=(int);
@@ -484,6 +496,7 @@ namespace perl {
 				bool as_bool() const;
 
 				bool defined() const;
+				unsigned length() const;
 				const array::Temp unpack(const Raw_string) const;
 			
 				scalar::Temp operator[](int) const;
@@ -550,6 +563,7 @@ namespace perl {
 		typedef implementation::scalar::Base Base;
 		typedef implementation::scalar::Value Value;
 		typedef implementation::scalar::Temp Temp;
+		using Parent::operator=;
 
 		Scalar(const Scalar&);
 		Scalar(const Scalar::Base&);
@@ -690,8 +704,9 @@ namespace perl {
 
 			operator const Raw_string() const;
 			const char* get_raw() const;
-			operator const char*() const;
+//			operator const char*() const;
 			unsigned length() const;
+			operator bool() const;
 
 			void replace(unsigned offset, unsigned length, Raw_string other);
 			void replace(unsigned offset, unsigned length, const char*, unsigned);
@@ -731,8 +746,8 @@ namespace perl {
 
 		bool operator!=(const String&,      const String&);
 		bool operator!=(const String&,      const std::string&);
+
 		bool operator!=(const std::string&, const String&);
-		
 		bool operator!=(const String&, const char*);
 		bool operator!=(const char*, const String&);
 	}

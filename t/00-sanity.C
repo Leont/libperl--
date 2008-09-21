@@ -4,7 +4,10 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(18);
+	TEST_START(21);
+
+	ok(true, "True is ok");
+	not_ok(false, "False is not ok");
 
 	FAIL(throw Runtime_exception("Runtime exception"), "Should throw a Runtime exception");
 	FAIL(assertion<Runtime_exception>(false, "Runtime exception"), "Should throw a Runtime exception too");
@@ -26,12 +29,14 @@ int main(int argc, char** argv) {
 
 	ok(universe.value_of("Test"), "value_of(\"Test\")");
 	not_ok(universe.value_of(""), "value_of(\"\")");
-//	skip("value_of(\"\")"); //How should this behave?
 	is(universe.value_of("Test"), "Test", "value_of(\"Test\") is \"Test\"");
 
 	not_ok(universe.scalar("_").defined(), "$_ is not defined");
 	ok(universe.scalar("_") = "Anything", "$_ is assigned to");
 	ok(universe.scalar("_").defined(), "$_ is defined");
+
+	TRY_DECL(Scalar value = universe.value_of(1), "value = value_of(1)");
+
 	TRY_DECL(Package dbi = universe.use("DBI"), "use DBI");
 
 	TEST_END;
