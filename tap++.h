@@ -19,17 +19,6 @@ namespace TAP {
 	void skip(std::string why);
 	void skip_todo(std::string why);
 	void diag(const char* information);
-
-	template<typename T> struct is_convertible {
-		static void test(const char* message) {
-			print_fail(message);
-		}
-	};
-	template<> struct is_convertible<boost::true_type> {
-		static void test(const char* message) {
-			print_ok(message);
-		}
-	};
 }
 
 using TAP::ok;
@@ -90,7 +79,7 @@ using TAP::diag;
 		}\
 	} while (0)
 
-// This small macro is the whole reason for this ugly exercise. I can't introduce a new scope because code subsequent to the declaration should be visible to the rest of the code. At the same time, it must be exception safe. They are quite sever constraints :-(.
+// This small macro is the whole reason for this ugly exercise. I can't introduce a new scope because code subsequent to the declaration should be visible to the rest of the code. At the same time, it must be exception safe. They are quite severe constraints :-(.
 #define TRY_DECL(action, new_message) \
 	_current_message = new_message;\
 	action;\
@@ -122,11 +111,9 @@ template<typename T, typename U> bool isnt(const T& left, const U& right, const 
 }
 
 template<typename T, typename U> bool is_convertible(const char* message) {
-	TAP::is_convertible<typename boost::is_convertible<T, U>::type>::test(message);
-	return boost::is_convertible<T, U>::value;
+	return ok(boost::is_convertible<T, U>::value, message);
 }
 
 template<typename T, typename U> bool is_inconvertible(const char* message) {
-	TAP::is_convertible<typename boost::mpl::not_<typename boost::is_convertible<T, U>::type>::type>::test(message);
-	return boost::is_convertible<T, U>::value;
+	return ok(!boost::is_convertible<T, U>::value, message);
 }

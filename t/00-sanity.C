@@ -4,7 +4,7 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(25);
+	TEST_START(26);
 
 	ok(true, "True is ok");
 	not_ok(false, "False is not ok");
@@ -13,9 +13,10 @@ int main(int argc, char** argv) {
 	FAIL(assertion<Runtime_exception>(false, "Runtime exception"), "Should throw a Runtime exception too");
 	TRY(assertion<Runtime_exception>(true, "Runtime exception"), "Shouldn't throw a Runtime exception");
 	is_convertible<int, long>("int can be converted into a long");
+	is_inconvertible<int, int(*)()>("int can't be converted into an function pointer");
 
 	Raw_string test = "Test";
-	is(test, "Test", Raw_string("a Raw_string equals an equal Raw_string"));
+	is(test, Raw_string("Test"), "a Raw_string equals an equal Raw_string");
 	is(test, "Test", "a Raw_string equals an equal const char*");
 	//TODO: more tests on Raw_string
 
