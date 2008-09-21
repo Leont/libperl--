@@ -86,7 +86,7 @@ using TAP::diag;
 	TAP::print_ok(_current_message);\
 	_current_message = NULL
 
-template<typename T, typename U> bool is(const T& left, const U& right, const char* message) {
+template<typename T, typename U> bool is(const T& left, const U& right, const char* message = "") {
 	try {
 		if(left == right) {
 			TAP::print_ok(message);
@@ -98,7 +98,7 @@ template<typename T, typename U> bool is(const T& left, const U& right, const ch
 	return false;
 }
 
-template<typename T, typename U> bool isnt(const T& left, const U& right, const char* message) {
+template<typename T, typename U> bool isnt(const T& left, const U& right, const char* message = "") {
 	try {
 		if(left != right) {
 			TAP::print_ok(message);

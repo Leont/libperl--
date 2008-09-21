@@ -13,7 +13,7 @@ It can be build using a simple `make`. This build the shared library
 (libperl++.so).
 
 TESTING
-You can run tests by typing `make test`.
+You can run tests by typing `make test`. If you want the full output, you can run `VERBOSE=1 make test`
 
 INSTALLATION
 I don't really recommend doing that in this stage, but `make install` is

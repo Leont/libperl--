@@ -19,8 +19,14 @@ closedir $dh;
 
 foreach my $file (@files) {
 	my $parser = TAP::Parser->new( { exec => [ $file ] } );
-	while ( my $result = $parser->next ) {
-		printf "%s results: %s\n", $file, $result->as_string;
+	if ($ENV{VERBOSE}) {
+		while ( my $result = $parser->next ) {
+			printf "%s results: %s\n", $file, $result->as_string;
+		}
+	}
+	else {
+		1 while $parser->next;
+		printf "%s results\n", $file;
 	}
 	my $aggregate = TAP::Parser::Aggregator->new;
 	$aggregate->add('testcases', $parser);

@@ -79,6 +79,10 @@ namespace perl {
 			return !(left == right);
 		}
 
+		SV* Integer::copy(const Scalar::Base& orig) {
+			interpreter* interp = orig.interp;
+			return newSViv(orig.int_value());
+		}
 		bool Integer::is_compatible_type(const Scalar::Base& val) {
 			return SvIOK(val.get_SV(false));
 		}
@@ -149,6 +153,10 @@ namespace perl {
 		bool operator!=(const Uinteger& left, const Uinteger& right) {
 			return !(left == right);
 		}
+		SV* Uinteger::copy(const Scalar::Base& orig) {
+			interpreter* interp = orig.interp;
+			return newSVuv(orig.int_value());
+		}
 		bool Uinteger::is_compatible_type(const Scalar::Base& val) {
 			return SvUOK(val.get_SV(false));
 		}
@@ -191,6 +199,10 @@ namespace perl {
 			return SvNV(get_SV(true));
 		}
 
+		SV* Number::copy(const Scalar::Base& orig) {
+			interpreter* interp = orig.interp;
+			return newSVnv(orig.int_value());
+		}
 		bool Number::is_compatible_type(const Scalar::Base& val) {
 			return SvNOK(val.get_SV(false)) || Integer::is_compatible_type(val) || Uinteger::is_compatible_type(val);
 		}

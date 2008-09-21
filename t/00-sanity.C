@@ -4,7 +4,7 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(26);
+	TEST_START(31);
 
 	ok(true, "True is ok");
 	not_ok(false, "False is not ok");
@@ -40,6 +40,12 @@ int main(int argc, char** argv) {
 	is_convertible<Scalar::Temp, Scalar>("Scalar::Temp can be converted into a Scalar");
 	is_convertible<Integer::Temp, Scalar>("Integer::Temp can be converted into a Scalar");
 	is_convertible<Integer, Scalar>("Integer can be converted into a Scalar");
+
+	is_convertible<Scalar::Temp, Integer>("Can convert a Scalar::Temp into a Integer");
+	is_convertible<Scalar::Temp, Uinteger>("Can convert a Scalar::Temp into a UInteger");
+	is_convertible<Scalar::Temp, Number>("Can convert a Scalar::Temp into a Number");
+	is_convertible<Scalar::Temp, String>("Can convert a Scalar::Temp into a String");
+	is_convertible<Scalar::Temp, Ref<Any> >("Can convert a Scalar::Temp into a Ref<Any>");
 
 	TRY_DECL(Scalar value = universe.value_of(1), "value = value_of(1)");
 
