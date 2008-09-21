@@ -54,8 +54,8 @@ namespace perl {
 				SV* const handle;
 				public:
 
-				int int_value() const;
-				unsigned uint_value() const;
+				long int_value() const; //XXX confusing name, I know :-(
+				unsigned long uint_value() const;
 				double number_value() const;
 				Raw_string string_value() const;
 
@@ -427,10 +427,21 @@ namespace perl {
 		}
 
 		class String;
-	
+
 		namespace scalar {
 			template<typename T> class Assignable;
 
+			template<typename T, typename Enable1 = void, typename Enable2 = void> struct compare_base_type;
+			template<typename T> struct compare_base_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_signed<T>::type>::type> {
+				typedef long type;
+			};
+			template<typename T> struct compare_base_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_unsigned<T>::type>::type> {
+				typedef unsigned long type;
+			};
+			template<typename T> struct compare_base_type<T, typename boost::enable_if<typename boost::is_floating_point<T>::type>::type, void> {
+				typedef double type;
+			};
+	
 			/*
 			 * Class Scalar::Value
 			 * This class can be converted into anything any scalar can be converted in. If the the convertion 
@@ -442,24 +453,24 @@ namespace perl {
 				public:
 				Value& operator=(const Base&);
 				Value& operator=(const Value&);
-				Value& operator=(int);
-				Value& operator=(unsigned);
+				Value& operator=(long);
+				Value& operator=(unsigned long);
 				Value& operator=(double);
 				Value& operator=(Raw_string);
 				Value& operator=(const std::string&);
 				Value& operator=(const char*);
 
-				bool operator==(int) const;
-				bool operator==(unsigned) const;
+				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator=(T right) {
+					return operator=(static_cast<typename compare_base_type<T>::type>(right));
+				}
+
+				bool operator==(long) const;
+				bool operator==(unsigned long) const;
+				bool operator==(double) const;
+
 				bool operator==(const char*) const;
 				bool operator==(Raw_string) const;
 				bool operator==(const std::string&) const;
-
-				bool operator!=(int) const;
-				bool operator!=(unsigned) const;
-				bool operator!=(const char*) const;
-				bool operator!=(Raw_string) const;
-				bool operator!=(const std::string&) const;
 
 				//Begin of TODO
 				Value& operator+=(int);
@@ -487,11 +498,11 @@ namespace perl {
 				
 				bool is_defined() const;
 
-				operator int() const;
-				operator unsigned() const;
+				operator long() const;
+				operator unsigned long() const;
 				operator double() const;
 				operator Raw_string() const;
-				operator const char*() const;
+//				operator const char*() const;
 				operator bool() const;
 				bool as_bool() const;
 
@@ -510,6 +521,32 @@ namespace perl {
 
 				static SV* copy(const Base&);
 			};
+
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator==(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) == right;
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator!=(const Value& left, T right) {
+				return ! static_cast<typename compare_base_type<T>::type>(left) == right;
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<=(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) <= right;
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator>=(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) >= right;
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) < right;
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator>(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) > right;
+			}
+			//TODO: operator XX(T, Value)
+
+			static inline bool operator!=(const Value& left, const char* right) {
+				return !(left == right);
+			}
+			bool operator!=(const Value&, Raw_string);
+			bool operator!=(const Value&, const std::string&);
 
 			/*
 			 * Class Variable
@@ -610,13 +647,13 @@ namespace perl {
 			public:
 			
 			Integer& operator=(const Integer&);
-			Integer& operator=(int);
+			Integer& operator=(long);
 			
-			Integer& operator+=(int);
-			Integer& operator-=(int);
-			Integer& operator*=(int);
-			Integer& operator/=(int);
-			Integer& operator%=(int);
+			Integer& operator+=(long);
+			Integer& operator-=(long);
+			Integer& operator*=(long);
+			Integer& operator/=(long);
+			Integer& operator%=(long);
 
 			Integer& operator++();
 			Integer operator++(int);
@@ -625,8 +662,8 @@ namespace perl {
 
 			bool operator==(const Integer&) const;
 			
-			operator int() const;
-			int int_value() const;
+			operator long() const;
+			long int_value() const;
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);
 			static const std::string& cast_error();
@@ -644,13 +681,13 @@ namespace perl {
 			public:
 			
 			Uinteger& operator=(const Uinteger&);
-			Uinteger& operator=(unsigned);
+			Uinteger& operator=(unsigned long);
 			
-			Uinteger& operator+=(unsigned);
-			Uinteger& operator-=(unsigned);
-			Uinteger& operator*=(unsigned);
-			Uinteger& operator/=(unsigned);
-			Uinteger& operator%=(unsigned);
+			Uinteger& operator+=(unsigned long);
+			Uinteger& operator-=(unsigned long);
+			Uinteger& operator*=(unsigned long);
+			Uinteger& operator/=(unsigned long);
+			Uinteger& operator%=(unsigned long);
 
 			Uinteger& operator++();
 			Uinteger operator++(int);
@@ -659,8 +696,8 @@ namespace perl {
 
 			bool operator==(const Uinteger&) const;
 			
-			operator unsigned() const;
-			unsigned unsigned_value() const;
+			operator unsigned long() const;
+			unsigned long unsigned_value() const;
 
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);

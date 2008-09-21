@@ -27,23 +27,23 @@ namespace perl {
 			sv_setpviv_mg(get_SV(false), other.int_value());
 			return *this;
 		}
-		Integer& Integer::operator=(int other) {
+		Integer& Integer::operator=(long other) {
 			sv_setpviv_mg(get_SV(false), other);
 			return *this;
 		}
-		Integer& Integer::operator+=(int other) {
+		Integer& Integer::operator+=(long other) {
 			return operator=(int_value() + other);
 		}
-		Integer& Integer::operator-=(int other) {
+		Integer& Integer::operator-=(long other) {
 			return operator=(int_value() - other);
 		}
-		Integer& Integer::operator*=(int other) {
+		Integer& Integer::operator*=(long other) {
 			return operator=(int_value() * other);
 		}
-		Integer& Integer::operator/=(int other) {
+		Integer& Integer::operator/=(long other) {
 			return operator=(int_value() / other);
 		}
-		Integer& Integer::operator%=(int other) {
+		Integer& Integer::operator%=(long other) {
 			return operator=(int_value() % other);
 		}
 
@@ -66,10 +66,10 @@ namespace perl {
 			return Integer(interp, newSViv(ret));
 		}
 
-		Integer::operator int() const {
+		Integer::operator long() const {
 			return int_value();
 		}
-		int Integer::int_value() const {
+		long Integer::int_value() const {
 			return SvIV(get_SV(true));
 		}
 		bool Integer::operator==(const Integer& right) const {
@@ -97,23 +97,23 @@ namespace perl {
 			sv_setuv_mg(get_SV(false), other.unsigned_value());
 			return *this;
 		}
-		Uinteger& Uinteger::operator=(unsigned other) {
+		Uinteger& Uinteger::operator=(unsigned long other) {
 			sv_setuv_mg(get_SV(false), other);
 			return *this;
 		}
-		Uinteger& Uinteger::operator+=(unsigned other) {
+		Uinteger& Uinteger::operator+=(unsigned long other) {
 			return operator=(unsigned_value() + other);
 		}
-		Uinteger& Uinteger::operator-=(unsigned other) {
+		Uinteger& Uinteger::operator-=(unsigned long other) {
 			return operator=(unsigned_value() - other);
 		}
-		Uinteger& Uinteger::operator*=(unsigned other) {
+		Uinteger& Uinteger::operator*=(unsigned long other) {
 			return operator=(unsigned_value() * other);
 		}
-		Uinteger& Uinteger::operator/=(unsigned other) {
+		Uinteger& Uinteger::operator/=(unsigned long other) {
 			return operator=(unsigned_value() / other);
 		}
-		Uinteger& Uinteger::operator%=(unsigned other) {
+		Uinteger& Uinteger::operator%=(unsigned long other) {
 			return operator=(unsigned_value() % other);
 		}
 
@@ -122,7 +122,7 @@ namespace perl {
 			return *this;
 		}
 		Uinteger Uinteger::operator++(int) {
-			const unsigned ret = unsigned_value();
+			const unsigned long ret = unsigned_value();
 			++*this;
 			return Uinteger(interp, newSVuv(ret));
 		}
@@ -131,15 +131,15 @@ namespace perl {
 			return *this;
 		}
 		Uinteger Uinteger::operator--(int) {
-			const unsigned ret = unsigned_value();
+			const unsigned long ret = unsigned_value();
 			--*this;
 			return Uinteger(interp, newSVuv(ret));
 		}
 
-		Uinteger::operator unsigned() const {
+		Uinteger::operator unsigned long() const {
 			return unsigned_value();
 		}
-		unsigned Uinteger::unsigned_value() const {
+		unsigned long Uinteger::unsigned_value() const {
 			return SvUV(get_SV(true));
 		}
 		bool Uinteger::operator==(const Uinteger& right) const {

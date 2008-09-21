@@ -19,10 +19,10 @@ namespace perl {
 		return handle;
 	}
 
-	int Scalar::Base::int_value() const {
+	long Scalar::Base::int_value() const {
 		return SvIVx(get_SV(true));
 	}
-	unsigned Scalar::Base::uint_value() const {
+	unsigned long Scalar::Base::uint_value() const {
 		return SvUVx(get_SV(true));
 	}
 	double Scalar::Base::number_value() const {
@@ -149,11 +149,11 @@ namespace perl {
 		SvSetMagicSV(get_SV(false), other.get_SV(true));
 		return *this;
 	}
-	Scalar::Value& Scalar::Value::operator=(int new_value) {
+	Scalar::Value& Scalar::Value::operator=(long new_value) {
 		sv_setiv_mg(get_SV(false), new_value);
 		return *this;
 	}
-	Scalar::Value& Scalar::Value::operator=(unsigned new_value) {
+	Scalar::Value& Scalar::Value::operator=(unsigned long new_value) {
 		sv_setuv_mg(get_SV(false), new_value);
 		return *this;
 	}
@@ -174,10 +174,10 @@ namespace perl {
 		return *this;
 	}
 
-	bool Scalar::Value::operator==(int right) const {
+	bool Scalar::Value::operator==(long right) const {
 		return int_value() == right;
 	}
-	bool Scalar::Value::operator==(unsigned right) const {
+	bool Scalar::Value::operator==(unsigned long right) const {
 		return uint_value() == right;
 	}
 	bool Scalar::Value::operator==(const char* right) const {
@@ -189,11 +189,6 @@ namespace perl {
 	bool Scalar::Value::operator==(const std::string& right) const {
 		return string_value() == right;
 	}
-//	bool Scalar::Value::operator!=(int right) const;
-//	bool Scalar::Value::operator!=(unsigned right) const;
-//	bool Scalar::Value::operator!=(const char* right) const;
-//	bool Scalar::Value::operator!=(Raw_string right) const;
-//	bool Scalar::Value::operator!=(const std::string& right) const;
 
 	bool Scalar::Value::as_bool() const {
 		return SvTRUE(get_SV(true));
@@ -202,11 +197,11 @@ namespace perl {
 		return as_bool();
 	}
 
-	Scalar::Value::operator int() const {
+	Scalar::Value::operator long() const {
 		return int_value();
 	}
 
-	Scalar::Value::operator unsigned() const {
+	Scalar::Value::operator unsigned long() const {
 		return uint_value();
 	}
 	Scalar::Value::operator double() const {
@@ -215,9 +210,9 @@ namespace perl {
 	Scalar::Value::operator Raw_string() const {
 		return string_value();
 	}
-	Scalar::Value::operator const char*() const {
-		return operator Raw_string();
-	}
+//	Scalar::Value::operator const char*() const {
+//		return operator Raw_string();
+//	}
 
 	bool Scalar::Value::defined() const {
 		return SvOK(get_SV(true));

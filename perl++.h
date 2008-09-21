@@ -5,16 +5,23 @@
 #include <map>
 #include <exception>
 #include <iostream>
+
 #include <boost/shared_ptr.hpp>
+#include <boost/utility/result_of.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/logical.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include <boost/type_traits/function_traits.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/type_traits/is_member_function_pointer.hpp>
 #include <boost/type_traits/is_member_object_pointer.hpp>
-#include <boost/utility/result_of.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/mpl/logical.hpp>
-#include <boost/lexical_cast.hpp>
+#include <boost/type_traits/is_unsigned.hpp>
+#include <boost/type_traits/is_signed.hpp>
+#include <boost/type_traits/is_arithmetic.hpp>
+#include <boost/type_traits/is_integral.hpp>
+#include <boost/type_traits/is_floating_point.hpp>
 
 #ifdef DEBUG
 #include <cstdio>

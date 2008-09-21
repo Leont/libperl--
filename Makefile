@@ -22,7 +22,7 @@ HDRS := $(wildcard *.h)
 SRCS := array.C call.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C magic.C parsed.C primitives.C reference.C regex.C scalar.C tap++.C
 OBJS := $(patsubst %.C,%.o,$(SRCS))
 
-TODEL := $(wildcard *.o)
+TODEL := $(wildcard *.o) $(wildcard t/*.t)
 
 TEST_SRCS := $(shell echo t/*.C)
 TEST_OBJS := $(patsubst %.C,%.t,$(TEST_SRCS))
