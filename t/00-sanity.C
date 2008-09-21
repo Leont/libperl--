@@ -4,7 +4,7 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(21);
+	TEST_START(25);
 
 	ok(true, "True is ok");
 	not_ok(false, "False is not ok");
@@ -12,9 +12,10 @@ int main(int argc, char** argv) {
 	FAIL(throw Runtime_exception("Runtime exception"), "Should throw a Runtime exception");
 	FAIL(assertion<Runtime_exception>(false, "Runtime exception"), "Should throw a Runtime exception too");
 	TRY(assertion<Runtime_exception>(true, "Runtime exception"), "Shouldn't throw a Runtime exception");
+	is_convertible<int, long>("int can be converted into a long");
 
 	Raw_string test = "Test";
-	is(test, "Test", Raw_string("a Raw_string equals an equal strings"));
+	is(test, "Test", Raw_string("a Raw_string equals an equal Raw_string"));
 	is(test, "Test", "a Raw_string equals an equal const char*");
 	//TODO: more tests on Raw_string
 
@@ -34,6 +35,10 @@ int main(int argc, char** argv) {
 	not_ok(universe.scalar("_").defined(), "$_ is not defined");
 	ok(universe.scalar("_") = "Anything", "$_ is assigned to");
 	ok(universe.scalar("_").defined(), "$_ is defined");
+
+	is_convertible<Scalar::Temp, Scalar>("Scalar::Temp can be converted into a Scalar");
+	is_convertible<Integer::Temp, Scalar>("Integer::Temp can be converted into a Scalar");
+	is_convertible<Integer, Scalar>("Integer can be converted into a Scalar");
 
 	TRY_DECL(Scalar value = universe.value_of(1), "value = value_of(1)");
 

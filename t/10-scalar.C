@@ -4,7 +4,7 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(43);
+	TEST_START(45);
 	Interpreter universe;
 	TRY_DECL(Scalar value = universe.value_of(1), "Definition of value");
 	diag("value = universe.value_of(1)");
@@ -22,6 +22,9 @@ int main(int argc, char** argv) {
 	not_ok(value - 1, "not: value - 1");
 	ok(value * 1, "value * 1");
 	ok(value / 1, "value / 1");
+
+	TRY_DECL(int foo = value, "int foo = value");
+	ok(foo == 1, "foo == 1");
 	
 	value = 1;
 	diag("value = 1");

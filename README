@@ -9,11 +9,11 @@ The library should work on perl 5.8.1 or higher. Also, some Boost headers are
 required to build it, but there are no dependencies on Boost runtime libraries.
 
 BUILDING
-It can be build using a simple `make`. This currently build the shared library
-(libperl++.so) and an example application (example). 
+It can be build using a simple `make`. This build the shared library
+(libperl++.so).
 
 TESTING
-There is no automated testing yet. I consider this my #1 bug.
+You can run tests by typing `make test`.
 
 INSTALLATION
 I don't really recommend doing that in this stage, but `make install` is
