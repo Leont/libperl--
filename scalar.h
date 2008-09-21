@@ -473,17 +473,17 @@ namespace perl {
 				bool operator==(const std::string&) const;
 
 				//Begin of TODO
-				Value& operator+=(int);
-				Value& operator-=(int);
-				Value& operator*=(int);
-				Value& operator/=(int);
-				Value& operator%=(int);
+				Value& operator+=(long);
+				Value& operator-=(long);
+				Value& operator*=(long);
+				Value& operator/=(long);
+				Value& operator%=(long);
 
-				Value& operator+=(unsigned);
-				Value& operator-=(unsigned);
-				Value& operator*=(unsigned);
-				Value& operator/=(unsigned);
-				Value& operator%=(unsigned);
+				Value& operator+=(unsigned long);
+				Value& operator-=(unsigned long);
+				Value& operator*=(unsigned long);
+				Value& operator/=(unsigned long);
+				Value& operator%=(unsigned long);
 
 				Value& operator+=(double);
 				Value& operator-=(double);
