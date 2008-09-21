@@ -24,7 +24,7 @@ OBJS := $(patsubst %.C,%.o,$(SRCS))
 
 TODEL := $(wildcard *.o) $(wildcard t/*.t)
 
-TEST_SRCS := $(shell echo t/*.C)
+TEST_SRCS := $(wildcard t/*.C)
 TEST_OBJS := $(patsubst %.C,%.t,$(TEST_SRCS))
 
 all: $(LIB) example

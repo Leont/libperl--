@@ -540,6 +540,22 @@ namespace perl {
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator>(const Value& left, T right) {
 				return static_cast<typename compare_base_type<T>::type>(left) > right;
 			}
+
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator+(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) + right;
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator-(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) - right;
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator*(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) * right;
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator/(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) / right;
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator%(const Value& left, T right) {
+				return static_cast<typename compare_base_type<T>::type>(left) % right;
+			}
 			//TODO: operator XX(T, Value)
 
 			static inline bool operator!=(const Value& left, const char* right) {
