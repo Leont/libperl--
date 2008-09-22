@@ -174,20 +174,34 @@ namespace perl {
 		return *this;
 	}
 
-	bool Scalar::Value::operator==(long right) const {
-		return int_value() == right;
-	}
-	bool Scalar::Value::operator==(unsigned long right) const {
-		return uint_value() == right;
-	}
-	bool Scalar::Value::operator==(const char* right) const {
-		return string_value() == right;
-	}
-	bool Scalar::Value::operator==(Raw_string right) const {
-		return string_value() == right;
-	}
-	bool Scalar::Value::operator==(const std::string& right) const {
-		return string_value() == right;
+	namespace implementation {
+		namespace scalar {
+			bool operator==(const Scalar::Value& left, long right) {
+				return left.int_value() == right;
+			}
+			bool operator==(const Scalar::Value& left, unsigned long right) {
+				return left.uint_value() == right;
+			}
+			bool operator==(const Scalar::Value& left, const char* right) {
+				return left.string_value() == right;
+			}
+			bool operator==(const Scalar::Value& left, Raw_string right) {
+				return left.string_value() == right;
+			}
+			bool operator==(const Scalar::Value& left, const std::string& right) {
+				return left.string_value() == right;
+			}
+
+			bool operator!=(const Value& left, const char* right) {
+				return !(left == right);
+			}
+			bool operator!=(const Value& left, Raw_string right) {
+				return !(left == right);
+			}
+			bool operator!=(const Value& left, const std::string& right) {
+				return !(left == right);
+			}
+		}
 	}
 
 	bool Scalar::Value::as_bool() const {

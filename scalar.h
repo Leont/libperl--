@@ -144,7 +144,6 @@ namespace perl {
 		}
 	}
 
-
 	class Code {
 		public:
 		/*
@@ -463,32 +462,28 @@ namespace perl {
 					return operator=(static_cast<typename compare_base_type<T>::type>(right));
 				}
 
-				bool operator==(long) const;
-				bool operator==(unsigned long) const;
-				bool operator==(double) const;
-
-				bool operator==(const char*) const;
-				bool operator==(Raw_string) const;
-				bool operator==(const std::string&) const;
+				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator+=(T right) {
+					*this = static_cast<typename compare_base_type<T>::type>(*this) + right;
+					return *this;
+				}
+				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator-=(T right) {
+					*this = static_cast<typename compare_base_type<T>::type>(*this) - right;
+					return *this;
+				}
+				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator*=(T right) {
+					*this = static_cast<typename compare_base_type<T>::type>(*this) * right;
+					return *this;
+				}
+				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator/=(T right) {
+					*this = static_cast<typename compare_base_type<T>::type>(*this) / right;
+					return *this;
+				}
+				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator%=(T right) {
+					*this = static_cast<typename compare_base_type<T>::type>(*this) % right;
+					return *this;
+				}
 
 				//Begin of TODO
-				Value& operator+=(long);
-				Value& operator-=(long);
-				Value& operator*=(long);
-				Value& operator/=(long);
-				Value& operator%=(long);
-
-				Value& operator+=(unsigned long);
-				Value& operator-=(unsigned long);
-				Value& operator*=(unsigned long);
-				Value& operator/=(unsigned long);
-				Value& operator%=(unsigned long);
-
-				Value& operator+=(double);
-				Value& operator-=(double);
-				Value& operator*=(double);
-				Value& operator/=(double);
-
 				Value& operator+=(const implementation::String&);
 				Value& operator+=(Raw_string);
 				Value& operator+=(const char*);
@@ -521,11 +516,18 @@ namespace perl {
 				static SV* copy(const Base&);
 			};
 
+			bool operator==(const Value&, long);
+			bool operator==(const Value&, unsigned long);
+			bool operator==(const Value&, double);
+			bool operator==(const Value&, const char*);
+			bool operator==(const Value&, Raw_string);
+			bool operator==(const Value&, const std::string&);
+
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator==(const Value& left, T right) {
 				return static_cast<typename compare_base_type<T>::type>(left) == right;
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator!=(const Value& left, T right) {
-				return ! static_cast<typename compare_base_type<T>::type>(left) == right;
+				return !(static_cast<typename compare_base_type<T>::type>(left) == right);
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<=(const Value& left, T right) {
 				return static_cast<typename compare_base_type<T>::type>(left) <= right;
@@ -591,9 +593,7 @@ namespace perl {
 				return left % static_cast<typename compare_base_type<T>::type>(right);
 			}
 
-			static inline bool operator!=(const Value& left, const char* right) {
-				return !(left == right);
-			}
+			bool operator!=(const Value& left, const char* right);
 			bool operator!=(const Value&, Raw_string);
 			bool operator!=(const Value&, const std::string&);
 
