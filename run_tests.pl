@@ -17,6 +17,7 @@ opendir my($dh), 't' or die "Couldn't open test dir: $!";
 my @files = map {"t/$_"} sort grep { /.t$/ } readdir $dh;
 closedir $dh;
 
+my ($passed, $failed) = ( 0 x 2 );
 foreach my $file (@files) {
 	my $parser = TAP::Parser->new( { exec => [ $file ] } );
 	if ($ENV{VERBOSE}) {
@@ -31,4 +32,8 @@ foreach my $file (@files) {
 	my $aggregate = TAP::Parser::Aggregator->new;
 	$aggregate->add('testcases', $parser);
 	printf "\tPassed: %s\n\tFailed: %s\n", scalar $aggregate->passed, scalar $aggregate->failed;
+	$passed += $aggregate->passed;
+	$failed += $aggregate->failed;
 }
+
+printf "Total:\n\tPassed: %s\n\tFailed: %s\n", scalar $passed, scalar $failed;
