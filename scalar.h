@@ -94,8 +94,7 @@ namespace perl {
 				mutable bool owns;
 				bool transferable;
 				template<typename U> struct accept_anything {
-						typedef typename boost::mpl::and_< typename boost::is_same<T, Value>::type , typename boost::mpl::not_<typename boost::is_same<U, Value>::type>::type >::type type;
-						// T == Value && U != Value
+					typedef typename boost::is_same<T, Value>::type type;
 				};
 				public:
 				Temp_template(interpreter* _interp, SV* _value, bool _owns) : Base_type(_interp, _value), owns(_owns), transferable(_owns) {
@@ -541,22 +540,56 @@ namespace perl {
 				return static_cast<typename compare_base_type<T>::type>(left) > right;
 			}
 
-			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator+(const Value& left, T right) {
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator==(T left, const Value& right) {
+				return left == static_cast<typename compare_base_type<T>::type>(right);
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator!=(T left, const Value& right) {
+				return left != static_cast<typename compare_base_type<T>::type>(right);
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<=(T left, const Value& right) {
+				return left <= static_cast<typename compare_base_type<T>::type>(right);
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator>=(T left, const Value& right) {
+				return left >= static_cast<typename compare_base_type<T>::type>(right);
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<(T left, const Value& right) {
+				return left < static_cast<typename compare_base_type<T>::type>(right);
+			}
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator>(T left, const Value& right) {
+				return left > static_cast<typename compare_base_type<T>::type>(right);
+			}
+
+			template<typename T> typename compare_base_type<T>::type operator+(const Value& left, T right) {
 				return static_cast<typename compare_base_type<T>::type>(left) + right;
 			}
-			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator-(const Value& left, T right) {
+			template<typename T> typename compare_base_type<T>::type operator-(const Value& left, T right) {
 				return static_cast<typename compare_base_type<T>::type>(left) - right;
 			}
-			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator*(const Value& left, T right) {
+			template<typename T> typename compare_base_type<T>::type operator*(const Value& left, T right) {
 				return static_cast<typename compare_base_type<T>::type>(left) * right;
 			}
-			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator/(const Value& left, T right) {
+			template<typename T> typename compare_base_type<T>::type operator/(const Value& left, T right) {
 				return static_cast<typename compare_base_type<T>::type>(left) / right;
 			}
-			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, typename compare_base_type<T>::type>::type operator%(const Value& left, T right) {
+			template<typename T> typename compare_base_type<T>::type operator%(const Value& left, T right) {
 				return static_cast<typename compare_base_type<T>::type>(left) % right;
 			}
-			//TODO: operator XX(T, Value)
+
+			template<typename T> typename compare_base_type<T>::type operator+(T left, const Value& right) {
+				return left + static_cast<typename compare_base_type<T>::type>(right);
+			}
+			template<typename T> typename compare_base_type<T>::type operator-(T left, const Value& right) {
+				return left - static_cast<typename compare_base_type<T>::type>(right);
+			}
+			template<typename T> typename compare_base_type<T>::type operator*(T left, const Value& right) {
+				return left * static_cast<typename compare_base_type<T>::type>(right);
+			}
+			template<typename T> typename compare_base_type<T>::type operator/(T left, const Value& right) {
+				return left / static_cast<typename compare_base_type<T>::type>(right);
+			}
+			template<typename T> typename compare_base_type<T>::type operator%(T left, const Value& right) {
+				return left % static_cast<typename compare_base_type<T>::type>(right);
+			}
 
 			static inline bool operator!=(const Value& left, const char* right) {
 				return !(left == right);
@@ -569,10 +602,6 @@ namespace perl {
 			 * Handles ownership in scalar types. 
 			 */
 			template<typename T> class Variable : public T {
-				template <typename U> struct non_degenerate {
-					typedef typename boost::mpl::and_<typename boost::mpl::not_<typename boost::is_same<T, scalar::Value>::type>::type, typename boost::is_same<U, scalar::Value>::type>::type type;
-					// T != Scalar::Value && U == Scalar::Temp
-				};
 				public:
 				typedef T Value;
 				typedef Temp_template<Value> Temp;
@@ -582,7 +611,7 @@ namespace perl {
 				}
 				Variable(const Temp& other) : Value(other.interp, (other.has_ownership() ? other.release() : T::copy(other))) {
 				}
-				template<typename U> Variable(const Temp_template<U>& other, typename boost::enable_if<typename non_degenerate<U>::type, int>::type = 0) : Value(other.interp, T::copy(other)) { //TODO move?
+				template<typename U> Variable(const Temp_template<U>& other, typename boost::enable_if<typename boost::is_same<U, scalar::Value>::type, int>::type = 0) : Value(other.interp, T::copy(other)) { //TODO move?
 				}
 				protected:
 				Variable(const scalar::Base& other, const override&) : Value(other.interp, T::copy(other)) {

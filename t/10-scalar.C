@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
 	not_ok(value != "1", "not: value != \"1\"");
 
 	ok(value + 1, "value + 1");
-	not_ok(value - 1, "not: value - 1");
+	not_ok(value - 1 != 0, "not: value - 1");
 	ok(value * 1, "value * 1");
 	ok(value / 1, "value / 1");
 

@@ -1,6 +1,5 @@
 #include <iostream>
 #include <boost/type_traits/is_convertible.hpp>
-#include <boost/mpl/not.hpp>
 
 namespace TAP {
 	void plan(unsigned);
