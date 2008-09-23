@@ -174,6 +174,15 @@ namespace perl {
 		return *this;
 	}
 
+	Scalar::Value& Scalar::Value::operator++() {
+		sv_inc(get_SV(true));
+		return *this;
+	}
+	Scalar::Value& Scalar::Value::operator--() {
+		sv_dec(get_SV(true));
+		return *this;
+	}
+
 	namespace implementation {
 		namespace scalar {
 			bool operator==(const Scalar::Value& left, long right) {

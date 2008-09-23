@@ -489,7 +489,10 @@ namespace perl {
 				Value& operator+=(const char*);
 				Value& operator+=(const std::string&);
 				// End of TODO
-				
+
+				Value& operator++();
+				Value& operator--();
+
 				bool is_defined() const;
 
 				operator long() const;
@@ -527,7 +530,7 @@ namespace perl {
 				return static_cast<typename compare_base_type<T>::type>(left) == right;
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator!=(const Value& left, T right) {
-				return !(static_cast<typename compare_base_type<T>::type>(left) == right);
+				return static_cast<typename compare_base_type<T>::type>(left) != right;
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<=(const Value& left, T right) {
 				return static_cast<typename compare_base_type<T>::type>(left) <= right;
@@ -733,11 +736,14 @@ namespace perl {
 			Uinteger& operator*=(unsigned long);
 			Uinteger& operator/=(unsigned long);
 			Uinteger& operator%=(unsigned long);
+			Uinteger& operator&=(unsigned long);
+			Uinteger& operator|=(unsigned long);
+			Uinteger& operator^=(unsigned long);
 
 			Uinteger& operator++();
-			Uinteger operator++(int);
+			unsigned long operator++(int);
 			Uinteger& operator--();
-			Uinteger operator--(int);
+			unsigned long operator--(int);
 
 			bool operator==(const Uinteger&) const;
 			

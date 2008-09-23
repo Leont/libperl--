@@ -120,24 +120,33 @@ namespace perl {
 		Uinteger& Uinteger::operator%=(unsigned long other) {
 			return operator=(unsigned_value() % other);
 		}
+		Uinteger& Uinteger::operator&=(unsigned long other) {
+			return operator=(unsigned_value() & other);
+		}
+		Uinteger& Uinteger::operator|=(unsigned long other) {
+			return operator=(unsigned_value() | other);
+		}
+		Uinteger& Uinteger::operator^=(unsigned long other) {
+			return operator=(unsigned_value() ^ other);
+		}
 
 		Uinteger& Uinteger::operator++() {
 			sv_inc(get_SV(true));
 			return *this;
 		}
-		Uinteger Uinteger::operator++(int) {
+		unsigned long Uinteger::operator++(int) {
 			const unsigned long ret = unsigned_value();
 			++*this;
-			return Uinteger(interp, newSVuv(ret));
+			return ret;
 		}
 		Uinteger& Uinteger::operator--() {
 			sv_dec(get_SV(true));
 			return *this;
 		}
-		Uinteger Uinteger::operator--(int) {
+		unsigned long Uinteger::operator--(int) {
 			const unsigned long ret = unsigned_value();
 			--*this;
-			return Uinteger(interp, newSVuv(ret));
+			return ret;
 		}
 
 		Uinteger::operator unsigned long() const {
