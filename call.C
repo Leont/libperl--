@@ -25,9 +25,8 @@ namespace perl {
 	Code::Value::Value(interpreter* _interp, CV* _handle) : interp(_interp), handle(_handle) {
 	}
 
-	const Ref<Code>::Temp take_ref(const Code::Value& var) {
-		interpreter* const interp = var.interp;
-		return Ref<Code>::Temp(interp, newRV_inc(reinterpret_cast<SV*>(var.handle)), true);
+	const Ref<Code>::Temp Code::Value::take_ref() const {
+		return Ref<Code>::Temp(interp, newRV_inc(reinterpret_cast<SV*>(handle)), true);
 	}
 
 	bool Code::is_storage_type(const Any::Temp& value) {
@@ -237,7 +236,7 @@ namespace perl {
 				throw Runtime_exception("method doesn't exist");//TODO No such method exception??
 			}
 			CV* const codeval = GvCV(glob);
-			return take_ref(Code::Value(interp, codeval));
+			return Code::Value(interp, codeval).take_ref();
 		}
 	}
 }

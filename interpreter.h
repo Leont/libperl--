@@ -199,7 +199,9 @@ namespace perl {
 		}
 
 		void die(interpreter*, const char* message);
-#define typemap_cast static_cast
+		template<typename T, typename U> typename boost::enable_if<typename boost::is_convertible<const U&, T>::type, T>::type typemap_cast(const U& u) {
+			return static_cast<T>(u);
+		}
 
 		//TODO: make it throw an object
 #define TRY_OR_THROW(a) try {\
@@ -685,7 +687,7 @@ namespace perl {
 		Handle err() const;
 
 		template <typename T> const Ref<Code>::Temp export_sub(const char* name, T& fptr) {
-			return take_ref(implementation::export_sub(raw_interp.get(), name, fptr));
+			return implementation::export_sub(raw_interp.get(), name, fptr).take_ref();
 		}
 		template <typename T> const Code::Value export_flat(const char* name, T& fptr) {
 			return implementation::export_flatsub(raw_interp.get(), name, fptr);

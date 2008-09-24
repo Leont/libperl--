@@ -156,7 +156,7 @@ namespace perl {
 
 			public:
 			Value(interpreter*, CV*);
-			friend const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Code> > take_ref(const Value&);
+			const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Code> > take_ref() const;
 			friend class Glob;
 		};
 		static bool is_storage_type(const Any::Temp&);
