@@ -26,6 +26,7 @@ TODEL := $(wildcard *.o) $(wildcard t/*.t)
 
 TEST_SRCS := $(wildcard t/*.C)
 TEST_OBJS := $(patsubst %.C,%.t,$(TEST_SRCS))
+TEST_GOALS = $(TEST_OBJS)
 
 all: $(LIB) example
 
@@ -50,15 +51,12 @@ $(LIB): $(OBJS)
 parsed.C: parsed.pl
 	./parsed.pl > parsed.C
 
-example.o: example.C
-	$(CXX) $(ACXXFLAGS) -c $<
-
-example: example.o
-	$(CXX) -o $@ $< $(LDFLAGS)
+example: example.C
+	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
 
 test: $(LIB) $(TEST_OBJS)
 	@echo Running unit tests
-	@$(LIBRARY_VAR)=$(PWD) ./run_tests.pl
+	@$(LIBRARY_VAR)=$(PWD) ./run_tests.pl $(TEST_GOALS)
 
 #%.o: perl++.h
 

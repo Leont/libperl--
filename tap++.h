@@ -1,5 +1,6 @@
 #include <iostream>
 #include <boost/type_traits/is_convertible.hpp>
+#include <cmath>
 
 namespace TAP {
 	void plan(unsigned);
@@ -100,6 +101,30 @@ template<typename T, typename U> bool is(const T& left, const U& right, const ch
 template<typename T, typename U> bool isnt(const T& left, const U& right, const char* message = "") {
 	try {
 		if(left != right) {
+			TAP::print_ok(message);
+			return true;
+		}
+	}
+	catch(...) {}
+	TAP::print_fail(message);
+	return false;
+}
+
+template<typename T, typename U> bool is_close(const T& left, const U& right, const char* message = "", double deviation = 0.01) {
+	try {
+		if(2 * abs(left - right) / (abs(left) + abs(right)) < deviation) {
+			TAP::print_ok(message);
+			return true;
+		}
+	}
+	catch(...) {}
+	TAP::print_fail(message);
+	return false;
+}
+
+template<typename T, typename U> bool is_remote(const T& left, const U& right, const char* message = "", double deviation = 0.01) {
+	try {
+		if(2 * abs(left - right) / (abs(left) + abs(right)) > deviation) {
 			TAP::print_ok(message);
 			return true;
 		}

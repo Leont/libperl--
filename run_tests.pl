@@ -13,9 +13,7 @@ use TAP::Parser::Aggregator qw/all/;
 #open my $out_file, ">>", "test_report.txt" or die "Cannot open outfile. $!\n";
 printf "Report %s\n", strftime("%y%m%d-%H:%M", localtime);
 
-opendir my($dh), 't' or die "Couldn't open test dir: $!";
-my @files = map {"t/$_"} sort grep { /.t$/ } readdir $dh;
-closedir $dh;
+my @files = @ARGV;
 
 my ($passed, $failed) = ( 0 x 2 );
 foreach my $file (@files) {

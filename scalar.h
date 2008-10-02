@@ -458,29 +458,24 @@ namespace perl {
 				Value& operator=(const std::string&);
 				Value& operator=(const char*);
 
-				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator=(T right) {
+				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator=(T right) {
 					return operator=(static_cast<typename compare_base_type<T>::type>(right));
 				}
 
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator+=(T right) {
-					*this = static_cast<typename compare_base_type<T>::type>(*this) + right;
-					return *this;
+					return *this = static_cast<typename compare_base_type<T>::type>(*this) + right;
 				}
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator-=(T right) {
-					*this = static_cast<typename compare_base_type<T>::type>(*this) - right;
-					return *this;
+					return *this = static_cast<typename compare_base_type<T>::type>(*this) - right;
 				}
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator*=(T right) {
-					*this = static_cast<typename compare_base_type<T>::type>(*this) * right;
-					return *this;
+					return *this = static_cast<typename compare_base_type<T>::type>(*this) * right;
 				}
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator/=(T right) {
-					*this = static_cast<typename compare_base_type<T>::type>(*this) / right;
-					return *this;
+					return *this = static_cast<typename compare_base_type<T>::type>(*this) / right;
 				}
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator%=(T right) {
-					*this = static_cast<typename compare_base_type<T>::type>(*this) % right;
-					return *this;
+					return *this = static_cast<typename compare_base_type<T>::type>(*this) % right;
 				}
 
 				//Begin of TODO
