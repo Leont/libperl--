@@ -69,13 +69,13 @@ namespace perl {
 			push(values[i]);
 		}
 	}
-	void Array::Value::push(const int val) {
+	void Array::Value::push(const IV val) {
 		av_push(handle, newSViv(val));
 	}
-	void Array::Value::push(const unsigned val) {
+	void Array::Value::push(const UV val) {
 		av_push(handle, newSVuv(val));
 	}
-	void Array::Value::push(const double val) {
+	void Array::Value::push(const NV val) {
 		av_push(handle, newSVnv(val));
 	}
 	void Array::Value::push(const char* const val) {
@@ -102,13 +102,13 @@ namespace perl {
 			SvSETMAGIC(value);
 		}
 	}
-	void Array::Value::unshift(const int val) {
+	void Array::Value::unshift(const IV val) {
 		unshifter(interp, handle, newSViv(val));
 	}
-	void Array::Value::unshift(const unsigned val) {
+	void Array::Value::unshift(const UV val) {
 		unshifter(interp, handle, newSVuv(val));
 	}
-	void Array::Value::unshift(const double val) {
+	void Array::Value::unshift(const NV val) {
 		unshifter(interp, handle, newSVnv(val));
 	}
 	void Array::Value::unshift(const char* const val) {

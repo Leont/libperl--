@@ -19,10 +19,10 @@ namespace perl {
 		return handle;
 	}
 
-	long Scalar::Base::int_value() const {
+	IV Scalar::Base::int_value() const {
 		return SvIVx(get_SV(true));
 	}
-	unsigned long Scalar::Base::uint_value() const {
+	UV Scalar::Base::uint_value() const {
 		return SvUVx(get_SV(true));
 	}
 	double Scalar::Base::number_value() const {
@@ -149,11 +149,11 @@ namespace perl {
 		SvSetMagicSV(get_SV(false), other.get_SV(true));
 		return *this;
 	}
-	Scalar::Value& Scalar::Value::operator=(long new_value) {
+	Scalar::Value& Scalar::Value::operator=(IV new_value) {
 		sv_setiv_mg(get_SV(false), new_value);
 		return *this;
 	}
-	Scalar::Value& Scalar::Value::operator=(unsigned long new_value) {
+	Scalar::Value& Scalar::Value::operator=(UV new_value) {
 		sv_setuv_mg(get_SV(false), new_value);
 		return *this;
 	}
@@ -185,10 +185,10 @@ namespace perl {
 
 	namespace implementation {
 		namespace scalar {
-			bool operator==(const Scalar::Value& left, long right) {
+			bool operator==(const Scalar::Value& left, IV right) {
 				return left.int_value() == right;
 			}
-			bool operator==(const Scalar::Value& left, unsigned long right) {
+			bool operator==(const Scalar::Value& left, UV right) {
 				return left.uint_value() == right;
 			}
 			bool operator==(const Scalar::Value& left, const char* right) {
@@ -220,11 +220,11 @@ namespace perl {
 		return as_bool();
 	}
 
-	Scalar::Value::operator long() const {
+	Scalar::Value::operator IV() const {
 		return int_value();
 	}
 
-	Scalar::Value::operator unsigned long() const {
+	Scalar::Value::operator UV() const {
 		return uint_value();
 	}
 	Scalar::Value::operator double() const {

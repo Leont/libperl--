@@ -37,7 +37,7 @@ ppport.h:
 #	ar -cr $(LIB) $(OBJS)
 #	ranlib $(LIB)
 
-$(LIB): $(OBJS)
+$(LIB): definitions.h $(OBJS)
 	gcc -shared -o $@ -Wl,-soname,$@ $(OBJS) $(LIBLDFLAGS)
 
 %.o: %.C 
@@ -49,7 +49,10 @@ $(LIB): $(OBJS)
 	$(CXX) $(ACXXFLAGS) -I $(PWD) -L $(PWD) -lperl++ -o $@ $< 
 
 parsed.C: parsed.pl
-	./parsed.pl > parsed.C
+	perl parsed.pl > parsed.C
+
+definitions.h: definitions.pre
+	cpp $(PERLCXX) $< > definitions.h
 
 example: example.C
 	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
@@ -61,7 +64,7 @@ test: $(LIB) $(TEST_OBJS)
 #%.o: perl++.h
 
 clean:
-	-rm $(LIB) tap_tester example ppport.h parsed.C $(TODEL) 2>/dev/null
+	-rm $(LIB) tap_tester example ppport.h parsed.C definitions.h $(TODEL) 2>/dev/null
 
 again: clean all
 

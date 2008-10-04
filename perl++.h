@@ -31,7 +31,8 @@
 #define debugf(...)
 #endif
 
-// I split the header over 4 files, to ease working with them.
+// I split the header, to ease working with it.
+#include "definitions.h"
 #include "helpers.h"
 #include "scalar.h"
 #include "collections.h"

@@ -119,9 +119,12 @@ namespace perl {
 				void push(const Scalar::Base&);
 				void push(const Scalar::Temp&);
 				void push(const Value&);
-				void push(int);
-				void push(unsigned);
-				void push(double);
+				void push(IV);
+				void push(UV);
+				void push(NV);
+				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type>::type push(T value) {
+					push(static_cast<typename nearest_arithmetic_type<T>::type>(value));
+				}
 				void push(const char*);
 				void push(Raw_string);
 				template<typename T1, typename T2> void push(const T1& t1,const T2& t2) {
@@ -158,9 +161,12 @@ namespace perl {
 				void unshift_prepare(unsigned);
 				public:
 				void unshift(const Scalar::Base&);
-				void unshift(int);
-				void unshift(unsigned);
-				void unshift(double);
+				void unshift(IV);
+				void unshift(UV);
+				void unshift(NV);
+				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type>::type unshift(T value) {
+					unshift(static_cast<typename nearest_arithmetic_type<T>::type>(value));
+				}
 				void unshift(const char*);
 				void unshift(Raw_string);
 				void unshift(const Value&);

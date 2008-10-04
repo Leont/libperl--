@@ -54,9 +54,9 @@ namespace perl {
 				SV* const handle;
 				public:
 
-				long int_value() const; //XXX confusing name, I know :-(
-				unsigned long uint_value() const;
-				double number_value() const;
+				IV int_value() const; //XXX confusing name, I know :-(
+				UV uint_value() const;
+				NV number_value() const;
 				Raw_string string_value() const;
 
 				SV* get_SV(bool) const;
@@ -176,6 +176,21 @@ namespace perl {
 		class Regex;
 
 		/*
+		 * meta-function nearest_arithmetic_type
+		 * Returns the nearest match for any kind of integer
+		 */
+		template<typename T, typename Enable1 = void, typename Enable2 = void> struct nearest_arithmetic_type;
+		template<typename T> struct nearest_arithmetic_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_signed<T>::type>::type> {
+			typedef IV type;
+		};
+		template<typename T> struct nearest_arithmetic_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_unsigned<T>::type>::type> {
+			typedef UV type;
+		};
+		template<typename T> struct nearest_arithmetic_type<T, typename boost::enable_if<typename boost::is_floating_point<T>::type>::type, void> {
+			typedef NV type;
+		};
+	
+		/*
 		 * class Perl_stack
 		 * An abstraction around perl stack. Here be dragons.
 		 */
@@ -187,10 +202,13 @@ namespace perl {
 			interpreter* const interp;
 			SV** sp; //very non-const ;-)
 			public:
-			void push(int);
-			void push(unsigned);
-			void push(double);
+			void push(IV);
+			void push(UV);
+			void push(NV);
 			void push(Raw_string);
+			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type>::type push(T value) {
+				push(static_cast<typename nearest_arithmetic_type<T>::type>(value));
+			}
 			void push(const char*);
 			void push(const std::string&);
 			void push(const scalar::Base&);
@@ -429,17 +447,6 @@ namespace perl {
 		namespace scalar {
 			template<typename T> class Assignable;
 
-			template<typename T, typename Enable1 = void, typename Enable2 = void> struct compare_base_type;
-			template<typename T> struct compare_base_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_signed<T>::type>::type> {
-				typedef long type;
-			};
-			template<typename T> struct compare_base_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_unsigned<T>::type>::type> {
-				typedef unsigned long type;
-			};
-			template<typename T> struct compare_base_type<T, typename boost::enable_if<typename boost::is_floating_point<T>::type>::type, void> {
-				typedef double type;
-			};
-	
 			/*
 			 * Class Scalar::Value
 			 * This class can be converted into anything any scalar can be converted in. If the the convertion 
@@ -451,31 +458,31 @@ namespace perl {
 				public:
 				Value& operator=(const Base&);
 				Value& operator=(const Value&);
-				Value& operator=(long);
-				Value& operator=(unsigned long);
-				Value& operator=(double);
+				Value& operator=(IV);
+				Value& operator=(UV);
+				Value& operator=(NV);
 				Value& operator=(Raw_string);
 				Value& operator=(const std::string&);
 				Value& operator=(const char*);
 
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator=(T right) {
-					return operator=(static_cast<typename compare_base_type<T>::type>(right));
+					return operator=(static_cast<typename nearest_arithmetic_type<T>::type>(right));
 				}
 
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator+=(T right) {
-					return *this = static_cast<typename compare_base_type<T>::type>(*this) + right;
+					return *this = static_cast<typename nearest_arithmetic_type<T>::type>(*this) + right;
 				}
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator-=(T right) {
-					return *this = static_cast<typename compare_base_type<T>::type>(*this) - right;
+					return *this = static_cast<typename nearest_arithmetic_type<T>::type>(*this) - right;
 				}
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator*=(T right) {
-					return *this = static_cast<typename compare_base_type<T>::type>(*this) * right;
+					return *this = static_cast<typename nearest_arithmetic_type<T>::type>(*this) * right;
 				}
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator/=(T right) {
-					return *this = static_cast<typename compare_base_type<T>::type>(*this) / right;
+					return *this = static_cast<typename nearest_arithmetic_type<T>::type>(*this) / right;
 				}
 				template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, Value&>::type operator%=(T right) {
-					return *this = static_cast<typename compare_base_type<T>::type>(*this) % right;
+					return *this = static_cast<typename nearest_arithmetic_type<T>::type>(*this) % right;
 				}
 
 				//Begin of TODO
@@ -490,9 +497,9 @@ namespace perl {
 
 				bool is_defined() const;
 
-				operator long() const;
-				operator unsigned long() const;
-				operator double() const;
+				operator IV() const;
+				operator UV() const;
+				operator NV() const;
 				operator Raw_string() const;
 //				operator const char*() const;
 				operator bool() const;
@@ -514,81 +521,81 @@ namespace perl {
 				static SV* copy(const Base&);
 			};
 
-			bool operator==(const Value&, long);
-			bool operator==(const Value&, unsigned long);
-			bool operator==(const Value&, double);
+			bool operator==(const Value&, IV);
+			bool operator==(const Value&, UV);
+			bool operator==(const Value&, NV);
 			bool operator==(const Value&, const char*);
 			bool operator==(const Value&, Raw_string);
 			bool operator==(const Value&, const std::string&);
 
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator==(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) == right;
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) == right;
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator!=(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) != right;
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) != right;
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<=(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) <= right;
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) <= right;
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator>=(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) >= right;
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) >= right;
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) < right;
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) < right;
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator>(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) > right;
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) > right;
 			}
 
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator==(T left, const Value& right) {
-				return left == static_cast<typename compare_base_type<T>::type>(right);
+				return left == static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator!=(T left, const Value& right) {
-				return left != static_cast<typename compare_base_type<T>::type>(right);
+				return left != static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<=(T left, const Value& right) {
-				return left <= static_cast<typename compare_base_type<T>::type>(right);
+				return left <= static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator>=(T left, const Value& right) {
-				return left >= static_cast<typename compare_base_type<T>::type>(right);
+				return left >= static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator<(T left, const Value& right) {
-				return left < static_cast<typename compare_base_type<T>::type>(right);
+				return left < static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
 			template<typename T> typename boost::enable_if<typename boost::is_arithmetic<T>::type, bool>::type operator>(T left, const Value& right) {
-				return left > static_cast<typename compare_base_type<T>::type>(right);
+				return left > static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
 
-			template<typename T> typename compare_base_type<T>::type operator+(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) + right;
+			template<typename T> typename nearest_arithmetic_type<T>::type operator+(const Value& left, T right) {
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) + right;
 			}
-			template<typename T> typename compare_base_type<T>::type operator-(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) - right;
+			template<typename T> typename nearest_arithmetic_type<T>::type operator-(const Value& left, T right) {
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) - right;
 			}
-			template<typename T> typename compare_base_type<T>::type operator*(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) * right;
+			template<typename T> typename nearest_arithmetic_type<T>::type operator*(const Value& left, T right) {
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) * right;
 			}
-			template<typename T> typename compare_base_type<T>::type operator/(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) / right;
+			template<typename T> typename nearest_arithmetic_type<T>::type operator/(const Value& left, T right) {
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) / right;
 			}
-			template<typename T> typename compare_base_type<T>::type operator%(const Value& left, T right) {
-				return static_cast<typename compare_base_type<T>::type>(left) % right;
+			template<typename T> typename nearest_arithmetic_type<T>::type operator%(const Value& left, T right) {
+				return static_cast<typename nearest_arithmetic_type<T>::type>(left) % right;
 			}
 
-			template<typename T> typename compare_base_type<T>::type operator+(T left, const Value& right) {
-				return left + static_cast<typename compare_base_type<T>::type>(right);
+			template<typename T> typename nearest_arithmetic_type<T>::type operator+(T left, const Value& right) {
+				return left + static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
-			template<typename T> typename compare_base_type<T>::type operator-(T left, const Value& right) {
-				return left - static_cast<typename compare_base_type<T>::type>(right);
+			template<typename T> typename nearest_arithmetic_type<T>::type operator-(T left, const Value& right) {
+				return left - static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
-			template<typename T> typename compare_base_type<T>::type operator*(T left, const Value& right) {
-				return left * static_cast<typename compare_base_type<T>::type>(right);
+			template<typename T> typename nearest_arithmetic_type<T>::type operator*(T left, const Value& right) {
+				return left * static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
-			template<typename T> typename compare_base_type<T>::type operator/(T left, const Value& right) {
-				return left / static_cast<typename compare_base_type<T>::type>(right);
+			template<typename T> typename nearest_arithmetic_type<T>::type operator/(T left, const Value& right) {
+				return left / static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
-			template<typename T> typename compare_base_type<T>::type operator%(T left, const Value& right) {
-				return left % static_cast<typename compare_base_type<T>::type>(right);
+			template<typename T> typename nearest_arithmetic_type<T>::type operator%(T left, const Value& right) {
+				return left % static_cast<typename nearest_arithmetic_type<T>::type>(right);
 			}
 
 			bool operator!=(const Value& left, const char* right);
@@ -690,13 +697,13 @@ namespace perl {
 			public:
 			
 			Integer& operator=(const Integer&);
-			Integer& operator=(long);
+			Integer& operator=(IV);
 			
-			Integer& operator+=(long);
-			Integer& operator-=(long);
-			Integer& operator*=(long);
-			Integer& operator/=(long);
-			Integer& operator%=(long);
+			Integer& operator+=(IV);
+			Integer& operator-=(IV);
+			Integer& operator*=(IV);
+			Integer& operator/=(IV);
+			Integer& operator%=(IV);
 
 			Integer& operator++();
 			Integer operator++(int);
@@ -705,8 +712,8 @@ namespace perl {
 
 			bool operator==(const Integer&) const;
 			
-			operator long() const;
-			long int_value() const;
+			operator IV() const;
+			IV int_value() const;
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);
 			static const std::string& cast_error();
@@ -724,26 +731,26 @@ namespace perl {
 			public:
 			
 			Uinteger& operator=(const Uinteger&);
-			Uinteger& operator=(unsigned long);
+			Uinteger& operator=(UV);
 			
-			Uinteger& operator+=(unsigned long);
-			Uinteger& operator-=(unsigned long);
-			Uinteger& operator*=(unsigned long);
-			Uinteger& operator/=(unsigned long);
-			Uinteger& operator%=(unsigned long);
-			Uinteger& operator&=(unsigned long);
-			Uinteger& operator|=(unsigned long);
-			Uinteger& operator^=(unsigned long);
+			Uinteger& operator+=(UV);
+			Uinteger& operator-=(UV);
+			Uinteger& operator*=(UV);
+			Uinteger& operator/=(UV);
+			Uinteger& operator%=(UV);
+			Uinteger& operator&=(UV);
+			Uinteger& operator|=(UV);
+			Uinteger& operator^=(UV);
 
 			Uinteger& operator++();
-			unsigned long operator++(int);
+			UV operator++(int);
 			Uinteger& operator--();
-			unsigned long operator--(int);
+			UV operator--(int);
 
 			bool operator==(const Uinteger&) const;
 			
-			operator unsigned long() const;
-			unsigned long unsigned_value() const;
+			operator UV() const;
+			UV unsigned_value() const;
 
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);
@@ -761,15 +768,15 @@ namespace perl {
 			public:
 			
 			Number& operator=(const Number&);
-			Number& operator=(double);
+			Number& operator=(NV);
 			
-			Number& operator+=(double);
-			Number& operator-=(double);
-			Number& operator*=(double);
-			Number& operator/=(double);
+			Number& operator+=(NV);
+			Number& operator-=(NV);
+			Number& operator*=(NV);
+			Number& operator/=(NV);
 
-			operator double() const;
-			double number_value() const;
+			operator NV() const;
+			NV number_value() const;
 
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);

@@ -40,17 +40,17 @@ namespace perl {
 		Perl_stack::Perl_stack(interpreter* _interp) : interp(_interp), sp(PL_stack_sp) {
 		}
 
-		void Perl_stack::push(int value) {
+		void Perl_stack::push(IV value) {
 			SV* const tmp = sv_2mortal(newSViv(value));
 			SvREADONLY_on(tmp);
 			XPUSHs(tmp);
 		}
-		void Perl_stack::push(unsigned value) {
+		void Perl_stack::push(UV value) {
 			SV* const tmp = sv_2mortal(newSVuv(value));
 			SvREADONLY_on(tmp);
 			XPUSHs(tmp);
 		}
-		void Perl_stack::push(double value) {
+		void Perl_stack::push(NV value) {
 			SV* const tmp = sv_2mortal(newSVnv(value));
 			SvREADONLY_on(tmp);
 			XPUSHs(tmp);
