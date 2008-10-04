@@ -497,8 +497,14 @@ namespace perl {
 
 				bool is_defined() const;
 
-				operator IV() const;
-				operator UV() const;
+				operator int() const;
+				operator unsigned int() const;
+				operator long() const;
+				operator long long() const;
+				operator unsigned long() const;
+				operator short() const;
+				operator unsigned short() const;
+				operator unsigned long long() const;
 				operator NV() const;
 				operator Raw_string() const;
 //				operator const char*() const;

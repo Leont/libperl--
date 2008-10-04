@@ -6,8 +6,11 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(16);
+	TEST_START(19);
 	Interpreter universe;
+	is_convertible<Number, double>("is_convertible<Number, double>()");
+	is_convertible<Number, float>("is_convertible<Number, float>()");
+	is_convertible<Number, long double>("is_convertible<Number, long double>()");
 	TRY_DECL(Number value = universe.value_of(1.0), "value = value_of(1.0)");
 
 	ok(value, "value");

@@ -220,14 +220,32 @@ namespace perl {
 		return as_bool();
 	}
 
-	Scalar::Value::operator IV() const {
+	Scalar::Value::operator int() const {
 		return int_value();
 	}
-
-	Scalar::Value::operator UV() const {
+	Scalar::Value::operator long() const {
+		return int_value();
+	}
+	Scalar::Value::operator short() const {
+		return int_value();
+	}
+	Scalar::Value::operator long long() const {
+		return int_value();
+	}
+	Scalar::Value::operator unsigned int() const {
 		return uint_value();
 	}
-	Scalar::Value::operator double() const {
+	Scalar::Value::operator unsigned long() const {
+		return uint_value();
+	}
+	Scalar::Value::operator unsigned short() const {
+		return uint_value();
+	}
+	Scalar::Value::operator unsigned long long() const {
+		return uint_value();
+	}
+	
+	Scalar::Value::operator NV() const {
 		return number_value();
 	}
 	Scalar::Value::operator Raw_string() const {

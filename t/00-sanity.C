@@ -4,7 +4,7 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(32);
+	TEST_START(34);
 
 	ok(true, "True is ok");
 	not_ok(false, "False is not ok");
@@ -27,6 +27,8 @@ int main(int argc, char** argv) {
 	not_ok(universe.value_of(0), "value_of(0)");
 	is(universe.value_of(1), 1, "value_of(1) is 1");
 	isnt(universe.value_of(1), 2, "value_of(1) isn't 2");
+	is(universe.value_of(2), 2, "value_of(2) is 2");
+	isnt(universe.value_of(2), 1, "value_of(2) isn't 1");
 	ok(universe.eval("1"), "eval 1");
 
 	ok(universe.value_of("Test"), "value_of(\"Test\")");

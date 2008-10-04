@@ -4,8 +4,14 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(52);
+	TEST_START(60);
 	Interpreter universe;
+
+	is_convertible<Scalar, int>("is_convertible<Scalar, int>()");
+	is_convertible<Scalar, unsigned>("is_convertible<Scalar, unsigned>()");
+	is_convertible<Scalar, long>("is_convertible<Scalar, long>()");
+	is_convertible<Scalar, unsigned long>("is_convertible<Scalar, unsigned long>()");
+
 	TRY_DECL(Scalar value = universe.value_of(1), "Definition of value");
 	diag("value = universe.value_of(1)");
 	is(value, 1, "value == 1");
@@ -13,6 +19,7 @@ int main(int argc, char** argv) {
 	is(value, 1l, "value == 1l");
 	is(value, "1", "value == \"1\"");
 
+	is(static_cast<int>(value), 1, "(int)value == 1");
 	ok(value > 0, "value > 0");
 	ok(value < 2, "value < 2");
 	not_ok(value != 1, "not: value != 1");
@@ -27,6 +34,7 @@ int main(int argc, char** argv) {
 	diag("value += 2");
 
 	is(value, 3, "value == 3");
+	isnt(value, 4, "not value == 4");
 
 	value *= 3;
 	diag("value *= 2");
