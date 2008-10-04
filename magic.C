@@ -47,35 +47,19 @@ namespace perl {
 			return reinterpret_cast<void**>(tmp->mg_ptr);
 		}
 
-		class Getset_table {
+		static MGVTBL* get_mgvtbl(magic_fun get_val, magic_fun set_val) {
 			typedef std::pair<magic_fun, magic_fun> func_pair;
-			std::map<func_pair, MGVTBL*> magic_cache;
-			MGVTBL* make_magic_table(const func_pair& key) {
-				MGVTBL* ret = new MGVTBL();
-				memset(ret, 0, sizeof ret);
-				ret->svt_get = key.first;
-				ret->svt_set = key.second;
-				return ret;
+			static boost::ptr_map<func_pair, MGVTBL> magic_cache;
+			func_pair key(get_val, set_val);
+			if (magic_cache.find(key) == magic_cache.end()) {
+				MGVTBL value = {get_val, set_val};
+				magic_cache.insert(key, new MGVTBL(value));
 			}
-			public:
-			MGVTBL* get(magic_fun get_val, magic_fun set_val) {
-				func_pair key(get_val, set_val);
-				if (magic_cache.find(key) == magic_cache.end()) {
-					magic_cache[key] = make_magic_table(key);
-				}
-				return magic_cache[key];
-			}
-			~Getset_table() {
-				typedef std::map<func_pair, MGVTBL*>::iterator iterator;
-				for(iterator current = magic_cache.begin(); current != magic_cache.end(); ++current) {
-					delete current->second;
-				}
-			}
-		};
-		static Getset_table table;
+			return &magic_cache[key];
+		}
 
 		void attach_getset_magic(interpreter* interp, SV* var, magic_fun get_val, magic_fun set_val, const void* buffer, size_t buffer_length) {
-			sv_magicext(var, NULL, PERL_MAGIC_uvar, table.get(get_val, set_val), reinterpret_cast<const char*>(buffer), buffer_length);
+			sv_magicext(var, NULL, PERL_MAGIC_uvar, get_mgvtbl(get_val, set_val), reinterpret_cast<const char*>(buffer), buffer_length);
 		}
 	}
 }

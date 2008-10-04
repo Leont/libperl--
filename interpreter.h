@@ -557,29 +557,10 @@ namespace perl {
 				Temp(const Interpreter& interp, const char* classname);
 			};
 
-			class Type_info {
-				const std::type_info& raw;
-				Type_info& operator=(Type_info&);
-				public:
-				Type_info(const std::type_info&);
-//				Type_info(const Type_info&);
-				bool operator<(const Type_info&) const;
-				const char* name() const;
-			};
-			class Table {
-				std::map<Type_info, MGVTBL*> table;
-				void add(const Type_info&, int (*)(interpreter*, SV*, MAGIC*));
-				public:
-				~Table();
-				template<typename T> MGVTBL* get(){
-					Type_info key(typeid(T));
-					if (table.find(key) == table.end()) {
-						add(key, destructor<T>::destroy);
-					}
-					return table[key];
-				};
-			};
-			static Table magic_table;
+			MGVTBL* get_object_vtbl_impl(const std::type_info* type, int (*destruct_ptr)(interpreter*, SV*, MAGIC*));
+			template<typename T> MGVTBL* get_object_vtbl(){
+				return get_object_vtbl_impl(&typeid(T), destructor<T>::destroy);
+			}
 		}
 	}
 
@@ -590,21 +571,22 @@ namespace perl {
 		Package package;
 		bool hash;
 		typedef implementation::classes::State State;
-		static MGVTBL* get_magic_table() {
-			return implementation::classes::magic_table.get<T>();
-		}
 		State& get_class_data() {
 			return *reinterpret_cast<State*>(implementation::get_magic_ptr(package.interp, reinterpret_cast<SV*>(package.stash), sizeof(State)));
 		}
 		public:
-		Class(const implementation::classes::Temp& other) : package(other.package) {
+		void initialize() {
 			SV* stash = reinterpret_cast<SV*>(package.stash);
 			if (! implementation::has_magic_string(package.interp, stash)) {
-				implementation::classes::State info(package.get_name().c_str(), get_magic_table());
+				implementation::classes::State info(package.get_name().c_str(), implementation::classes::get_object_vtbl<T>());
 				implementation::set_magic_object(package.interp, stash, info);
 			}
 		}
+		Class(const implementation::classes::Temp& other) : package(other.package) {
+			initialize();
+		}
 		explicit Class(const Package& _package) : package(_package) {
+			initialize();
 		}
 		template<typename U> typename boost::enable_if<typename boost::is_function<typename boost::remove_pointer<U>::type >::type, void>::type add(const char * name, const U& function) {
 				package.export_sub(name, function);

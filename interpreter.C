@@ -218,21 +218,13 @@ namespace perl {
 			Temp::Temp(const Interpreter& interp, const char* name) : package(interp, name, true) {
 			}
 
-			Type_info::Type_info(const std::type_info& _raw) : raw(_raw) {
-			}
-			bool Type_info::operator<(const Type_info& other) const {
-				return &raw < &other.raw;
-			}
-			Table::~Table() {
-				typedef std::map<Type_info, MGVTBL*>::iterator iterator;
-				for(iterator current = table.begin(); current != table.end(); ++current) {
-					delete current->second;
+			MGVTBL* get_object_vtbl_impl(const std::type_info* key, int (*destruct_ptr)(interpreter*, SV*, MAGIC*)) {
+				static boost::ptr_map<const std::type_info*, MGVTBL> table;
+				if (table.find(key) == table.end()) {
+					MGVTBL tmp = {0, 0, 0, 0, destruct_ptr};
+					table.insert(key, new MGVTBL(tmp));
 				}
-			}
-			void Table::add(const Type_info& type, int (*destruct_ptr)(interpreter*, SV*, MAGIC*)) {
-				MGVTBL* tmp = new MGVTBL();
-				tmp->svt_free = destruct_ptr;
-				table[type] = tmp;
+				return &table[key];
 			}
 		}
 	}

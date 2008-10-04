@@ -10,6 +10,7 @@
 #include <boost/utility/result_of.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/ptr_container/ptr_map.hpp>
 
 #include <boost/type_traits/function_traits.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
