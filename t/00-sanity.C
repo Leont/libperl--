@@ -4,10 +4,14 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(34);
+	TEST_START(38);
 
 	ok(true, "True is ok");
 	not_ok(false, "False is not ok");
+	is(1, 1, "1 == 1");
+	isnt(1, 2, "1 == 2");
+	is_close(1.0, 1.0, "1.0 == 1.0");
+	is_remote(1.0, 2.0, "1.0 != 2.0");
 
 	FAIL(throw Runtime_exception("Runtime exception"), "Should throw a Runtime exception");
 	FAIL(assertion<Runtime_exception>(false, "Runtime exception"), "Should throw a Runtime exception too");

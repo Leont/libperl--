@@ -179,8 +179,8 @@ namespace perl {
 		 * meta-function nearest_arithmetic_type
 		 * Returns the nearest match for any kind of integer
 		 */
-		template<typename T, typename Enable1 = void, typename Enable2 = void> struct nearest_arithmetic_type;
-		template<typename T> struct nearest_arithmetic_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_signed<T>::type>::type> {
+		template<typename T, typename Enable1 = void, typename Enable2 = void> struct nearest_arithmetic_type {
+//		template<typename T> struct nearest_arithmetic_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_signed<T>::type>::type> {
 			typedef IV type;
 		};
 		template<typename T> struct nearest_arithmetic_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_unsigned<T>::type>::type> {
@@ -505,7 +505,9 @@ namespace perl {
 				operator short() const;
 				operator unsigned short() const;
 				operator unsigned long long() const;
-				operator NV() const;
+				operator double() const;
+				operator float() const;
+				operator long double() const;
 				operator Raw_string() const;
 //				operator const char*() const;
 				operator bool() const;

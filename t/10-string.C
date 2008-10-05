@@ -1,0 +1,29 @@
+#include "perl++.h"
+#include "tap++.h"
+
+using namespace perl;
+
+int main(int argc, char** argv) {
+	TEST_START(9);
+	Interpreter universe;
+	TRY_DECL(String value = universe.value_of("test"), "value = universe.value_of(\"test\")");
+
+	ok(value, "value");
+	is(value, "test", "value == \"test\"");
+	isnt(value, "tset", "value != \"tset\"");
+	is(value, std::string("test"), "value = std::string(\"test\")");
+	is(value.length(), 4u, "length(value) == 4");
+
+	diag("value.replace(2, 2, value)");
+	value.replace(2, 2, value);
+	is(value, "tetest", "value = \"tetest\"");
+	diag("value.insert(2, \"st\");");
+	value.insert(2, "st");
+	is(value, "testtest", "value == \"testest\"");
+
+	diag("value = \"test\"");
+	value = "test";
+	is(value, "test", "value == \"test\"");
+
+	TEST_END;
+}

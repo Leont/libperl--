@@ -57,7 +57,7 @@ definitions.h: definitions.pre
 example: example.C
 	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
 
-test: $(LIB) $(TEST_OBJS)
+test: $(LIB) $(TEST_GOALS)
 	@echo Running unit tests
 	@$(LIBRARY_VAR)=$(PWD) ./run_tests.pl $(TEST_GOALS)
 

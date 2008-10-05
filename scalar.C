@@ -245,7 +245,13 @@ namespace perl {
 		return uint_value();
 	}
 	
-	Scalar::Value::operator NV() const {
+	Scalar::Value::operator double() const {
+		return number_value();
+	}
+	Scalar::Value::operator float() const {
+		return number_value();
+	}
+	Scalar::Value::operator long double() const {
 		return number_value();
 	}
 	Scalar::Value::operator Raw_string() const {

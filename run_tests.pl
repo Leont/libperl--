@@ -34,4 +34,4 @@ foreach my $file (@files) {
 	$failed += $aggregate->failed;
 }
 
-printf "Total:\n\tPassed: %s\n\tFailed: %s\n", scalar $passed, scalar $failed;
+printf "Total:\n\tPassed: %s\n\tFailed: %s\n", scalar $passed, scalar $failed if @files > 1;

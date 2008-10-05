@@ -4,7 +4,7 @@
 using namespace perl;
 
 int main(int argc, char** argv) {
-	TEST_START(60);
+	TEST_START(67);
 	Interpreter universe;
 
 	is_convertible<Scalar, int>("is_convertible<Scalar, int>()");
@@ -12,12 +12,20 @@ int main(int argc, char** argv) {
 	is_convertible<Scalar, long>("is_convertible<Scalar, long>()");
 	is_convertible<Scalar, unsigned long>("is_convertible<Scalar, unsigned long>()");
 
+	is_convertible<Scalar, double>("is_convertible<Scalar, double>()");
+	is_convertible<Scalar, float>("is_convertible<Scalar, float>()");
+	is_convertible<Scalar, long double>("is_convertible<Scalar, long float>()");
+
 	TRY_DECL(Scalar value = universe.value_of(1), "Definition of value");
 	diag("value = universe.value_of(1)");
 	is(value, 1, "value == 1");
 	is(value, 1u, "value == 1u");
 	is(value, 1l, "value == 1l");
 	is(value, "1", "value == \"1\"");
+	is_close(value, 1.0, "value == 1.0");
+	is_remote(value, 2.0, "value != 2.0");
+	is_close(value, 1.0f, "value == 1.0f");
+	is_remote(value, 2.0f, "value != 2.0f");
 
 	is(static_cast<int>(value), 1, "(int)value == 1");
 	ok(value > 0, "value > 0");
@@ -34,7 +42,7 @@ int main(int argc, char** argv) {
 	diag("value += 2");
 
 	is(value, 3, "value == 3");
-	isnt(value, 4, "not value == 4");
+	isnt(value, 4, "value != 4");
 
 	value *= 3;
 	diag("value *= 2");

@@ -318,10 +318,10 @@ namespace perl {
 			replace(offset, sublength, other.value, other.length);
 		}
 		void String::insert(unsigned offset, Raw_string other) {
-			replace(offset, -1, other.value, other.length);
+			replace(offset, 0, other.value, other.length);
 		}
 		void String::insert(unsigned offset, const char* other, unsigned other_length) {
-			replace(offset, -1, other, other_length);
+			replace(offset, 0, other, other_length);
 		}
 
 		const Array::Temp String::unpack(const Raw_string pattern) const {

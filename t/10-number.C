@@ -30,12 +30,10 @@ int main(int argc, char** argv) {
 	value -= 3;
 	is_close(value, -2, "value == -2");
 	is_remote(value, 1, "value != 1");
-	std::printf("# value = %f\n", (double)value);
 
 	diag("value *= -1");
 	value *= -1;
 	is_close(value, 2, "value == 2");
-	std::printf("# value = %f\n", (double)value);
 
 	diag("value = MAXDOUBLE");
 	value = MAXDOUBLE;

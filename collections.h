@@ -94,8 +94,8 @@ namespace perl {
 			class Length {
 				Value& array;
 				friend class Value;
-				Length(const Length&);
 				public:
+				Length(const Length&);
 				explicit Length(Value& _array);
 				operator unsigned() const;
 				Length& operator=(unsigned new_length);

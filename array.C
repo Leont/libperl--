@@ -160,7 +160,9 @@ namespace perl {
 	}
 
 	const Scalar::Temp Array::Value::remove(key_type index) {
-		SV* ret = av_delete(handle, index, 0);
+		SAVETMPS;
+		SV* ret = SvREFCNT_inc(av_delete(handle, index, 0));
+		FREETMPS;
 		return Scalar::Temp(interp, ret, true);
 	}
 

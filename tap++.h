@@ -112,7 +112,7 @@ template<typename T, typename U> bool isnt(const T& left, const U& right, const 
 
 template<typename T, typename U> bool is_close(const T& left, const U& right, const char* message = "", double deviation = 0.01) {
 	try {
-		if(2 * abs(left - right) / (abs(left) + abs(right)) < deviation) {
+		if(2 * fabs(left - right) / (fabs(left) + fabs(right)) < deviation) {
 			TAP::print_ok(message);
 			return true;
 		}
@@ -124,7 +124,7 @@ template<typename T, typename U> bool is_close(const T& left, const U& right, co
 
 template<typename T, typename U> bool is_remote(const T& left, const U& right, const char* message = "", double deviation = 0.01) {
 	try {
-		if(2 * abs(left - right) / (abs(left) + abs(right)) > deviation) {
+		if(2 * fabs(left - right) / (fabs(left) + fabs(right)) > deviation) {
 			TAP::print_ok(message);
 			return true;
 		}
