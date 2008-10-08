@@ -629,101 +629,96 @@ namespace perl {
 		void report() const;
 		void set_context() const;
 
-		const Scalar::Temp eval(const char*);
-		const Scalar::Temp eval(const Scalar::Base&);
-		const Array::Temp eval_list(const char*);
-		const Array::Temp eval_list(const Scalar::Base&);
-		Package use(const char* package_name);
-		Package use(const char* package_name, double version);
+		const Scalar::Temp eval(const char*) const;
+		const Scalar::Temp eval(const Scalar::Base&) const;
+		const Array::Temp eval_list(const char*) const;
+		const Array::Temp eval_list(const Scalar::Base&) const;
+		Package use(const char* package_name) const;
+		Package use(const char* package_name, double version) const;
 
-		const Package get_package(const char* name) const;
-		Package get_package(const char* name);
+		Package get_package(const char* name) const;
 
-		const Scalar::Temp scalar(const char*) const;
-		Scalar::Temp scalar(const char*);
-		const Array::Temp array(const char*) const;
-		Array::Temp array(const char*);
-		const Hash::Temp hash(const char* name) const;
-		Hash::Temp hash(const char* name);
+		Scalar::Temp scalar(const char*) const;
+		Array::Temp array(const char*) const;
+		Hash::Temp hash(const char* name) const;
 
-		const Glob glob(const char*) const;
-		Glob glob(const char*);
+		Glob glob(const char*) const;
 
-		Regex regex(const String::Value&) const;
-		Regex regex(const char*) const;
+		const Regex regex(const String::Value&) const;
+		const Regex regex(const char*) const;
 
-		Scalar::Temp undef() const;
-		Integer::Temp value_of(int) const;
-		Uinteger::Temp value_of(unsigned) const;
-		Number::Temp value_of(double) const;
-		String::Temp value_of(Raw_string) const;
-		String::Temp value_of(const char*) const;
-		String::Temp value_of(const std::string&) const;
-		template<typename T> Ref<Any>::Temp value_of(const T* object) const {
+		const Scalar::Temp undef() const;
+		const Integer::Temp value_of(int) const;
+		const Uinteger::Temp value_of(unsigned) const;
+		const Number::Temp value_of(double) const;
+		const String::Temp value_of(Raw_string) const;
+		const String::Temp value_of(const char*) const;
+		const String::Temp value_of(const std::string&) const;
+		template<typename T> const Ref<Any>::Temp value_of(const T* object) const {
 			return implementation::get_from_cache(raw_interp, object);
 		}
 
-		Handle open(Raw_string);
+		Handle open(Raw_string) const;
 		Handle in() const;
 		Handle out() const;
 		Handle err() const;
 
-		template <typename T> const Ref<Code>::Temp export_sub(const char* name, T& fptr) {
+		template <typename T> const Ref<Code>::Temp export_sub(const char* name, T& fptr) const {
 			return implementation::export_sub(raw_interp.get(), name, fptr).take_ref();
 		}
-		template <typename T> const Code::Value export_flat(const char* name, T& fptr) {
+		template <typename T> const Code::Value export_flat(const char* name, T& fptr) const {
 			return implementation::export_flatsub(raw_interp.get(), name, fptr);
 		}
-		const implementation::classes::Temp add_class(const char* name) {
+		const implementation::classes::Temp add_class(const char* name) const {
 			return implementation::classes::Temp(*this, name);
 		}
 
-		const Array::Temp list();
-		template<typename T1> const Array::Temp list(const T1& t1) {
+		const Array::Temp list() const;
+		template<typename T1> const Array::Temp list(const T1& t1) const {
 			Array::Temp ret = list();
 			ret.push(t1);
 			return ret;
 		}
-		template<typename T1, typename T2> const Array::Temp list(const T1& t1, const T2& t2) {
+		template<typename T1, typename T2> const Array::Temp list(const T1& t1, const T2& t2) const {
 			Array::Temp ret = list();
 			ret.push(t1, t2);
 			return ret;
 		}
-		template<typename T1, typename T2, typename T3> const Array::Temp list(const T1& t1, const T2& t2, const T3 t3) {
+		template<typename T1, typename T2, typename T3> const Array::Temp list(const T1& t1, const T2& t2, const T3 t3) const {
 			Array::Temp ret = list();
 			ret.push(t1, t2, t3);
 			return ret;
 		}
-		template<typename T1, typename T2, typename T3, typename T4> const Array::Temp list(const T1& t1, const T2& t2, const T3 t3, const T4 t4) {
+		template<typename T1, typename T2, typename T3, typename T4> const Array::Temp list(const T1& t1, const T2& t2, const T3 t3, const T4 t4) const {
 			Array::Temp ret = list();
 			ret.push(t1, t2, t3, t4);
 			return ret;
 		}
-		const Hash::Temp hash();
+		const Hash::Temp hash() const;
 		
-		template<typename T1> Scalar::Temp call(const char* name, const T1& t1) {
+		template<typename T1> Scalar::Temp call(const char* name, const T1& t1) const {
 			return implementation::Call_stack(get_interpreter()).push(t1).sub_scalar(name);
 		}
-		template<typename T1, typename T2> Scalar::Temp call(const char* name, const T1& t1, const T2& t2) {
+		template<typename T1, typename T2> Scalar::Temp call(const char* name, const T1& t1, const T2& t2) const {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2).sub_scalar(name);
 		}
-		template<typename T1, typename T2, typename T3> Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3) {
+		template<typename T1, typename T2, typename T3> Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3) const {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3).sub_scalar(name);
 		}
-		template<typename T1, typename T2, typename T3, typename T4> Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) {
+		template<typename T1, typename T2, typename T3, typename T4> Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).sub_scalar(name);
 		}
 
-		template<typename T1> String::Temp pack(const Raw_string pattern, const T1& t1) {
+		template<typename T1> String::Temp pack(const Raw_string pattern, const T1& t1) const {
 			return implementation::Call_stack(get_interpreter()).push(t1).pack(pattern);
 		}
-		template<typename T1, typename T2> String::Temp pack(const Raw_string pattern, const T1& t1, const T2 t2) {
+		template<typename T1, typename T2> String::Temp pack(const Raw_string pattern, const T1& t1, const T2 t2) const {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2).pack(pattern);
 		}
-		template<typename T1, typename T2, typename T3> String::Temp pack(const Raw_string pattern, const T1& t1, const T2 t2, const T3& t3) {
+		template<typename T1, typename T2, typename T3> String::Temp pack(const Raw_string pattern, const T1& t1, const T2 t2, const T3& t3) const {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3).pack(pattern);
 		}
-		template<typename T1, typename T2, typename T3, typename T4> String::Temp pack(const Raw_string pattern, const T1& t1, const T2 t2, const T3& t3, const T4& t4) {
+		template<typename T1, typename T2, typename T3, typename T4> String::Temp pack(const Raw_string pattern, const T1& t1, const T2 t2, const T3& t3, const T4& t4) const {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).pack(pattern);
 		}
 	};

@@ -67,128 +67,97 @@ namespace perl {
 	interpreter* Interpreter::get_interpreter() const {
 		return interp;
 	}
-	const Package Interpreter::get_package(const char* name) const {
+	Package Interpreter::get_package(const char* name) const {
 		return Package(*this, name);
-	}
-	Package Interpreter::get_package(const char* name) {
-		return Package(*this, name, true);
 	}
 	void Interpreter::set_context() const {
 		PERL_SET_CONTEXT(interp);
 	}
-	const Array::Temp Interpreter::list() {
+	const Array::Temp Interpreter::list() const {
 		return Array::Temp(interp, newAV(), true);
 	}
-	const Hash::Temp Interpreter::hash() {
+	const Hash::Temp Interpreter::hash() const {
 		return Hash::Temp(interp, newHV(), true);
 	}
 
-	Package Interpreter::use(const char* package) {
+	Package Interpreter::use(const char* package) const {
 		load_module(PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), NULL, NULL);
 		return get_package(package);
 	}
-	Package Interpreter::use(const char* package, double version) {
+	Package Interpreter::use(const char* package, double version) const {
 		load_module(PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), value_of(version).get_SV(true), NULL);
 		return get_package(package);
 	}
 
-	const Scalar::Temp Interpreter::eval(const char* string) {
+	const Scalar::Temp Interpreter::eval(const char* string) const {
 		return eval(value_of(string));
 	}
 
-	const Scalar::Temp Interpreter::eval(const Scalar::Base& string) {
+	const Scalar::Temp Interpreter::eval(const Scalar::Base& string) const {
 		return implementation::Call_stack(interp).eval_scalar(string.get_SV(true));
 	}
 
-	const Array::Temp Interpreter::eval_list(const char* string) {
+	const Array::Temp Interpreter::eval_list(const char* string) const {
 		return eval_list(value_of(string));
 	}
-	const Array::Temp Interpreter::eval_list(const Scalar::Base& string) {
+	const Array::Temp Interpreter::eval_list(const Scalar::Base& string) const {
 		return implementation::Call_stack(interp).eval_list(string.get_SV(true));
 	}
 
-	const Scalar::Temp Interpreter::scalar(const char* name) const {
-		SV* const ret = get_sv(name, false);
-		if (ret == NULL) {
-			return undef();
-		}
-		return Scalar::Temp(interp, ret, false);
-	}
-	Scalar::Temp Interpreter::scalar(const char* name) {
+	Scalar::Temp Interpreter::scalar(const char* name) const {
 		SV* const ret = get_sv(name, true);
 		return Scalar::Temp(interp, ret, false);
 	}
 
-
-	const Glob Interpreter::glob(const char* name) const {
-		GV* const ret = gv_fetchpv(name, GV_ADD, SVt_PV);
-		return Glob(interp, ret);
-	}
-	Glob Interpreter::glob(const char* name) {
+	Glob Interpreter::glob(const char* name) const {
 		GV* const ret = gv_fetchpv(name, GV_ADD, SVt_PV);
 		return Glob(raw_interp.get(), ret);
 	}
 
-	const Array::Temp Interpreter::array(const char* name) const {
-		AV* const ret = get_av(name, false);
-		if (ret == NULL) {
-			return Array::Temp(interp, newAV(), true);
-		}
-		SvGETMAGIC(reinterpret_cast<SV*>(ret));
-		return Array::Temp(raw_interp.get(), ret, false);
-	}
-	Array::Temp Interpreter::array(const char* name) {
+	Array::Temp Interpreter::array(const char* name) const {
 		AV* const ret = get_av(name, true);
 		SvGETMAGIC(reinterpret_cast<SV*>(ret));
 		return Array::Temp(raw_interp.get(), ret, false);
 	}
 
-	const Hash::Temp Interpreter::hash(const char* name) const {
-		HV* const ret = get_hv(name, false);
-		if (ret == NULL) {
-			return Hash::Temp(raw_interp.get(), newHV(), true);
-		}
-		SvGETMAGIC(reinterpret_cast<SV*>(ret));
-		return Hash::Temp(raw_interp.get(), ret, false);
-	}
-	Hash::Temp Interpreter::hash(const char* name) {
+	Hash::Temp Interpreter::hash(const char* name) const {
 		HV* const ret = get_hv(name, true);
 		SvGETMAGIC(reinterpret_cast<SV*>(ret));
 		return Hash::Temp(raw_interp.get(), ret, false);
 	}
 
-	Regex Interpreter::regex(const char* regexp) const {
+	const Regex Interpreter::regex(const char* regexp) const {
 		return regex(value_of(regexp));
 	}
 
-	Regex Interpreter::regex(const String::Value& regexp) const {
+	const Regex Interpreter::regex(const String::Value& regexp) const {
 		Scalar::Temp temp = implementation::Call_stack(raw_interp.get()).push(regexp).sub_scalar("Embed::Perlpp::regexp");
 		return Regex(std::auto_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), temp.release())));
 	}
 
-	Scalar::Temp Interpreter::undef() const {
+	const Scalar::Temp Interpreter::undef() const {
 		return Scalar::Temp(raw_interp.get(), newSV(0), true);
 	}
-	Integer::Temp Interpreter::value_of(int value) const {
+	const Integer::Temp Interpreter::value_of(int value) const {
 		return Integer::Temp(raw_interp.get(), newSViv(value), true);
 	}
-	Uinteger::Temp Interpreter::value_of(unsigned value) const {
+	const Uinteger::Temp Interpreter::value_of(unsigned value) const {
 		return Uinteger::Temp(raw_interp.get(), newSVuv(value), true);
 	}
-	Number::Temp Interpreter::value_of(double value) const {
+	const Number::Temp Interpreter::value_of(double value) const {
 		return Number::Temp(raw_interp.get(), newSVnv(value), true);
 	}
-	String::Temp Interpreter::value_of(const std::string& value) const {
+	const String::Temp Interpreter::value_of(const std::string& value) const {
 		return String::Temp(raw_interp.get(), newSVpvn(value.c_str(), value.length()), true);
 	}
-	String::Temp Interpreter::value_of(Raw_string value) const {
+	const String::Temp Interpreter::value_of(Raw_string value) const {
 		return String::Temp(raw_interp.get(), newSVpvn(value.value, value.length), true);
 	}
-	String::Temp Interpreter::value_of(const char* value) const {
+	const String::Temp Interpreter::value_of(const char* value) const {
 		return String::Temp(raw_interp.get(), newSVpvn(value, strlen(value)), true);
 	}
 
-	Handle Interpreter::open(Raw_string filename) {
+	Handle Interpreter::open(Raw_string filename) const {
 		GV* ret = newGVgen(const_cast<char*>("Symbol"));
 		bool success = do_open(ret, const_cast<char*>(filename.value), filename.length, false, O_RDONLY, 0, Nullfp);
 		if (!success) {

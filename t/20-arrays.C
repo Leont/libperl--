@@ -1,16 +1,12 @@
 #include "perl++.h"
 #include "tap++.h"
-
-#include <boost/lambda/lambda.hpp>
+#include "lambda.h"
+#include <algorithm>
 
 using namespace perl;
 
-static IV square(IV arg) {
-	return arg * arg;
-}
-
 int main(int argc, char** argv) {
-	TEST_START(44);
+	TEST_START(55);
 	Interpreter universe;
 	TRY_DECL(Array array = universe.list(), "array = ()");
 	is(array.length(), 0u, "array.length() == 0");
@@ -92,22 +88,40 @@ int main(int argc, char** argv) {
 	diag("array.length() = 2");
 	not_ok(array.exists(2), "not: exists array[2]");
 	is(array.length(), 2u, "array.length() == 2");
+	array.extend(4);
+	diag("array.extend(4)");
+	is(array.length(), 2u, "array.length == 2");
 
 	Array numbers = universe.list(1, 2, 3, 4);
-	Array squares = numbers.map(&square);
+	Array squares = numbers.map(ll_static_cast<IV>(_1) * _1);
 	for (int i = 0; i < 4; ++i) { 
 		std::string num = boost::lexical_cast<std::string>(i);
 		is(squares[i], (IV)(numbers[i]) * numbers[i], (std::string("squares[") + num + "] is numbers[" + num + "] ** 2").c_str());
 	}
 
-	using namespace boost::lambda;
 	Array big = squares.grep(_1 > 8);
 	diag("Array big = squares.grep(_1 > 8)");
-	is(big.length(), 2u, " big.length == 2");
+	is(big.length(), 2u, "big.length == 2");
 	is(big[0], 9, "big[0] == 9");
 
-	UV sum = squares.reduce(ret<UV>(_1 + _2), 0u);
-	diag("sum = big.reduce(ret<UV>(_1 + _2), 0u)");
-	is(sum, 30u, "sum == 30");
+	Array doubles = numbers.map(_1 * 2);
+	is(doubles[3], 8, "numbers.map(_1 * 2)[3] == 8");
+
+	IV sum = squares.reduce(_1 + _2, 0);
+	diag("sum = squares.reduce(_1 + _2, 0u)");
+	is(sum, 30, "sum == 30");
+
+	big.each(_1 *= 2);
+	diag("big.each(_1 *= 2)");
+	is(big[0], 18, "big[0] == 18");
+
+	Array const forties = universe.list(47, 48, 49, 50);
+	ll_is(_1, bind<int>(&TAP::encountered), "encountered == 45")(make_const(46));
+	std::for_each(forties.begin(), forties.end(), ll_is(_1, bind(&TAP::encountered), "encountered == 4x"));
+
+	ok(forties.any(_1 == 49), "forties.any(_1 == 48)");
+	ok(forties.all(_1 > 45), "forties.all(_1 > 45)");
+	ok(forties.none(_1 == 30), "forties.none(_1 == 30)");
+	ok(forties.notall(_1 < 49), "forties.notall(_1 < 49");
 	TEST_END;
 }

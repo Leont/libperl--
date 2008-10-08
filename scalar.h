@@ -112,7 +112,7 @@ namespace perl {
 					other.owns = false;
 				}
 				Temp_template& operator=(const Temp_template& other) {
-					this->Base_type::operator=(other);
+					Base_type::operator=(other);
 					return *this;
 				}
 				SV* release(bool getmagic = true) const {
