@@ -10,8 +10,8 @@ use POSIX qw/strftime/;
 use TAP::Parser qw/all/;
 use TAP::Parser::Aggregator qw/all/;
 
-#open my $out_file, ">>", "test_report.txt" or die "Cannot open outfile. $!\n";
 printf "Report %s\n", strftime("%y%m%d-%H:%M", localtime);
+open STDERR, ">", "/dev/null";
 
 my @files = @ARGV;
 

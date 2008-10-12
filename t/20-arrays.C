@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 	Array squares = numbers.map(ll_static_cast<IV>(_1) * _1);
 	for (int i = 0; i < 4; ++i) { 
 		std::string num = boost::lexical_cast<std::string>(i);
-		is(squares[i], (IV)(numbers[i]) * numbers[i], (std::string("squares[") + num + "] is numbers[" + num + "] ** 2").c_str());
+		is(squares[i], (IV)(numbers[i]) * numbers[i], std::string("squares[") + num + "] is numbers[" + num + "] ** 2");
 	}
 
 	Array big = squares.grep(_1 > 8);
@@ -115,8 +115,8 @@ int main(int argc, char** argv) {
 	diag("big.each(_1 *= 2)");
 	is(big[0], 18, "big[0] == 18");
 
-	Array const forties = universe.list(47, 48, 49, 50);
-	ll_is(_1, bind<int>(&TAP::encountered), "encountered == 45")(make_const(46));
+	const Array forties = universe.list(47, 48, 49, 50);
+	ll_is(_1, bind<int>(&TAP::encountered), "encountered == 46")(make_const(46));
 	std::for_each(forties.begin(), forties.end(), ll_is(_1, bind(&TAP::encountered), "encountered == 4x"));
 
 	ok(forties.any(_1 == 49), "forties.any(_1 == 48)");

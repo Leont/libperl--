@@ -66,6 +66,9 @@ test: $(LIB) $(TEST_GOALS)
 clean:
 	-rm $(LIB) tap_tester example ppport.h parsed.C definitions.h $(TODEL) 2>/dev/null
 
+testclean:
+	-rm $(TEST_OBJS) 2>/dev/null
+
 again: clean all
 
 love:

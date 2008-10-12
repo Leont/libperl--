@@ -1,57 +1,117 @@
 #include "tap++.h"
+#include <stack>
 
 namespace TAP {
-	static unsigned expected = 0;
-	static unsigned counter = 0;
-	static unsigned not_oks = 0;
-	void plan(unsigned planned) {
-		if (expected == 0) {
-			std::cout << "1.." << planned << std::endl;
+	std::string TODO = "";
+
+	const details::skip_all_type skip_all = details::skip_all_type();
+	const details::no_plan_type no_plan = details::no_plan_type();
+
+	namespace {
+		int expected = 0;
+		int counter = 0;
+		int not_oks = 0;
+
+		std::string todo_test() {
+			if (TODO == "") {
+				return TODO;
+			}
+			else {
+				return " # TODO " + TODO;
+			}
 		}
-		expected = planned;
+		bool is_planned = false;
 	}
-	unsigned planned() {
-		return expected;
+	void plan(int tests) {
+		if (is_planned) {
+			std::cout << "Can't plan again!" << std::endl;
+			exit(255);
+		}
+		is_planned = true;
+		std::cout << "1.." << tests << std::endl;
+		expected = tests;
 	}
-	unsigned encountered() {
-		return counter;
+	void plan(const details::skip_all_type&, const std::string& reason) {
+		std::cout << "1..0 #skip " << reason << std::endl;
+		exit(0);
 	}
-	unsigned failed() {
-		return not_oks;
-	}
-	void skip() {
-		print_ok(" #skip");
-	}
-	void skip_todo() {
-		print_fail(" #TODO");
-	}
-	void skip(std::string why) {
-		print_ok((" #skip " + why).c_str());
-	}
-	void skip_todo(std::string why) {
-		print_fail((" #TODO " + why).c_str());
+	void plan(const details::no_plan_type&) {
+		is_planned = true;
 	}
 
-	void print_ok(const char* message) {
-		std::cout << "ok " << ++counter << " - " << message << std::endl;
+	int planned() {
+		return expected;
 	}
-	bool ok(bool is_ok, const char* message) {
+	int encountered() {
+		return counter;
+	}
+
+	int exit_status() {
+		if (expected == counter) {
+			return not_oks > 254 ? 254 : not_oks;
+		}
+		else {
+			return 255;
+		}
+	}
+
+	void bail_out(const std::string& reason) {
+		std::cout << "Bail out!  " << reason << std::endl;
+		exit(255); // Does not unwind stack!
+	}
+
+	bool ok(bool is_ok, const std::string& message) {
 		const char* hot_or_not = is_ok ? "" : "not ";
-		std::cout << hot_or_not << "ok " << ++counter << " - " << message << std::endl;
-		if(!is_ok) {
+		std::cout << hot_or_not << "ok " << ++counter<< " - " << message << todo_test()  << std::endl;
+		if (!is_ok) {
 			++not_oks;
 		}
 		return is_ok;
 	}
-	bool not_ok(bool is_not_ok, const char* message) {
+	bool not_ok(bool is_not_ok, const std::string& message) {
 		return !ok(!is_not_ok, message);
 	}
-	void print_fail(const char* message) {
-		std::cout << "not ok " << ++counter << " - " << message << std::endl;
-		++not_oks;
+
+	bool pass(const std::string& message) {
+		return ok(true, message);
+	}
+	bool fail(const std::string& message) {
+		return ok(false, message);
 	}
 
-	void diag(const char* information) {
-		std::cout << "# " << information << std::endl;
+	void skip(int, const std::string& reason) {
+		//TODO
 	}
+	namespace details {
+		void print_skip(const std::string &why) {
+			pass(" # skip " + why);
+		}
+		void print_todo(const std::string& why) {
+			fail(" # TODO " + why);
+		}
+
+		static std::stack<int> block_expected;
+		void start_block(int expected) {
+			block_expected.push(encountered() + expected);
+		}
+		int stop_block() {
+			int ret = block_expected.top();
+			block_expected.pop();
+			return ret;
+		}
+
+		todo_guard::todo_guard() : value(TODO) {
+		}
+		todo_guard::~todo_guard() {
+			TODO = value;
+		}
+	}
+	
+	void skip(const std::string& reason) {
+		throw details::Skip_exception(reason);
+	}
+	void skip_todo(const std::string& reason) {
+		throw details::Todo_exception(reason);
+	}
+
 }
