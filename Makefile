@@ -57,9 +57,15 @@ definitions.h: definitions.pre
 example: example.C
 	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
 
-test: $(LIB) $(TEST_GOALS)
-	@echo Running unit tests
+testbuild: $(LIB) $(TEST_GOALS)
+
+test: testbuild
+	@echo prove t/
 	@$(LIBRARY_VAR)=$(PWD) ./run_tests.pl $(TEST_GOALS)
+
+prove: testbuild
+	@echo prove t/
+	@$(LIBRARY_VAR)=$(PWD) prove -e"sh -c" t/
 
 #%.o: perl++.h
 
@@ -84,7 +90,7 @@ linesC:
 install: $(LIB)
 	cp -a libperl++.so /usr/local/lib/
 
-.PHONY: wordsC wordsh words lines linesh linesC todo install test
+.PHONY: wordsC wordsh words lines linesh linesC todo install test testbuild
 
 words: 
 	@make -s wordsC wordsh | sort -gr | column -t

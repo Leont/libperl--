@@ -1,12 +1,15 @@
 #include <iostream>
 #include <string>
 #include <boost/type_traits/is_convertible.hpp>
+#include <boost/type_traits/is_floating_point.hpp>
+#include <boost/utility/enable_if.hpp>
 #include <cmath>
 
 namespace TAP {
 	namespace details {
 		struct skip_all_type {};
 		struct no_plan_type {};
+		extern std::ostream* diag_out;
 	}
 	extern const details::skip_all_type skip_all;
 	extern const details::no_plan_type no_plan;
@@ -29,22 +32,22 @@ namespace TAP {
 	int exit_status();
 
 	template<typename T> void diag(const T& first) {
-		std::cerr << "# " << first << std::endl;
+		*details::diag_out << "# " << first << std::endl;
 	}
 	template<typename T1, typename T2> void diag(const T1& first, const T2& second) {
-		std::cerr << "# " << first << second << std::endl;
+		*details::diag_out << "# " << first << second << std::endl;
 	}
 	template<typename T1, typename T2, typename T3> void diag(const T1& first, const T2& second, const T3& third) {
-		std::cerr << "# " << first << second << third << std::endl;
+		*details::diag_out << "# " << first << second << third << std::endl;
 	}
 	template<typename T1, typename T2, typename T3, typename T4> void diag(const T1& first, const T2& second, const T3& third, const T4& fourth) {
-		std::cerr << "# " << first << second << third << fourth << std::endl;
+		*details::diag_out << "# " << first << second << third << fourth << std::endl;
 	}
 	template<typename T1, typename T2, typename T3, typename T4, typename T5> void diag(const T1& first, const T2& second, const T3& third, const T4& fourth, const T5& fifth) {
-		std::cerr << "# " << first << second << third << fourth << fifth << std::endl;
+		*details::diag_out << "# " << first << second << third << fourth << fifth << std::endl;
 	}
 
-	template<typename T, typename U> bool is(const T& left, const U& right, const std::string& message = "") {
+	template<typename T, typename U> typename boost::disable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "") {
 		try {
 			bool ret = ok(left == right, message);
 			if (!ret) {
@@ -72,25 +75,23 @@ namespace TAP {
 		}
 	}
 
-	template<typename T, typename U> bool isnt(const T& left, const U& right, const std::string& message = "") {
+	template<typename T, typename U> typename boost::disable_if<typename boost::is_floating_point<U>::type, bool>::type isnt(const T& left, const U& right, const std::string& message = "") {
 		try {
 			return ok(left != right, message);
 		}
 		catch(const std::exception& e) {
-			fail(message);
 			diag("In test ", message);
 			diag("Cought exception: ", e.what());
 			return false;
 		}
 		catch(...) {
-			fail(message);
 			diag("In test ", message);
 			diag("Cought unknown exception");
 			return false;
 		}
 	}
 
-	template<typename T, typename U> bool is_close(const T& left, const U& right, const std::string& message = "", double deviation = 0.01) {
+	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "", double deviation = 0.01) {
 		try {
 			if(2 * fabs(left - right) / (fabs(left) + fabs(right)) < deviation) {
 				pass(message);
@@ -101,7 +102,7 @@ namespace TAP {
 		return fail(message);
 	}
 
-	template<typename T, typename U> bool is_remote(const T& left, const U& right, const std::string& message = "", double deviation = 0.01) {
+	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type isnt(const T& left, const U& right, const std::string& message = "", double deviation = 0.01) {
 		try {
 			if(2 * fabs(left - right) / (fabs(left) + fabs(right)) > deviation) {
 				pass(message);
@@ -121,10 +122,12 @@ namespace TAP {
 		return ok(!boost::is_convertible<T, U>::value, message);
 	}
 
-#define WANT_TEST_EXTRAS
-#ifndef WANT_TEST_EXTRAS
+	std::string todo;
 }
-#else
+
+#ifdef WANT_TEST_EXTRAS
+
+namespace TAP {
 	namespace details {
 		struct Skip_exception {
 			const std::string reason;
@@ -136,8 +139,6 @@ namespace TAP {
 			Todo_exception(const std::string& _reason) : reason(_reason) {
 			}
 		};
-		void print_skip(const std::string&);
-		void print_todo(const std::string&);
 
 		void start_block(int);
 		int stop_block();
@@ -152,7 +153,6 @@ namespace TAP {
 
 	void skip(const std::string& reason);
 	void skip_todo(const std::string& reason);
-	std::string todo;
 }
 
 #define TRY(action, name) do {\
@@ -187,11 +187,9 @@ namespace TAP {
 #define TEST_END \
 			if (TAP::encountered() < TAP::planned()) {\
 				TAP::diag("Looks like you planned ", TAP::planned(), " tests but only ran ", TAP::encountered());\
-				return 255;\
 			}\
 			else if(TAP::encountered() > TAP::planned()) {\
-				TAP::diag("Looks like you planned ", TAP::planned(), " tests but ran ", TAP::encountered() - TAP::planned(), "extra");\
-				return 255;\
+				TAP::diag("Looks like you planned ", TAP::planned(), " tests but ran ", TAP::encountered() - TAP::planned(), " extra");\
 			}\
 		}\
 		catch(TAP::details::Skip_exception& skipper) {\
@@ -203,11 +201,9 @@ namespace TAP {
 		catch(const std::exception& e) {\
 			TAP::fail(_current_message);\
 			diag("Got error: ", e.what());\
-			return TAP::exit_status();\
 		}\
 		catch (...) {\
 			TAP::fail(_current_message);\
-			return TAP::exit_status();\
 		}\
 		return TAP::exit_status();\
 	}
@@ -248,5 +244,3 @@ namespace TAP {
 	_current_message = NULL
 
 #endif /*WANT_TEST_EXTRAS*/
-
-using namespace TAP;

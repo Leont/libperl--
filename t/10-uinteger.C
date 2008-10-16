@@ -2,11 +2,12 @@
 #include "tap++.h"
 
 using namespace perl;
+using namespace TAP;
 
 int main(int argc, char** argv) {
-	TEST_START(18);
+	plan(17);
 	Interpreter universe;
-	TRY_DECL(Uinteger value = universe.value_of(1u), "value = value_of(1)");
+	Uinteger value = universe.value_of(1u);
 
 	ok(value, "value");
 	is(value, 1, "value == 1");
@@ -40,5 +41,5 @@ int main(int argc, char** argv) {
 	value -= 2;
 	is(value, 0, "value == 0");
 
-	TEST_END;
+	return exit_status();
 }

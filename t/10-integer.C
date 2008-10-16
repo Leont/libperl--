@@ -2,11 +2,12 @@
 #include "tap++.h"
 
 using namespace perl;
+using namespace TAP;
 
 int main(int argc, char** argv) {
-	TEST_START(20);
+	plan(19);
 	Interpreter universe;
-	TRY_DECL(Integer value = universe.value_of(1), "value = value_of(1)");
+	Integer value = universe.value_of(1);
 
 	ok(value, "value");
 	is(value, 1, "value == 1");
@@ -47,5 +48,5 @@ int main(int argc, char** argv) {
 	diag("value = LONG_MAX");
 	value = LONG_MAX;
 	ok(value, "value");
-	TEST_END;
+	return exit_status();
 }

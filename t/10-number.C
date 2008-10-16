@@ -4,23 +4,24 @@
 #include <cmath>
 
 using namespace perl;
+using namespace TAP;
 
 int main(int argc, char** argv) {
-	TEST_START(19);
+	plan(17);
 	Interpreter universe;
 	is_convertible<Number, double>("is_convertible<Number, double>()");
 	is_convertible<Number, float>("is_convertible<Number, float>()");
 	is_convertible<Number, long double>("is_convertible<Number, long double>()");
-	TRY_DECL(Number value = universe.value_of(1.0), "value = value_of(1.0)");
+	Number value = universe.value_of(1.0);
 
 	ok(value, "value");
-	is_close(value, 1, "value == 1");
-	is_close(value, 1u, "value == 1u");
-	is_close(value, 1l, "value == 1l");
+	is(value, 1, "value == 1");
+	is(value, 1u, "value == 1u");
+	is(value, 1l, "value == 1l");
 
 	ok(value > 0, "value > 0");
 	ok(value < 2, "value < 2");
-	not_ok(value != 1, "not: value != 1");
+	ok(!(value != 1), "not: value != 1");
 
 	ok(value + 1, "value + 1");
 	ok(value * 1, "value * 1");
@@ -28,15 +29,15 @@ int main(int argc, char** argv) {
 
 	diag("value -= 3");
 	value -= 3;
-	is_close(value, -2, "value == -2");
-	is_remote(value, 1, "value != 1");
+	is(value, -2, "value == -2");
+	isnt(value, 1, "value != 1");
 
 	diag("value *= -1");
 	value *= -1;
-	is_close(value, 2, "value == 2");
+	is(value, 2, "value == 2");
 
 	diag("value = MAXDOUBLE");
 	value = MAXDOUBLE;
 	ok(value, "value");
-	TEST_END;
+	return exit_status();
 }

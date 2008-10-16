@@ -4,11 +4,12 @@
 #include <algorithm>
 
 using namespace perl;
+using namespace TAP;
 
 int main(int argc, char** argv) {
-	TEST_START(55);
+	plan(54);
 	Interpreter universe;
-	TRY_DECL(Array array = universe.list(), "array = ()");
+	Array array = universe.list();
 	is(array.length(), 0u, "array.length() == 0");
 
 	array.push(1);
@@ -29,7 +30,7 @@ int main(int argc, char** argv) {
 
 	array.push(300E30);
 	diag("array.push(300E30)");
-	is_close(array[2], 300E30, "array[2] == 300E30");
+	is(array[2], 300E30, "array[2] == 300E30");
 
 	array.push("test");
 	diag("array.push(\"test\")");
@@ -51,19 +52,19 @@ int main(int argc, char** argv) {
 
 	is(array[0], 1, "array[0] == 1");
 	is(array[1], UINT_MAX, "array[1] == UINT_MAX");
-	is_close(array[2], 300E30, "array[2] == 300E30");
+	is(array[2], 300E30, "array[2] == 300E30");
 	is(array[3], "test", "array[3] == \"test\"");
 	ok(array.exists(4), "exists array[4]");
-	not_ok(array[4].defined(), "not: defined array[4]");
+	ok(!array[4].defined(), "not: defined array[4]");
 
 	array.push(array);
 	diag("array.push(array)");
 	is(array[5], 1, "array[5] == 1");
 	is(array[6], UINT_MAX, "array[6] == UINT_MAX");
-	is_close(array[7], 300E30, "array[7] == 300E30");
+	is(array[7], 300E30, "array[7] == 300E30");
 	is(array[8], "test", "array[8] == \"test\"");
 	ok(array.exists(9), "exists array[9]");
-	not_ok(array[9].defined(), "not: defined array[9]");
+	ok(!array[9].defined(), "not: defined array[9]");
 
 	array.clear();
 	array.unshift("test");
@@ -74,19 +75,19 @@ int main(int argc, char** argv) {
 
 	is(array[0], 1, "array[0] == 1");
 	is(array[1], UINT_MAX, "array[1] == UINT_MAX");
-	is_close(array[2], 300E30, "array[2] == 300E30");
+	is(array[2], 300E30, "array[2] == 300E30");
 	is(array[3], "test", "array[3] == \"test\"");
 
 	ok(array.exists(3), "exists array[3]");
 	String string = array.remove(3);
 	diag("string = array.remove(3)");
 	ok(string.length(), "string.length()");
-	not_ok(array.exists(3), "not: exists array[3]");
+	ok(!array.exists(3), "not: exists array[3]");
 	is(array.length(), 3u, "array.length() == 3");
 
 	array.length() = 2;
 	diag("array.length() = 2");
-	not_ok(array.exists(2), "not: exists array[2]");
+	ok(!array.exists(2), "not: exists array[2]");
 	is(array.length(), 2u, "array.length() == 2");
 	array.extend(4);
 	diag("array.extend(4)");
@@ -115,13 +116,13 @@ int main(int argc, char** argv) {
 	diag("big.each(_1 *= 2)");
 	is(big[0], 18, "big[0] == 18");
 
-	const Array forties = universe.list(47, 48, 49, 50);
-	ll_is(_1, bind<int>(&TAP::encountered), "encountered == 46")(make_const(46));
-	std::for_each(forties.begin(), forties.end(), ll_is(_1, bind(&TAP::encountered), "encountered == 4x"));
+	const Array forties = universe.list(46, 47, 48, 49);
+	ll_is(bind<int>(&TAP::encountered), _1, "encountered == 46")(make_const(45));
+	std::for_each(forties.begin(), forties.end(), ll_is(bind(&TAP::encountered), _1, "encountered == 4x"));
 
-	ok(forties.any(_1 == 49), "forties.any(_1 == 48)");
+	ok(forties.any(_1 == 48), "forties.any(_1 == 48)");
 	ok(forties.all(_1 > 45), "forties.all(_1 > 45)");
 	ok(forties.none(_1 == 30), "forties.none(_1 == 30)");
-	ok(forties.notall(_1 < 49), "forties.notall(_1 < 49");
-	TEST_END;
+	ok(forties.notall(_1 < 48), "forties.notall(_1 < 49");
+	return exit_status();
 }

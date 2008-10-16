@@ -1,3 +1,4 @@
+#define WANT_TEST_EXTRAS
 #include "tap++.h"
 #include <stack>
 
@@ -79,16 +80,13 @@ namespace TAP {
 		return ok(false, message);
 	}
 
-	void skip(int, const std::string& reason) {
-		//TODO
+	void skip(int num, const std::string& reason) {
+		for(int i = 0; i < num; ++i) {
+			pass(" # skip " + reason);
+		}
 	}
 	namespace details {
-		void print_skip(const std::string &why) {
-			pass(" # skip " + why);
-		}
-		void print_todo(const std::string& why) {
-			fail(" # TODO " + why);
-		}
+		std::ostream* diag_out = &std::cout;
 
 		static std::stack<int> block_expected;
 		void start_block(int expected) {
