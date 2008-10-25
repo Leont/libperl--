@@ -76,6 +76,10 @@ namespace perl {
 			};
 		}
 
+		template<typename T> struct perl_type<T, typename boost::enable_if<typename boost::is_base_of<scalar::Base, T>::type>::type> {
+			typedef boost::true_type type;
+		};
+
 		namespace helper {
 			const Any::Temp dereference(const scalar::Base&);
 			void decrement(const scalar::Base&);
@@ -877,7 +881,7 @@ namespace perl {
 				typedef typename scalar::Temp_template<T> lvalue;
 				typedef SV* raw_type;
 			};
-			template<> struct type_traits<Code, void> {
+			template<> struct type_traits<Code> {
 				typedef Code::Value lvalue;
 				typedef CV* raw_type;
 			};

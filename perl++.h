@@ -7,7 +7,6 @@
 #include <iostream>
 
 #include <boost/shared_ptr.hpp>
-#include <boost/utility/result_of.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/ptr_container/ptr_map.hpp>

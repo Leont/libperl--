@@ -514,7 +514,7 @@ namespace perl {
 		void print(Raw_string);
 		void print(const std::string&);
 		void print(const Array::Value&);
-		template<typename T> typename boost::disable_if<typename boost::is_base_of<Scalar::Base, T>::type>::type print(const T& arg) {
+		template<typename T> typename boost::disable_if<typename implementation::perl_type<T>::type>::type print(const T& arg) {
 			const std::string value = boost::lexical_cast<std::string, T>(arg);
 			print(value);
 		}
@@ -582,6 +582,22 @@ namespace perl {
 	};
 
 	namespace implementation {
+        template<typename T> struct perl_type<T, typename boost::enable_if<typename boost::is_base_of<Array::Value, T>::type>::type> {
+            typedef boost::true_type type;
+        };
+        template<typename T> struct perl_type<T, typename boost::enable_if<typename boost::is_base_of<Hash::Value, T>::type>::type> {
+            typedef boost::true_type type;
+        };
+        template<> struct perl_type<Handle> {
+            typedef boost::true_type type;
+        };
+        template<> struct perl_type<Glob> {
+            typedef boost::true_type type;
+        };
+        template<> struct perl_type<Regex> {
+            typedef boost::true_type type;
+        };
+
 		namespace reference {
 			template<> struct type_traits<Array> {
 				typedef Array::Temp lvalue;
@@ -619,7 +635,7 @@ namespace perl {
 
 			template<> struct type_traits<Glob> {
 				typedef Glob lvalue;
-				typedef HV* raw_type;
+				typedef GV* raw_type;
 			};
 
 			template<> class Nonscalar<Glob> : public Ref_specialized<Glob> {

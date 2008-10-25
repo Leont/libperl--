@@ -4,8 +4,6 @@ PERL = perl
 #WARNINGS = -Wall -Weffc++ -Wshadow -Wno-non-virtual-dtor
 WARNINGS = -Wall -Wshadow
 PERLCXX := $(shell $(PERL) -MExtUtils::Embed -e ccopts)
-#PERLCXX=-D_REENTRANT -D_GNU_SOURCE -DTHREADS_HAVE_PIDS -DDEBIAN -fno-strict-aliasing -pipe -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -I../../../Programs/perl/perl-5.10.0/
-#PERLCXX=-D_REENTRANT -D_GNU_SOURCE -DTHREADS_HAVE_PIDS -DDEBIAN -fno-strict-aliasing -pipe -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -I../../../Programs/perl/perl-current/
 DEBUG = -ggdb3 -DDEBUG
 DFLAGS = -fPIC $(PERLCXX) 
 CXXFLAGS = $(DEBUG) $(WARNINGS) $(DFLAGS)
@@ -60,12 +58,12 @@ example: example.C
 testbuild: $(LIB) $(TEST_GOALS)
 
 test: testbuild
-	@echo prove t/
+	@echo run_tests.pl $(TEST_GOALS)
 	@$(LIBRARY_VAR)=$(PWD) ./run_tests.pl $(TEST_GOALS)
 
 prove: testbuild
-	@echo prove t/
-	@$(LIBRARY_VAR)=$(PWD) prove -e"sh -c" t/
+	@echo prove $(TEST_GOALS)
+	@$(LIBRARY_VAR)=$(PWD) prove -e"sh -c" $(TEST_GOALS)
 
 #%.o: perl++.h
 
@@ -90,7 +88,7 @@ linesC:
 install: $(LIB)
 	cp -a libperl++.so /usr/local/lib/
 
-.PHONY: wordsC wordsh words lines linesh linesC todo install test testbuild
+.PHONY: wordsC wordsh words lines linesh linesC todo install test prove testbuild
 
 words: 
 	@make -s wordsC wordsh | sort -gr | column -t
