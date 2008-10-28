@@ -438,6 +438,49 @@ namespace perl {
 		};
 #undef TRY_OR_THROW
 
+		template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5> class constructor;
+		template<typename T> class constructor<T, null_type, null_type, null_type, null_type, null_type> {
+			static T* contruct() {
+				return new T();
+			}
+		};
+		template<typename T, typename A1> struct constructor<T, A1, null_type, null_type, null_type, null_type> {
+			static T* construct(const A1& arg1) {
+				return new T(arg1);
+			}
+		};
+		template<typename T, typename A1, typename A2> struct constructor<T, A1, A2, null_type, null_type, null_type> {
+			static T* construct(const A1& arg1, const A2& arg2) {
+				return new T(arg1, arg2);
+			}
+		};
+		template<typename T, typename A1, typename A2, typename A3> struct constructor<T, A1, A2, A3, null_type, null_type> {
+			static T* construct(const A1& arg1, const A2& arg2, const A3& arg3) {
+				return new T(arg1, arg2, arg3);
+			}
+		};
+		template<typename T, typename A1, typename A2, typename A3, typename A4> struct constructor<T, A1, A2, A3, A4, null_type> {
+			static T* construct(const A1& arg1, const A2& arg2, const A3& arg3, const A4& arg4) {
+				return new T(arg1, arg2, arg3, arg4);
+			}
+		};
+		template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5> struct constructor {
+			static T* construct(const A1& arg1, const A2& arg2, const A3& arg3, const A4& arg4, const A5& arg5) {
+				return new T(arg1, arg2, arg3, arg4, arg5);
+			}
+		};
+
+		template<typename T> struct destructor {
+			static int destroy(interpreter* interp, SV* var, MAGIC* magic) {
+				Object_buffer& tmp = *get_magic_ptr<Object_buffer>(magic);
+				if (tmp.owns) {
+					delete tmp.get<T>();
+				}
+				return 0;
+			}
+		};
+
+
 		Ref<Any>::Temp get_from_cache(interpreter*, const void*);
 		Ref<Any>::Temp store_in_cache(interpreter*, void*, const implementation::Class_state&);
 	 }
@@ -502,48 +545,6 @@ namespace perl {
 				return tier;
 			}
 		}
-
-		template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5> class constructor;
-		template<typename T> class constructor<T, null_type, null_type, null_type, null_type, null_type> {
-			static T* contruct() {
-				return new T();
-			}
-		};
-		template<typename T, typename A1> struct constructor<T, A1, null_type, null_type, null_type, null_type> {
-			static T* construct(const A1& arg1) {
-				return new T(arg1);
-			}
-		};
-		template<typename T, typename A1, typename A2> struct constructor<T, A1, A2, null_type, null_type, null_type> {
-			static T* construct(const A1& arg1, const A2& arg2) {
-				return new T(arg1, arg2);
-			}
-		};
-		template<typename T, typename A1, typename A2, typename A3> struct constructor<T, A1, A2, A3, null_type, null_type> {
-			static T* construct(const A1& arg1, const A2& arg2, const A3& arg3) {
-				return new T(arg1, arg2, arg3);
-			}
-		};
-		template<typename T, typename A1, typename A2, typename A3, typename A4> struct constructor<T, A1, A2, A3, A4, null_type> {
-			static T* construct(const A1& arg1, const A2& arg2, const A3& arg3, const A4& arg4) {
-				return new T(arg1, arg2, arg3, arg4);
-			}
-		};
-		template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5> struct constructor {
-			static T* construct(const A1& arg1, const A2& arg2, const A3& arg3, const A4& arg4, const A5& arg5) {
-				return new T(arg1, arg2, arg3, arg4, arg5);
-			}
-		};
-
-		template<typename T> struct destructor {
-			static int destroy(interpreter* interp, SV* var, MAGIC* magic) {
-				Object_buffer& tmp = *get_magic_ptr<Object_buffer>(magic);
-				if (tmp.owns) {
-					delete tmp.get<T>();
-				}
-				return 0;
-			}
-		};
 
 		class Class_temp {
 			public:

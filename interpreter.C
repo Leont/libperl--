@@ -27,9 +27,6 @@ namespace perl {
 				const char** aargs PERL_UNUSED_DECL = args;
 				PERL_SYS_INIT(&arg_count, const_cast<char***>(&aargs));
 				atexit(terminator);
-//#ifdef __GNUC__
-//				std::set_terminate(__gnu_cxx::__verbose_terminate_handler);
-//#endif
 				inited = true;
 			}
 			interpreter* interp = perl_alloc();

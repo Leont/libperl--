@@ -7,7 +7,7 @@
 #ifndef io_close
 #define io_close(io, non_implicit) Perl_io_close(aTHX_ io, non_implicit)
 #endif
-#define thrower assertion<IO_exception>
+#define thrower(out, message) do {if (!out) throw IO_exception(message); } while (0) 
 
 namespace perl {
 	Handle::Handle(interpreter* _interp, IO* _handle) : interp(_interp), handle(_handle) {

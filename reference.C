@@ -46,77 +46,77 @@ namespace perl {
 			/*
 			 * Class Ref<Any>::Value
 			 */
-			Nonscalar<Any>::Nonscalar(interpreter* _interp, SV* _handle) : Reference_base(_interp, _handle) {
+		}
+		Ref<Any>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Reference_base(_interp, _handle) {
+		}
+		
+		Ref<Any>::Value& Ref<Any>::Value::operator=(const Nonscalar<Any>& other) {
+			helper::set_scalar(*this, other);
+			return *this;
+		}
+		Ref<Any>::Value& Ref<Any>::Value::operator=(const Scalar::Temp& other) {
+			if (!implementation::reference::Reference_base::is_compatible_type(other)) {
+				throw Cast_exception(cast_error());
 			}
-			
-			Nonscalar<Any>& Nonscalar<Any>::operator=(const Nonscalar<Any>& other) {
-				helper::set_scalar(*this, other);
-				return *this;
-			}
-			Nonscalar<Any>& Nonscalar<Any>::operator=(const Scalar::Temp& other) {
-				if (!implementation::reference::Reference_base::is_compatible_type(other)) {
-					throw Cast_exception(cast_error());
-				}
-				helper::set_scalar(*this, other);
-				return *this;
-			}
-			const std::string& Nonscalar<Any>::cast_error() {
-				static const std::string message("Not a reference");
-				return message;
-			}
+			helper::set_scalar(*this, other);
+			return *this;
+		}
+		const std::string& Ref<Any>::Value::cast_error() {
+			static const std::string message("Not a reference");
+			return message;
+		}
 
-			/*
-			 * Class Ref<Array>::Value
-			 */
-			Nonscalar<Array>::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Array>(_interp, _handle) {
-			}
-			Scalar::Temp Nonscalar<Array>::operator[](key_type index) const {
-				return operator*()[index];
-			}
+		/*
+		 * Class Ref<Array>::Value
+		 */
+		Ref<Array>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Array>(_interp, _handle) {
+		}
+		Scalar::Temp Ref<Array>::Value::operator[](key_type index) const {
+			return operator*()[index];
+		}
 
-			bool Nonscalar<Array>::is_compatible_type(const Scalar::Base& var) {
-				return Nonscalar<Any>::is_compatible_type(var) and implementation::is_this_type(helper::dereference(var), SVt_PVAV);
-			}
+		bool Ref<Array>::Value::is_compatible_type(const Scalar::Base& var) {
+			return Nonscalar<Any>::is_compatible_type(var) and implementation::is_this_type(helper::dereference(var), SVt_PVAV);
+		}
 
-			/*
-			 * Class Ref<Hash>::Value
-			 */
-			Nonscalar<Hash>::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Hash>(_interp, _handle) {
-			}
-			Scalar::Temp Nonscalar<Hash>::operator[](Raw_string key) const {
-				return operator*()[key];
-			}
-			Scalar::Temp Nonscalar<Hash>::operator[](const Scalar::Base& key) const {
-				return operator*()[key];
-			}
+		/*
+		 * Class Ref<Hash>::Value
+		 */
+		Ref<Hash>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Hash>(_interp, _handle) {
+		}
+		Scalar::Temp Ref<Hash>::Value::operator[](Raw_string key) const {
+			return operator*()[key];
+		}
+		Scalar::Temp Ref<Hash>::Value::operator[](const Scalar::Base& key) const {
+			return operator*()[key];
+		}
 
-			bool Nonscalar<Hash>::is_compatible_type(const Scalar::Base& var) {
-				return Nonscalar<Any>::is_compatible_type(var) and is_this_type(helper::dereference(var), SVt_PVHV);
-			}
+		bool Ref<Hash>::Value::is_compatible_type(const Scalar::Base& var) {
+			return Ref<Any>::Value::is_compatible_type(var) and is_this_type(helper::dereference(var), SVt_PVHV);
+		}
 
-			/*
-			 * Class Ref<Code>::Value
-			 */
-			Nonscalar<Code>::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Code>(_interp, _handle) {
-			}
+		/*
+		 * Class Ref<Code>::Value
+		 */
+		Ref<Code>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Code>(_interp, _handle) {
+		}
 
-			bool Nonscalar<Code>::is_compatible_type(const Scalar::Base& var) {
-				return Nonscalar<Any>::is_compatible_type(var) and is_this_type(helper::dereference(var), SVt_PVCV);
-			}
-			const std::string& Nonscalar<Code>::cast_error() {
-				static const std::string message("Not an code reference");
-				return message;
-			}
+		bool Ref<Code>::Value::is_compatible_type(const Scalar::Base& var) {
+			return Ref<Any>::Value::is_compatible_type(var) and is_this_type(helper::dereference(var), SVt_PVCV);
+		}
+		const std::string& Ref<Code>::Value::cast_error() {
+			static const std::string message("Not an code reference");
+			return message;
+		}
 
-			/*
-			 * Class Ref<Glob>::Value
-			 */
-			Nonscalar<Glob>::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Glob>(_interp, _handle) {
-			}
+		/*
+		 * Class Ref<Glob>::Value
+		 */
+		Ref<Glob>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Glob>(_interp, _handle) {
+		}
 
-			bool Nonscalar<Glob>::is_compatible_type(const Scalar::Base& var) {
-				return Nonscalar<Any>::is_compatible_type(var) and is_this_type(helper::dereference(var), SVt_PVGV);
-			}
+		bool Ref<Glob>::Value::is_compatible_type(const Scalar::Base& var) {
+			return Ref<Any>::Value::is_compatible_type(var) and is_this_type(helper::dereference(var), SVt_PVGV);
 		}
 	}
 }
