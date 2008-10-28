@@ -120,6 +120,11 @@ int main() {
 		zaab = "220 Boe!";
 		cout << "zaab is " << zaab << endl;
 
+		int number(0);
+		universe.export_var("foo", number);
+		universe.eval("$foo = 42");
+		cout << "foo is " << number << endl;
+
 		Class<tester> classr = universe.add_class("Tester");
 		classr.add(init<int>());
 		classr.add("print", &tester::print);

@@ -52,10 +52,10 @@ namespace perl {
 
 #define interp raw_interp.get()
 
-	Interpreter::Interpreter() : raw_interp(initialize_interpreter(), destructor), modglobal(raw_interp.get(), PL_modglobal, false) {
+	Interpreter::Interpreter() : raw_interp(initialize_interpreter(), destructor) {
 		eval(implementation::to_eval);
 	}
-	Interpreter::Interpreter(interpreter* other) : raw_interp(other, destructor), modglobal(raw_interp.get(), PL_modglobal, false) {
+	Interpreter::Interpreter(interpreter* other) : raw_interp(other, destructor) {
 		eval(implementation::to_eval);
 	}
 	Interpreter Interpreter::clone() const {
@@ -66,6 +66,9 @@ namespace perl {
 	}
 	interpreter* Interpreter::get_interpreter() const {
 		return interp;
+	}
+	Hash::Temp Interpreter::modglobal() const {
+		return Hash::Temp(raw_interp.get(), PL_modglobal, false);
 	}
 	Package Interpreter::get_package(const char* name) const {
 		return Package(*this, name);
@@ -180,20 +183,38 @@ namespace perl {
 #undef interp
 
 	namespace implementation {
-		namespace classes {
-			/*
-			 * Class implementation::classes::Temp
-			 */
-			Temp::Temp(const Interpreter& interp, const char* name) : package(interp, name, true) {
-			}
+		/*
+		 * Class implementation::Class_temp
+		 */
+		Class_temp::Class_temp(const Interpreter& interp, const char* name) : package(interp, name, true) {
+		}
 
-			MGVTBL* get_object_vtbl_impl(const std::type_info* key, int (*destruct_ptr)(interpreter*, SV*, MAGIC*)) {
-				static boost::ptr_map<const std::type_info*, MGVTBL> table;
-				if (table.find(key) == table.end()) {
-					MGVTBL tmp = {0, 0, 0, 0, destruct_ptr};
-					table.insert(key, new MGVTBL(tmp));
+		Class_state::Class_state(const char* _classname, const std::type_info& _type, MGVTBL* _magic_table) : classname(_classname), magic_table(_magic_table), type(_type) {
+		}
+
+		MGVTBL* get_object_vtbl(const std::type_info& pre_key, int (*destruct_ptr)(interpreter*, SV*, MAGIC*)) {
+			static boost::ptr_map<const std::type_info*, MGVTBL> table;
+			const std::type_info* key = &pre_key;
+			if (table.find(key) == table.end()) {
+				const MGVTBL tmp = {0, 0, 0, 0, destruct_ptr};
+				table.insert(key, new MGVTBL(tmp));
+			}
+			return &table[key];
+		}
+
+		static const char typemap_namespace[] = "perl++/types/";
+		
+		void register_type(interpreter* interp, Class_state& state) {
+			std::string key(typemap_namespace);
+			key.append(state.type.name());
+			SV** handle = hv_fetch(PL_modglobal, key.data(), key.length(), 0);
+			if (handle != NULL) {
+				if (state.magic_table != reinterpret_cast<Class_state*>(*handle)->magic_table) {
+					throw Runtime_exception("Can't register type over another type");
 				}
-				return &table[key];
+			}
+			else {
+				hv_store(PL_modglobal, key.data(), key.length(), reinterpret_cast<SV*>(&state), 0);
 			}
 		}
 	}

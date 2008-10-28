@@ -24,7 +24,7 @@ namespace perl {
 			set_magic_string(interp, handle, &object, sizeof object);
 		}
 
-		void* get_magic_ptr(interpreter* interp, SV* var, int);
+		void* get_magic_ptr(interpreter*, SV*, int);
 		void** get_magic_object_impl(interpreter*, SV*, int);
 		template<typename T> T* get_magic_object(const Scalar::Base& var) {
 			return reinterpret_cast<T*>(*get_magic_object_impl(var.interp, var.get_SV(false), sizeof(T*)));
@@ -57,20 +57,17 @@ namespace perl {
 			}
 		};
 
-		namespace classes {
-			struct State {
-				const char* classname;
-				MGVTBL* magic_table;
-				bool has_destructor;
-				bool hash;
-				bool persistent;
-				State(const char* _classname, MGVTBL* _magic_table) : classname(_classname), magic_table(_magic_table) {
-				}
-				private:
-				State(const State&);
-			};
-		}
-		SV* make_magic_object(interpreter*, void*, const classes::State&);
+		struct Class_state {
+			const char* classname;
+			MGVTBL* magic_table;
+			const std::type_info& type;
+			bool has_destructor;
+			bool hash;
+			bool persistent;
+			Class_state(const char*, const std::type_info&, MGVTBL*);
+			private:
+			Class_state(const Class_state&);
+		};
 
 		namespace magic {
 			struct read_type {};
@@ -119,6 +116,7 @@ namespace perl {
 				T& tmp = *implementation::get_magic_ptr<T>(magic_ptr);
 				Scalar::Temp val(interp, var, false);
 				tmp = val;
+				std::cout << "Setting value to " << val << std::endl;
 				return 0;
 			}
 		}
@@ -128,25 +126,25 @@ namespace perl {
 		using namespace implementation::magic;
 		template<typename T, typename U> static void readonly(const Scalar::Base& var, T& object, void (T::*get_value)(U&)) {
 			const Wrapper<T, U> funcs(object, get_value, read_type());
-			attach_getset_magic(var.interp, var.get_SV(false), Wrapper<T, U>::read, NULL, &funcs, sizeof(funcs));
+			implementation::attach_getset_magic(var.interp, var.get_SV(false), Wrapper<T, U>::read, NULL, &funcs, sizeof(funcs));
 		}
 		template<typename T, typename U> static void writeonly(const Scalar::Base& var, T& object, void (T::*set_value)(U&)) {
 			const Wrapper<T, U> funcs(object, set_value, write_type());
-			attach_getset_magic(var.interp, var.get_SV(false), NULL, Wrapper<T, U>::write, &funcs, sizeof(funcs));
+			implementation::attach_getset_magic(var.interp, var.get_SV(false), NULL, Wrapper<T, U>::write, &funcs, sizeof(funcs));
 		}
 		template<typename T, typename U, typename V> static void readwrite(const Scalar::Base& var, T& object, void (T::*get_value)(U&), void (T::*set_value)(V&)) {
 			const Wrapper<T, U, V> funcs(object, get_value, set_value);
-			attach_getset_magic(var.interp, var.get_SV(false), Wrapper<T, U, V>::read, Wrapper<T, U, V>::write, &funcs, sizeof(funcs));
+			implementation::attach_getset_magic(var.interp, var.get_SV(false), Wrapper<T, U, V>::read, Wrapper<T, U, V>::write, &funcs, sizeof(funcs));
 		}
 
 		template<typename T> static void readonly(const Scalar::Base& var, T& object) {
-			attach_getset_magic(var.interp, var.get_SV(false), var_read<T>, NULL, &object, 0);
+			implementation::attach_getset_magic(var.interp, var.get_SV(false), var_read<T>, NULL, &object, 0);
 		}
 		template<typename T> static void writeonly(const Scalar::Base& var, T& object) {
-			attach_getset_magic(var.interp, var.get_SV(false), NULL, var_write<T>, &object, 0);
+			implementation::attach_getset_magic(var.interp, var.get_SV(false), NULL, var_write<T>, &object, 0);
 		}
 		template<typename T> static void readwrite(const Scalar::Base& var, T& object) {
-			attach_getset_magic(var.interp, var.get_SV(false), var_read<T>, var_write<T>, &object, 0);
+			implementation::attach_getset_magic(var.interp, var.get_SV(false), var_read<T>, var_write<T>, &object, 0);
 		}
 	};
 
@@ -377,10 +375,10 @@ namespace perl {
 
 		struct constructor_info {
 			void* fptr;
-			classes::State& class_state;
-			constructor_info(void* _fptr, classes::State& _state) : fptr(_fptr), class_state(_state) {
+			Class_state& class_state;
+			constructor_info(void* _fptr, Class_state& _state) : fptr(_fptr), class_state(_state) {
 			}
-			template<typename T> constructor_info(T* _fptr, classes::State& _state, bool _persistent = false) : fptr(reinterpret_cast<void*>(_fptr)), class_state(_state) {
+			template<typename T> constructor_info(T* _fptr, Class_state& _state, bool _persistent = false) : fptr(reinterpret_cast<void*>(_fptr)), class_state(_state) {
 			}
 			template<typename T> T get() const {
 				return reinterpret_cast<T>(fptr);
@@ -425,23 +423,23 @@ namespace perl {
 				}
 			};
 			public:
-			static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(), classes::State& state) {
+			static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(), Class_state& state) {
 				return export_as(interp, name, arg0::subroutine, constructor_info(fptr, state));
 			}
-			template<typename A1> static const Code::Value export_cons(interpreter* interp, const char* name, T* (*fptr)(A1), classes::State& state) {
+			template<typename A1> static const Code::Value export_cons(interpreter* interp, const char* name, T* (*fptr)(A1), Class_state& state) {
 				return export_as(interp, name, arg1<A1>::subroutine, constructor_info(fptr, state));
 			}
-			template<typename A1, typename A2> static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(A1, A2), classes::State& state) {
+			template<typename A1, typename A2> static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(A1, A2), Class_state& state) {
 				return export_as(interp, name, arg2<A1, A2>::subroutine, constructor_info(fptr, state));
 			}
-			template<typename A1, typename A2, typename A3> static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(A1, A2, A3), classes::State& state) {
+			template<typename A1, typename A2, typename A3> static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(A1, A2, A3), Class_state& state) {
 				return export_as(interp, name, arg3<A1, A2, A3>::subroutine, constructor_info(fptr, state));
 			}
 		};
 #undef TRY_OR_THROW
 
 		Ref<Any>::Temp get_from_cache(interpreter*, const void*);
-		Ref<Any>::Temp store_in_cache(interpreter*, void*, const implementation::classes::State&);
+		Ref<Any>::Temp store_in_cache(interpreter*, void*, const implementation::Class_state&);
 	 }
 
 	template<typename T> class Class;
@@ -474,12 +472,9 @@ namespace perl {
 		template<typename T> void export_method(const char* name, const T& func) {
 			implementation::export_method(interp, (package_name + "::" + name).c_str(), func);
 		}
-		template<typename T, typename U> void export_constructor(const char* name, const U& constructor, implementation::classes::State& state) {
+		template<typename T, typename U> void export_constructor(const char* name, const U& constructor, implementation::Class_state& state) {
 			implementation::constructor_exporter<T>::export_cons(interp, (package_name + "::" + name).c_str(), constructor, state);
 		}
-//		void export_raw(const char* name, void (*raw_func)(interpreter* me_perl, CV* cef), void* extra = 0, unsigned extra_length = sizeof(void*)) {
-//			implementation::export_as(interp, (package_name + "::" + name).c_str(), raw_func, extra, extra_length);
-//		}
 	};
 
 	namespace implementation {
@@ -550,18 +545,14 @@ namespace perl {
 			}
 		};
 
-		namespace classes {
-			class Temp {
-				public:
-				Package package;
-				Temp(const Interpreter& interp, const char* classname);
-			};
+		class Class_temp {
+			public:
+			Package package;
+			Class_temp(const Interpreter& interp, const char* classname);
+		};
+		MGVTBL* get_object_vtbl(const std::type_info& type, int (*destruct_ptr)(interpreter*, SV*, MAGIC*));
 
-			MGVTBL* get_object_vtbl_impl(const std::type_info* type, int (*destruct_ptr)(interpreter*, SV*, MAGIC*));
-			template<typename T> MGVTBL* get_object_vtbl(){
-				return get_object_vtbl_impl(&typeid(T), destructor<T>::destroy);
-			}
-		}
+		void register_type(interpreter*, Class_state&);
 	}
 
 	template<typename A1 = implementation::null_type, typename A2 = implementation::null_type, typename A3 = implementation::null_type, typename A4 = implementation::null_type, typename A5 = implementation::null_type> struct init {
@@ -570,7 +561,7 @@ namespace perl {
 	template<typename T> class Class {
 		Package package;
 		bool hash;
-		typedef implementation::classes::State State;
+		typedef implementation::Class_state State;
 		State& get_class_data() {
 			return *reinterpret_cast<State*>(implementation::get_magic_ptr(package.interp, reinterpret_cast<SV*>(package.stash), sizeof(State)));
 		}
@@ -578,11 +569,12 @@ namespace perl {
 		void initialize() {
 			SV* stash = reinterpret_cast<SV*>(package.stash);
 			if (! implementation::has_magic_string(package.interp, stash)) {
-				implementation::classes::State info(package.get_name().c_str(), implementation::classes::get_object_vtbl<T>());
+				implementation::Class_state info(package.get_name().c_str(), typeid(T), implementation::get_object_vtbl(typeid(T), implementation::destructor<T>::destroy));
 				implementation::set_magic_object(package.interp, stash, info);
+				implementation::register_type(package.interp, info);
 			}
 		}
-		Class(const implementation::classes::Temp& other) : package(other.package) {
+		Class(const implementation::Class_temp& other) : package(other.package) {
 			initialize();
 		}
 		explicit Class(const Package& _package) : package(_package) {
@@ -598,7 +590,6 @@ namespace perl {
 			typedef typename implementation::constructor<T, A1, A2, A3, A4, A5> constructor;
 			State& state = get_class_data();
 			package.export_constructor<T>("new", constructor::construct, state);
-//			package.export_raw("DESTROY", &implementation::destructor<T>::destroy);
 		}
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const init<A1, A2, A3, A4, A5>& foo) {
 			add("new", foo);
@@ -615,9 +606,6 @@ namespace perl {
 	class Interpreter {
 		const boost::shared_ptr<interpreter> raw_interp;
 		public:
-		Hash::Temp modglobal;
-
-		private:
 		Interpreter& operator=(const Interpreter&); //What should that do?
 		Interpreter(interpreter*);
 		public:
@@ -628,6 +616,7 @@ namespace perl {
 		interpreter* get_interpreter() const;
 		void report() const;
 		void set_context() const;
+		Hash::Temp modglobal() const;
 
 		const Scalar::Temp eval(const char*) const;
 		const Scalar::Temp eval(const Scalar::Base&) const;
@@ -663,14 +652,17 @@ namespace perl {
 		Handle out() const;
 		Handle err() const;
 
-		template <typename T> const Ref<Code>::Temp export_sub(const char* name, T& fptr) const {
+		template<typename T> const Ref<Code>::Temp export_sub(const char* name, T& fptr) const {
 			return implementation::export_sub(raw_interp.get(), name, fptr).take_ref();
 		}
-		template <typename T> const Code::Value export_flat(const char* name, T& fptr) const {
+		template<typename T> const Code::Value export_flat(const char* name, T& fptr) const {
 			return implementation::export_flatsub(raw_interp.get(), name, fptr);
 		}
-		const implementation::classes::Temp add_class(const char* name) const {
-			return implementation::classes::Temp(*this, name);
+		const implementation::Class_temp add_class(const char* name) const {
+			return implementation::Class_temp(*this, name);
+		}
+		template<typename T> void export_var(const char* name, T& variable) {
+			magical::readwrite(scalar(name), variable);
 		}
 
 		const Array::Temp list() const;
