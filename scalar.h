@@ -54,7 +54,7 @@ namespace perl {
 				SV* const handle;
 				public:
 
-				IV int_value() const; //XXX confusing name, I know :-(
+				IV int_value() const;
 				UV uint_value() const;
 				NV number_value() const;
 				Raw_string string_value() const;

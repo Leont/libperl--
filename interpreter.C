@@ -183,10 +183,18 @@ namespace perl {
 		/*
 		 * Class implementation::Class_temp
 		 */
-		Class_temp::Class_temp(const Interpreter& interp, const char* name) : package(interp, name, true) {
+		Class_temp::Class_temp(const Interpreter& interp, const char* name) : package(interp, name, true), persistence(false), use_hash(false) {
+		}
+		Class_temp& Class_temp::is_persistent(bool _persistence) {
+			persistence = _persistence;
+			return *this;
+		}
+		Class_temp& Class_temp::uses_hash(bool _use_hash) {
+			use_hash = _use_hash;
+			return *this;
 		}
 
-		Class_state::Class_state(const char* _classname, const std::type_info& _type, MGVTBL* _magic_table) : classname(_classname), magic_table(_magic_table), type(_type) {
+		Class_state::Class_state(const char* _classname, const std::type_info& _type, MGVTBL* _magic_table, bool _is_persistent, bool _use_hash) : classname(_classname), magic_table(_magic_table), type(_type), is_persistent(_is_persistent), use_hash(_use_hash) {
 		}
 
 		MGVTBL* get_object_vtbl(const std::type_info& pre_key, int (*destruct_ptr)(interpreter*, SV*, MAGIC*)) {
@@ -197,22 +205,6 @@ namespace perl {
 				table.insert(key, new MGVTBL(tmp));
 			}
 			return &table[key];
-		}
-
-		static const char typemap_namespace[] = "perl++/types/";
-		
-		void register_type(interpreter* interp, Class_state& state) {
-			std::string key(typemap_namespace);
-			key.append(state.type.name());
-			SV** handle = hv_fetch(PL_modglobal, key.data(), key.length(), 0);
-			if (handle != NULL) {
-				if (state.magic_table != reinterpret_cast<Class_state*>(*handle)->magic_table) {
-					throw Runtime_exception("Can't register type over another type");
-				}
-			}
-			else {
-				hv_store(PL_modglobal, key.data(), key.length(), reinterpret_cast<SV*>(&state), 0);
-			}
 		}
 	}
 	/*

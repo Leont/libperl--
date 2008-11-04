@@ -37,7 +37,6 @@ namespace perl {
 		}
 
 		bool has_magic_string(interpreter*, SV*);
-//		bool has_magic_string(Scalar::Base&);
 
 		typedef int (*magic_fun)(interpreter*, SV*, MAGIC*);
 		void attach_getset_magic(interpreter* interp, SV* var, magic_fun get_val, magic_fun set_val, const void* buffer, size_t buffer_length);
@@ -59,14 +58,14 @@ namespace perl {
 
 		struct Class_state {
 			const char* classname;
-			MGVTBL* magic_table;
+			MGVTBL* const magic_table;
 			const std::type_info& type;
-			bool has_destructor;
-			bool hash;
-			bool persistent;
-			Class_state(const char*, const std::type_info&, MGVTBL*);
+			bool is_persistent;
+			bool use_hash;
+			Class_state(const char*, const std::type_info&, MGVTBL*, bool, bool);
 			private:
 			Class_state(const Class_state&);
+			Class_state& operator=(const Class_state&);
 		};
 
 		namespace magic {
@@ -116,7 +115,6 @@ namespace perl {
 				T& tmp = *implementation::get_magic_ptr<T>(magic_ptr);
 				Scalar::Temp val(interp, var, false);
 				tmp = val;
-				std::cout << "Setting value to " << val << std::endl;
 				return 0;
 			}
 		}
@@ -470,18 +468,16 @@ namespace perl {
 			}
 		};
 
-		template<typename T> struct destructor {
-			static int destroy(interpreter* interp, SV* var, MAGIC* magic) {
-				Object_buffer& tmp = *get_magic_ptr<Object_buffer>(magic);
-				if (tmp.owns) {
-					delete tmp.get<T>();
-				}
-				return 0;
+		template<typename T> int destructor(interpreter* interp, SV* var, MAGIC* magic) {
+			Object_buffer& tmp = *get_magic_ptr<Object_buffer>(magic);
+			if (tmp.owns) {
+				delete tmp.get<T>();
 			}
-		};
+			return 0;
+		}
 
 
-		Ref<Any>::Temp get_from_cache(interpreter*, const void*);
+		SV* value_of_pointer(interpreter*, void*);
 		Ref<Any>::Temp store_in_cache(interpreter*, void*, const implementation::Class_state&);
 	 }
 
@@ -549,7 +545,11 @@ namespace perl {
 		class Class_temp {
 			public:
 			Package package;
+			bool persistence;
+			bool use_hash;
 			Class_temp(const Interpreter& interp, const char* classname);
+			Class_temp& is_persistent(bool = true);
+			Class_temp& uses_hash(bool = true);
 		};
 		MGVTBL* get_object_vtbl(const std::type_info& type, int (*destruct_ptr)(interpreter*, SV*, MAGIC*));
 
@@ -567,19 +567,19 @@ namespace perl {
 			return *reinterpret_cast<State*>(implementation::get_magic_ptr(package.interp, reinterpret_cast<SV*>(package.stash), sizeof(State)));
 		}
 		public:
-		void initialize() {
+		void initialize(bool _is_persistent, bool _use_hash) {
 			SV* stash = reinterpret_cast<SV*>(package.stash);
 			if (! implementation::has_magic_string(package.interp, stash)) {
-				implementation::Class_state info(package.get_name().c_str(), typeid(T), implementation::get_object_vtbl(typeid(T), implementation::destructor<T>::destroy));
+				implementation::Class_state info(package.get_name().c_str(), typeid(T), implementation::get_object_vtbl(typeid(T), implementation::destructor<T>), _is_persistent, _use_hash);
 				implementation::set_magic_object(package.interp, stash, info);
 				implementation::register_type(package.interp, info);
 			}
 		}
 		Class(const implementation::Class_temp& other) : package(other.package) {
-			initialize();
+			initialize(other.persistence, other.use_hash);
 		}
 		explicit Class(const Package& _package) : package(_package) {
-			initialize();
+			initialize(false, false);
 		}
 		template<typename U> typename boost::enable_if<typename boost::is_function<typename boost::remove_pointer<U>::type >::type, void>::type add(const char * name, const U& function) {
 				package.export_sub(name, function);
@@ -594,6 +594,13 @@ namespace perl {
 		}
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const init<A1, A2, A3, A4, A5>& foo) {
 			add("new", foo);
+		}
+
+		bool& uses_hash() {
+			return get_class_data().use_hash;
+		}
+		bool& is_persistent() {
+			return get_class_data().is_persistent;
 		}
 	};
 
@@ -644,8 +651,8 @@ namespace perl {
 		const String::Temp value_of(Raw_string) const;
 		const String::Temp value_of(const char*) const;
 		const String::Temp value_of(const std::string&) const;
-		template<typename T> const Ref<Any>::Temp value_of(const T* object) const {
-			return implementation::get_from_cache(raw_interp, object);
+		template<typename T, typename U> const typename Ref<U>::Temp value_of(T* object, const U* = reinterpret_cast<Any*>(0)) const {
+			return Ref<U>::Temp(raw_interp, implementation::value_of_pointer(raw_interp, object), false);
 		}
 
 		Handle open(Raw_string) const;

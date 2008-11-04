@@ -32,9 +32,9 @@ namespace perl {
 			sv_magic(var, NULL, PERL_MAGIC_ext, reinterpret_cast<const char*>(value), length);
 		}
 
-		SV* make_magic_object(interpreter* interp, void* obj, const Class_state& state) {
-			SV* const referee = state.hash ? reinterpret_cast<SV*>(newHV()) : newSV(0);
-			Object_buffer buffer(obj, true);
+		SV* make_magic_object(interpreter* interp, void* obj, const Class_state& state, bool owns) {
+			SV* const referee = state.use_hash ? reinterpret_cast<SV*>(newHV()) : newSV(0);
+			Object_buffer buffer(obj, owns);
 			sv_magicext(referee, NULL, PERL_MAGIC_ext, state.magic_table, reinterpret_cast<const char*>(&buffer), sizeof buffer);
 			SV* const ret = newRV_noinc(referee);
 			return sv_bless(ret, gv_stashpv(state.classname, true));
@@ -76,27 +76,43 @@ namespace perl {
 			croak("%s\n", message);
 		}
 
+		static std::map<const std::type_info*, Class_state*> typemap; //FIXME should be interpreter specific
+
+		void register_type(interpreter* interp, Class_state& state) {
+			const std::type_info* key = &state.type;
+			if (typemap.find(key) != typemap.end() && typemap[key]->magic_table != state.magic_table) {
+				throw Runtime_exception("Can't register type over another type");
+			}
+			else {
+				typemap.insert(make_pair(key, &state));
+			}
+		}
+
 		static const char cache_namespace[] = "perl++/objects/";
 
-		Ref<Any>::Temp get_from_cache(interpreter* interp, const void* address) {
-			std::string key(cache_namespace);
-			key.append(reinterpret_cast<const char*>(&address), sizeof(void*));
-			if (! hv_exists(PL_modglobal, key.c_str(), key.length())) {
-				throw No_such_object_exception();
-			}
-			SV* const* const ret = hv_fetch(PL_modglobal, key.c_str(), key.length(), 0);
-			return Ref<Any>::Temp(interp, *ret, false);
-		}
-		Ref<Any>::Temp store_in_cache(interpreter* interp, void* address, const implementation::Class_state& state) {
+		static SV* store_in_cache_impl(interpreter* interp, void* address, const implementation::Class_state& state, bool owns) {
 			std::string key(cache_namespace);
 			key.append(reinterpret_cast<const char*>(&address), sizeof(void*));
 
-			SV* const ret = make_magic_object(interp, address, state);
-			SV* const * const other = hv_store(PL_modglobal, key.c_str(), key.length(), newSVsv(ret), 0);
-			if (!state.persistent) {
+			SV* const ret = make_magic_object(interp, address, state, owns);
+			SV* const * const other = hv_store(PL_modglobal, key.data(), key.length(), newSVsv(ret), 0);
+			if (!state.is_persistent) {
 				sv_rvweaken(*other);
 			}
-			return Ref<Any>::Temp(interp, ret, true);
+			return ret;
+		}
+		Ref<Any>::Temp store_in_cache(interpreter* interp, void* address, const implementation::Class_state& state) {
+			return Ref<Any>::Temp(interp, store_in_cache_impl(interp, address, state, true), true);
+		}
+
+		SV* value_of_pointer(interpreter* interp, void* address, const std::type_info& info) {
+			std::string key(cache_namespace);
+			key.append(reinterpret_cast<const char*>(&address), sizeof(const char*));
+			SV** entry = hv_fetch(PL_modglobal, key.data(), key.length(), 0);
+			if (entry == NULL || !SvROK(*entry)) {
+				return store_in_cache_impl(interp, address, *typemap[&info], false);
+			}
+			return *entry;
 		}
 	}
 
