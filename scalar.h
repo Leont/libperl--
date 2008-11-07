@@ -800,6 +800,8 @@ namespace perl {
 		 */
 		class String : public Scalar::Base {
 			String(const String&);
+			typedef void (String::*bool_type)() const;
+			void no_such_comparator() const;
 			protected:
 			String(interpreter*, SV*);
 			public:
@@ -808,7 +810,7 @@ namespace perl {
 			const char* get_raw() const;
 //			operator const char*() const;
 			unsigned length() const;
-			operator bool() const;
+			operator bool_type() const;
 
 			void replace(unsigned offset, unsigned length, Raw_string other);
 			void replace(unsigned offset, unsigned length, const char*, unsigned);

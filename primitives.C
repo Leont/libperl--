@@ -242,6 +242,8 @@ namespace perl {
 		return *this;
 	}
 
+	void String::Value::no_such_comparator() const {
+	}
 	String::Value::operator const Raw_string() const {
 		return string_value();
 	}
@@ -249,11 +251,11 @@ namespace perl {
 		STRLEN len;
 		return SvPVx(get_SV(true), len);
 	}
-//		String::Value::operator const char*() const {
-//			return get_raw();
-//		}
-	String::Value::operator bool() const {
-		return length() > 0;
+//	String::Value::operator const char*() const {
+//		return get_raw();
+//	}
+	String::Value::operator String::bool_type() const {
+		return length() > 0 ? &String::no_such_comparator : 0;
 	}
 	unsigned String::Value::length() const {
 		return sv_len(get_SV(true)); // Unicode!?

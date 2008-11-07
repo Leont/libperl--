@@ -107,7 +107,7 @@ namespace perl {
 
 		SV* value_of_pointer(interpreter* interp, void* address, const std::type_info& info) {
 			std::string key(cache_namespace);
-			key.append(reinterpret_cast<const char*>(&address), sizeof(const char*));
+			key.append(reinterpret_cast<const char*>(&address), sizeof(void*));
 			SV** entry = hv_fetch(PL_modglobal, key.data(), key.length(), 0);
 			if (entry == NULL || !SvROK(*entry)) {
 				return store_in_cache_impl(interp, address, *typemap[&info], false);
