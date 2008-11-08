@@ -35,7 +35,7 @@ ppport.h:
 #	ar -cr $(LIB) $(OBJS)
 #	ranlib $(LIB)
 
-$(LIB): definitions.h $(OBJS)
+$(LIB): config.h $(OBJS)
 	gcc -shared -o $@ -Wl,-soname,$@ $(OBJS) $(LIBLDFLAGS)
 
 %.o: %.C 
@@ -68,7 +68,7 @@ prove: testbuild
 #%.o: perl++.h
 
 clean:
-	-rm $(LIB) tap_tester example ppport.h config.C definitions.h $(TODEL) 2>/dev/null
+	-rm $(LIB) tap_tester example ppport.h config.C config.h $(TODEL) 2>/dev/null
 
 testclean:
 	-rm $(TEST_OBJS) 2>/dev/null

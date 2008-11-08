@@ -32,8 +32,12 @@
 #endif
 
 // I split the header, to ease working with it.
-#include "definitions.h"
+#include "config.h"
 #include "helpers.h"
 #include "scalar.h"
-#include "collections.h"
+#include "primitives.h"
+#include "reference.h"
+#include "array.h"
+#include "hash.h"
+#include "other.h"
 #include "interpreter.h"
