@@ -60,7 +60,7 @@ Takes a reference to the hash.
 
 =item template<typename T> void each(const T& functor);
 
-Call function functor over every key/value pair in the hash. The key will be a Hash::Key_type, which can automatically converts into a string or a scalar. The value is a Scalar::Value& and will be assignable to if the hash isn't const.
+Call function functor over every key/value pair in the hash. The key will be a Hash::Key_type, which can automatically converts into a string or a scalar. The value is a Scalar::Value& and will be assignable to if the hash is non-const.
 
 =item const Array::Temp keys() const;
 

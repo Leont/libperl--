@@ -17,7 +17,7 @@ LIBRARY_VAR=LD_LIBRARY_PATH
 LIB = libperl++.so
 
 HDRS := $(wildcard *.h)
-SRCS := array.C call.C config.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C scalar.C tap++.C
+SRCS := array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C scalar.C tap++.C
 OBJS := $(patsubst %.C,%.o,$(SRCS))
 
 TODEL := $(wildcard *.o) $(wildcard t/*.t)
@@ -46,11 +46,11 @@ $(LIB): definitions.h $(OBJS)
 %.t: %.C
 	$(CXX) $(ACXXFLAGS) -I $(PWD) -L $(PWD) -lperl++ -o $@ $< 
 
-config.C: config.pl
-	perl config.pl > config.C
+evaluate.C: evaluate.pl
+	perl $< > $@
 
-definitions.h: definitions.pre
-	cpp $(PERLCXX) $< > definitions.h
+config.h: config.pre
+	cpp $(PERLCXX) $< > $@
 
 example: example.C
 	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
