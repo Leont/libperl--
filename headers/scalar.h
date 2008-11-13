@@ -30,7 +30,7 @@ namespace perl {
 		namespace reference {
 			template<typename T> class Nonscalar;
 			template<typename T> class Scalar_ref;
-			template<typename T, typename Enable = void> class ref;
+			template<typename T, typename = void> class ref;
 			class Reference_base;
 		}
 
@@ -183,7 +183,7 @@ namespace perl {
 		 * meta-function nearest_arithmetic_type
 		 * Returns the nearest match for any kind of integer
 		 */
-		template<typename T, typename Enable1 = void, typename Enable2 = void> struct nearest_arithmetic_type {
+		template<typename T, typename = void, typename = void> struct nearest_arithmetic_type {
 //		template<typename T> struct nearest_arithmetic_type<T, typename boost::enable_if<typename boost::is_integral<T>::type>::type, typename boost::enable_if<typename boost::is_signed<T>::type>::type> {
 			typedef IV type;
 		};

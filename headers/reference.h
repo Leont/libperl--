@@ -5,7 +5,7 @@ namespace perl {
 			 * Meta function type_traits
 			 * I might want to replace this with something else.
 			 */
-			template<typename T, typename Enable = void> struct type_traits;
+			template<typename T, typename = void> struct type_traits;
 			template<typename T> struct type_traits<T, typename boost::enable_if<typename boost::is_base_of<Scalar::Base, T>::type>::type> {
 				typedef typename scalar::Temp_template<T> lvalue;
 				typedef SV* raw_type;
@@ -100,11 +100,11 @@ namespace perl {
 			 * Metafunction ref.
 			 * Chooses between scalar and nonscalar implementations.
 			 */
-			template<typename T, typename Enable> struct ref {
+			template<typename T> struct ref<T, typename boost::disable_if<typename boost::is_base_of<scalar::Base, T>::type>::type> {
 				typedef Nonscalar<T> type;
 				typedef T storage_type;
 			};
-			template<typename T> struct ref<T, typename boost::enable_if<typename boost::is_base_of<scalar::Base, T>::type>::type > {
+			template<typename T> struct ref<T, typename boost::enable_if<typename boost::is_base_of<scalar::Base, T>::type>::type> {
 				typedef Scalar_ref<typename T::Value> type;
 				typedef perl::Scalar storage_type;
 			};

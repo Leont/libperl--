@@ -213,7 +213,7 @@ namespace perl {
 
 		//Section functions
 
-		template<typename R, typename A> struct export_flat {
+		template<typename R, typename A> struct export_stack {
 			typedef R (*func_ptr)(A);
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack stack(me_perl);
@@ -229,7 +229,8 @@ namespace perl {
 				TRY_OR_THROW(arg_stack.returns(ref()));
 			}
 		};
-		template<typename R, typename A1> struct export_sub_1 {
+		template<typename R, typename A1, typename = void> struct export_sub_1;
+		template<typename R, typename A1> struct export_sub_1<R, A1, typename boost::disable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
 			typedef R (*func_ptr)(A1);
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
@@ -237,6 +238,16 @@ namespace perl {
 				TRY_OR_THROW(arg_stack.returns(ref(typemap_cast<A1>(arg_stack[0]))));
 			}
 		};
+		template<typename R, typename A1> struct export_sub_1<R, A1, typename boost::enable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
+			typedef R (*func_ptr)(A1);
+			static void subroutine(interpreter* me_perl, CV* cef) {
+				Argument_stack arg_stack(me_perl);
+				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
+				Array::Temp arg = arg_stack.get_arg();
+				TRY_OR_THROW(arg_stack.returns(ref(arg)));
+			}
+		};
+
 		template<typename R, typename A1, typename A2> struct export_sub_2 {
 			typedef R (*func_ptr)(A1, A2);
 			static void subroutine(interpreter* me_perl, CV* cef) {
@@ -254,7 +265,7 @@ namespace perl {
 			}
 		};
 
-		template<typename T> struct export_vflat {
+		template<typename T> struct export_vstack {
 			typedef void (*func_ptr)(T&);
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack stack(me_perl);
@@ -269,7 +280,8 @@ namespace perl {
 				ref();
 			}
 		};
-		template<typename A1> struct export_sub_v1 {
+		template<typename, typename= void> struct export_sub_v1;
+		template<typename A1> struct export_sub_v1<A1, typename boost::disable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
 			typedef void(*func_ptr)(A1);
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
@@ -277,6 +289,16 @@ namespace perl {
 				ref(typemap_cast<A1>(arg_stack[0]));
 			}
 		};
+		template<typename A1> struct export_sub_v1<A1, typename boost::enable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
+			typedef void(*func_ptr)(A1);
+			static void subroutine(interpreter* me_perl, CV* cef) {
+				Argument_stack arg_stack(me_perl);
+				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
+				Array::Temp arg = arg_stack.get_arg();
+				ref(typemap_cast<A1>(arg));
+			}
+		};
+
 		template<typename A1, typename A2> struct export_sub_v2 {
 			typedef void(*func_ptr)(A1, A2);
 			static void subroutine(interpreter* me_perl, CV* cef) {
@@ -286,11 +308,11 @@ namespace perl {
 			}
 		};
 
-		template<typename R, typename A1> const Code::Value export_flatsub(interpreter* interp, const char* name, R (fptr)(A1)) {
-			return export_as(interp, name, export_flat<R, A1>::subroutine, reinterpret_cast<void*>(fptr));
+		template<typename R, typename A1> const Code::Value export_stacksub(interpreter* interp, const char* name, R (fptr)(A1)) {
+			return export_as(interp, name, export_stack<R, A1>::subroutine, reinterpret_cast<void*>(fptr));
 		}
-		template<typename A> const Code::Value export_flatsub(interpreter* interp, const char* name, void (fptr)(A)) {
-			return export_as(interp, name, export_vflat<A>::subroutine, fptr);
+		template<typename A> const Code::Value export_stacksub(interpreter* interp, const char* name, void (fptr)(A)) {
+			return export_as(interp, name, export_vstack<A>::subroutine, fptr);
 		}
 
 		template<typename R> const Code::Value export_sub(interpreter* interp, const char* name, R (fptr)()) {
@@ -503,8 +525,8 @@ namespace perl {
 		template<typename T> Code::Value export_sub(const char* name, const T& func) {
 			return implementation::export_sub(interp, (package_name + "::" + name).c_str(), func);
 		}
-		template<typename T> Code::Value export_flatsub(const char* name, const T& func) {
-			return implementation::export_flatsub(interp, (package_name + "::" + name).c_str(), func);
+		template<typename T> Code::Value export_stacksub(const char* name, const T& func) {
+			return implementation::export_stacksub(interp, (package_name + "::" + name).c_str(), func);
 		}
 
 		private:
@@ -663,8 +685,8 @@ namespace perl {
 		template<typename T> const Ref<Code>::Temp export_sub(const char* name, T& fptr) const {
 			return implementation::export_sub(raw_interp.get(), name, fptr).take_ref();
 		}
-		template<typename T> const Code::Value export_flat(const char* name, T& fptr) const {
-			return implementation::export_flatsub(raw_interp.get(), name, fptr);
+		template<typename T> const Code::Value export_stack(const char* name, T& fptr) const {
+			return implementation::export_stacksub(raw_interp.get(), name, fptr);
 		}
 		const implementation::Class_temp add_class(const char* name) const {
 			return implementation::Class_temp(*this, name);

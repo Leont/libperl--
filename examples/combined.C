@@ -109,7 +109,7 @@ int main() {
 		universe.export_sub("test", test);
 		universe.eval("test('test works')");
 
-		universe.export_flat("complex", test2);
+		universe.export_sub("complex", test1);
 		Ref<Code> complex = universe.eval("\\&complex");
 		int test = complex("foo", bar, quz);
 		cout << "complex('foo', bar, quz) : " << test << endl;

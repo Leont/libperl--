@@ -146,7 +146,7 @@ namespace perl {
 	namespace implementation {
 		struct null_type { };
 
-		template<typename T, typename Enable = void> struct perl_type {
+		template<typename T, typename = void> struct perl_type {
 			typedef boost::false_type type;
 		};
 	}
