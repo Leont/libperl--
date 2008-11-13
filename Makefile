@@ -11,13 +11,15 @@ ACXXFLAGS = $(DEBUG) $(WARNINGS) -Iheaders/
 #CXXFLAGS = -Os -fomit-frame-pointer $(DFLAGS)
 LDFLAGS = -Lblib -lperl++
 LIBLDFLAGS := $(shell $(PERL) -MExtUtils::Embed -e ldopts)
-PWD := $(shell pwd)
 LIBRARY_VAR=LD_LIBRARY_PATH
 
-LIB = blib/libperl++.so
+LIBNAME = libperl++.so
+LIBTAPNAME = libtap++.so
+LIB = blib/$(LIBNAME)
+LIBTAP = blib/$(LIBTAPNAME)
 
 HDRS := $(wildcard *.h)
-PRESRCS := array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C scalar.C tap++.C
+PRESRCS := array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C scalar.C
 SRCS := $(patsubst %,source/%,$(PRESRCS))
 OBJS := $(patsubst %.C,blib/%.o,$(PRESRCS))
 
@@ -25,7 +27,7 @@ TEST_SRCS := $(wildcard t/*.C)
 TEST_OBJS := $(patsubst %.C,%.t,$(TEST_SRCS))
 TEST_GOALS = $(TEST_OBJS)
 
-all: $(LIB) blib/combined
+all: blib $(LIB) $(LIBTAP) blib/combined
 
 source/ppport.h:
 	perl -MDevel::PPPort -eDevel::PPPort::WriteFile\(\'$@\'\)
@@ -39,14 +41,17 @@ ppport: source/ppport.h
 blib:
 	mkdir blib
 
-$(LIB): blib headers/config.h $(OBJS)
-	gcc -shared -o $@ -Wl,-soname,$@ $(OBJS) $(LIBLDFLAGS)
+$(LIB): headers/config.h $(OBJS)
+	gcc -shared -o $@ -Wl,-soname,$(LIBNAME) $(OBJS) $(LIBLDFLAGS)
+
+$(LIBTAP): source/tap++.C headers/tap++.h
+	gcc -shared -o $@ -Wl,-soname,$(LIBTAPNAME) -Iheaders/ source/tap++.C
 
 blib/%.o: source/%.C 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-%.t: %.C
-	$(CXX) $(ACXXFLAGS) -Lblib -lperl++ -o $@ $< 
+t/%.t: t/%.C
+	$(CXX) $(ACXXFLAGS) -Lblib -lperl++ -ltap++ -o $@ $< 
 
 source/evaluate.C: source/evaluate.pl
 	perl $< > $@
@@ -61,11 +66,11 @@ testbuild: $(LIB) $(TEST_GOALS)
 
 test: testbuild
 	@echo run_tests.pl $(TEST_GOALS)
-	@$(LIBRARY_VAR)=$(PWD) ./run_tests.pl $(TEST_GOALS)
+	@$(LIBRARY_VAR)=blib ./run_tests.pl $(TEST_GOALS)
 
 prove: testbuild
 	@echo prove $(TEST_GOALS)
-	@$(LIBRARY_VAR)=$(PWD) prove -e"sh -c" $(TEST_GOALS)
+	@$(LIBRARY_VAR)=blib prove -e"sh -c" $(TEST_GOALS)
 
 clean:
 	-rm -r tap_tester examples/combined source/ppport.h source/evaluate.C headers/config.h blib $(wildcard t/*.t) 2>/dev/null
@@ -88,7 +93,7 @@ linesC:
 install: $(LIB)
 	cp -a libperl++.so /usr/local/lib/
 
-.PHONY: wordsC wordsh words lines linesh linesC todo install test prove testbuild ppport clean testclean
+.PHONY: wordsC wordsh words lines linesh linesC todo install test prove testbuild ppport clean testclean all
 
 words: 
 	@make -s wordsC wordsh | sort -gr | column -t
