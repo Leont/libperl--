@@ -120,8 +120,11 @@ namespace perl {
 			operator const Raw_string() const;
 			const char* get_raw() const;
 //			operator const char*() const;
-			unsigned length() const;
 			operator bool_type() const;
+
+			const std::string to_string() const;
+
+			unsigned length() const;
 
 			void replace(unsigned offset, unsigned length, Raw_string other);
 			void replace(unsigned offset, unsigned length, const char*, unsigned);

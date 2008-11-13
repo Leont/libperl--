@@ -39,6 +39,9 @@ namespace perl {
 				const Scalar::Temp operator[](const Scalar::Base&) const;
 				Scalar::Temp operator[](const Scalar::Base&);
 
+				void insert(Raw_string, const Scalar::Base&);
+				void insert(const Scalar::Base&, const Scalar::Base&);
+
 				bool exists(Raw_string) const;
 				bool exists(const Scalar::Base&) const;
 				const Scalar::Temp erase(Raw_string);
@@ -46,6 +49,7 @@ namespace perl {
 				void clear();
 				void undefine();
 				const Scalar::Temp scalar() const;
+				unsigned length() const;
 
 				const scalar::Temp_template<reference::Nonscalar<Hash> > take_ref() const;
 				private:
@@ -65,8 +69,8 @@ namespace perl {
 						functor(pair.key(), pair.value());
 					}
 				}
-				const Array::Temp keys() const; //TODO
-				const Array::Temp values() const; //TODO
+				const Array::Temp keys() const;
+				const Array::Temp values() const;
 
 				void tie_to(const Scalar::Base&);
 				template<typename T1, typename T2, typename T3, typename T4, typename T5> const Ref<Any>::Temp tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
@@ -87,9 +91,9 @@ namespace perl {
 				explicit Key_type(const Iterator& _ref);
 				Raw_string as_raw_string() const;
 				const Scalar::Temp as_scalar() const;
-				operator Raw_string() const;
-				operator const char*() const;
+				operator const Raw_string() const;
 				operator const Scalar::Temp() const;
+				const std::string to_string() const;
 			};
 			std::ostream& operator<<(std::ostream&, const Iterator::Key_type&);
 		}

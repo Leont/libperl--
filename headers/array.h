@@ -313,10 +313,10 @@ namespace perl {
 				friend class Value;
 				friend class hash::Value;
 				mutable bool owns;
-				Temp& operator=(const Temp&);
 				explicit Temp(interpreter*);
 				public:
 				Temp(const Temp&);
+				using Value::operator=;
 				Temp(interpreter*, AV*, bool);
 				void release() const;
 				~Temp();

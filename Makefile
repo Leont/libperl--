@@ -25,7 +25,7 @@ TEST_SRCS := $(wildcard t/*.C)
 TEST_OBJS := $(patsubst %.C,%.t,$(TEST_SRCS))
 TEST_GOALS = $(TEST_OBJS)
 
-all: $(LIB) blib/example
+all: $(LIB) blib/combined
 
 source/ppport.h:
 	perl -MDevel::PPPort -eDevel::PPPort::WriteFile\(\'$@\'\)

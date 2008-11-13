@@ -77,13 +77,14 @@ namespace perl {
 			SvSETMAGIC(tmp);
 			return 0;
 		}
-		MGVTBL scalar_magic = { 0, string_store, 0, 0, 0 };
+		MGVTBL scalar_magic = { 0, scalar_store, 0, 0, 0 };
 	}
 	Scalar::Temp Hash::Value::operator[](const Scalar::Base& key) {
 		HE* const entry = hv_fetch_ent(handle, key.get_SV(true), false, 0);
 		if (!entry) {
 			SV* magical = newSV(0);
-			sv_magicext(magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &scalar_magic, reinterpret_cast<const char*>(key.get_SV(false)), sizeof(SV));
+			SV* saved = key.get_SV(false);
+			sv_magicext(magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &scalar_magic, reinterpret_cast<const char*>(&saved), sizeof(SV));
 			return Scalar::Temp(interp, magical, true, false);
 		}
 		SV* const ret = HeVAL(entry);
@@ -91,6 +92,21 @@ namespace perl {
 		return Scalar::Temp(interp, ret, false);
 	}
 	
+	void Hash::Value::insert(Raw_string key, const Scalar::Base& value) {
+		SV* tmp = newSVsv(value.get_SV(true));
+		if (hv_store(handle, key.value, key.length, tmp, 0) == NULL) {
+			SvREFCNT_dec(tmp);
+			throw Runtime_exception("Couldn't save value in hash");
+		}
+	}
+	void Hash::Value::insert(const Scalar::Base& key, const Scalar::Base& value) {
+		SV* tmp = newSVsv(value.get_SV(true));
+		if (hv_store_ent(handle, key.get_SV(true), tmp, 0) == NULL) {
+			SvREFCNT_dec(tmp);
+			throw Runtime_exception("Couldn't save value in hash");
+		}
+	}
+
 	const Array::Temp Hash::Value::keys() const {
 		Array::Temp ret(interp);
 		foreach_init();
@@ -108,6 +124,15 @@ namespace perl {
 		return ret;
 	}
 
+	unsigned Hash::Value::length() const {
+		unsigned count = 0;
+		foreach_init();
+		while (const Iterator pair = next_value()) {
+			count++;
+		}
+		return count;
+	}
+
 	bool Hash::Value::exists(Raw_string index) const {
 		return hv_exists(handle, index.value, index.length);
 	}
@@ -117,11 +142,17 @@ namespace perl {
 	}
 
 	const Scalar::Temp Hash::Value::erase(Raw_string index) {
-		SV* const tmp = hv_delete(handle, index.value, index.length, 0);
+		SAVETMPS;
+		SV* tmp = hv_delete(handle, index.value, index.length, 0);
+		tmp = tmp ? SvREFCNT_inc(tmp) : newSV(0);
+		FREETMPS;
 		return Scalar::Temp(interp, tmp, true);
 	}
 	const Scalar::Temp Hash::Value::erase(const Scalar::Base& index) {
-		SV* const tmp = hv_delete_ent(handle, index.get_SV(true), 0, 0);
+		SAVETMPS;
+		SV* tmp = hv_delete_ent(handle, index.get_SV(true), 0, 0);
+		tmp = tmp ? SvREFCNT_inc(tmp) : newSV(0);
+		FREETMPS;
 		return Scalar::Temp(interp, tmp, true);
 	}
 	void Hash::Value::clear() {
@@ -201,10 +232,7 @@ namespace perl {
 	Hash::Iterator::Key_type::Key_type(const Hash::Iterator& _ref) : ref(_ref) {
 	}
 
-	Hash::Iterator::Key_type::operator Raw_string() const {
-		return as_raw_string();
-	}
-	Hash::Iterator::Key_type::operator const char*() const {
+	Hash::Iterator::Key_type::operator const Raw_string() const {
 		return as_raw_string();
 	}
 	Hash::Iterator::Key_type::operator const Scalar::Temp() const {
@@ -212,10 +240,16 @@ namespace perl {
 	}
 
 	#define interp ref.interp
+	const std::string Hash::Iterator::Key_type::to_string() const {
+		STRLEN length;
+		const char* const tmp = HePV(ref.iterator, length);
+		return std::string(tmp, length);
+	}
+
 	Raw_string Hash::Iterator::Key_type::as_raw_string() const {
 		STRLEN length;
 		const char* const tmp = HePV(ref.iterator, length);
-		return Raw_string(tmp, length, true); // Is this unicode?
+		return Raw_string(tmp, length, false); // Is this unicode?
 	}
 	const Scalar::Temp Hash::Iterator::Key_type::as_scalar() const {
 		return Scalar::Temp(interp, HeSVKEY_force(ref.iterator), false);

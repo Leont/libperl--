@@ -260,6 +260,11 @@ namespace perl {
 //	Scalar::Value::operator const char*() const {
 //		return operator Raw_string();
 //	}
+	Scalar::Value::operator const std::string() const {
+		unsigned len;
+		const char* const tmp = SvPVx(get_SV(true), len);
+		return std::string(tmp, len);
+	}
 
 	bool Scalar::Value::defined() const {
 		return SvOK(get_SV(true));

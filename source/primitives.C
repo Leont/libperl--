@@ -254,6 +254,11 @@ namespace perl {
 //	String::Value::operator const char*() const {
 //		return get_raw();
 //	}
+	const std::string String::Value::to_string() const {
+		STRLEN len;
+		const char* val = SvPVx(get_SV(true), len);
+		return std::string(val, len);
+	}	
 	String::Value::operator String::bool_type() const {
 		return length() > 0 ? &String::no_such_comparator : 0;
 	}

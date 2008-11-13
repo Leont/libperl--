@@ -7,7 +7,7 @@ using namespace perl;
 using namespace TAP;
 
 int main(int argc, char** argv) {
-	plan(54);
+	plan(65);
 	Interpreter universe;
 	Array array = universe.list();
 	is(array.length(), 0u, "array.length() == 0");
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 
 	Array numbers = universe.list(1, 2, 3, 4);
 	Array squares = numbers.map(ll_static_cast<IV>(_1) * _1);
-	for (int i = 0; i < 4; ++i) { 
+	for (int i = 0; i < 4; ++i) {
 		std::string num = boost::lexical_cast<std::string>(i);
 		is(squares[i], (IV)(numbers[i]) * numbers[i], std::string("squares[") + num + "] is numbers[" + num + "] ** 2");
 	}
@@ -124,5 +124,29 @@ int main(int argc, char** argv) {
 	ok(forties.all(_1 > 45), "forties.all(_1 > 45)");
 	ok(forties.none(_1 == 30), "forties.none(_1 == 30)");
 	ok(forties.notall(_1 < 48), "forties.notall(_1 < 49");
+
+	is_convertible<Ref<Array>, Ref<Any> >("Ref<Array> is convertible into a Ref<Any>");
+	is_inconvertible<Ref<Any>, Ref<Array> >("Ref<Any> is convertible into a Ref<Array>");//XXX
+	is_convertible<Scalar::Temp, Ref<Array> >("Ref<Array> is convertible into a Ref<Any>");
+	is_inconvertible<Ref<Array>, Ref<Hash> >("Ref<Array> is not convertible into a Ref<Hash>");
+
+	Ref<Array> ref = forties.take_ref();
+
+	is(ref[0], 46, "ref[0] == 46");
+	Array fifties = *ref;
+	diag("++ref[0]");
+	++ref[0];
+	is(ref[0], 47, "ref[0] == 47");
+	is(forties[0], 47, "forties[0] == 47");
+	is(fifties[0], 46, "fiftes[0] == 46");
+
+	*ref = fifties;
+	diag("*ref = fifties");
+	is(ref[0], 46, "ref[0] == 46");
+	is(forties[0], 46, "forties[0] == 46");
+
+	Ref<Any> last = ref;
+	ok(true, "Ref<Any> last = ref");
+
 	return exit_status();
 }
