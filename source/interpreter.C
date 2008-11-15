@@ -194,7 +194,8 @@ namespace perl {
 			return *this;
 		}
 
-		Class_state::Class_state(const char* _classname, const std::type_info& _type, MGVTBL* _magic_table, bool _is_persistent, bool _use_hash) : classname(_classname), magic_table(_magic_table), type(_type), is_persistent(_is_persistent), use_hash(_use_hash) {
+		Class_state::Class_state(const char* _classname, const std::type_info& _type, MGVTBL* _magic_table, bool _is_persistent, bool _use_hash) : classname(_classname), magic_table(_magic_table), type(_type), is_persistent(_is_persistent), use_hash(_use_hash), family() {
+			family.insert(&type);
 		}
 
 		MGVTBL* get_object_vtbl(const std::type_info& pre_key, int (*destruct_ptr)(interpreter*, SV*, MAGIC*)) {
@@ -240,5 +241,20 @@ namespace perl {
 	}
 	Package::operator const std::string&() const {
 		return package_name;
+	}
+
+	Scalar::Temp Package::scalar(const char* name) const {
+		SV* const ret = get_sv((package_name + "::" + name).c_str(), true);
+		return Scalar::Temp(interp, ret, false);
+	}
+
+	Array::Temp Package::array(const char* name) const {
+		AV* const ret = get_av((package_name + "::" + name).c_str(), true);
+		return Array::Temp(interp, ret, false);
+	}
+
+	Hash::Temp Package::hash(const char* name) const {
+		HV* const ret = get_hv((package_name + "::" + name).c_str(), true);
+		return Hash::Temp(interp, ret, false);
 	}
 }

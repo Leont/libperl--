@@ -20,9 +20,6 @@ namespace perl {
 		const Raw_string get_magic_string(interpreter*, SV*);
 		void set_magic_string(interpreter*, SV*, Raw_string);
 		void set_magic_string(interpreter*, SV*, const void*, unsigned length);
-		template<typename T> void set_magic_object(interpreter* interp, SV* handle, const T& object) {
-			set_magic_string(interp, handle, &object, sizeof object);
-		}
 
 		void* get_magic_ptr(interpreter*, SV*, int);
 		void** get_magic_object_impl(interpreter*, SV*, int);
@@ -48,8 +45,9 @@ namespace perl {
 
 		struct Object_buffer {
 			void* ref;
+			const std::set<const std::type_info*>& types;
 			bool owns;
-			Object_buffer(void* _ref, bool _owns) : ref(_ref), owns(_owns) {
+			Object_buffer(void* _ref, const std::set<const std::type_info*>& _types, bool _owns) : ref(_ref), types(_types), owns(_owns) {
 			}
 			template<typename T> T*& get() {
 				return reinterpret_cast<T*&>(ref);
@@ -63,6 +61,7 @@ namespace perl {
 			bool is_persistent;
 			bool use_hash;
 			Class_state(const char*, const std::type_info&, MGVTBL*, bool, bool);
+			std::set<const std::type_info*> family;
 			private:
 			Class_state(const Class_state&);
 			Class_state& operator=(const Class_state&);
@@ -186,12 +185,12 @@ namespace perl {
 			return export_as(interp, name, glue, &func, sizeof func);
 		}
 
-		template<typename T> T& get_function_pointer(interpreter* interp, CV* cef) {
+		template<typename T> const T& get_function_pointer(interpreter* interp, CV* cef) {
 			Raw_string ret = get_magic_string(interp, reinterpret_cast<SV*>(cef));
 			if (ret.length < sizeof(T)) {
 				throw Runtime_exception("Magical error!");
 			}
-			return *reinterpret_cast<T*>(const_cast<char*>(ret.value));
+			return *reinterpret_cast<const T*>(ret.value);
 		}
 
 		void die(interpreter*, const char* message);
@@ -304,40 +303,53 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				ref(typemap_cast<A1>(arg_stack[0], arg_stack[1]));
+				ref(typemap_cast<A1>(arg_stack[0]), typemap_cast<A2>(arg_stack[1]));
+			}
+		};
+
+		template<typename A1, typename A2, typename A3> struct export_sub_v3 {
+			typedef void(*func_ptr)(A1, A2, A3);
+			static void subroutine(interpreter* me_perl, CV* cef) {
+				Argument_stack arg_stack(me_perl);
+				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
+				ref(typemap_cast<A1>(arg_stack[0], typemap_cast<A2>(arg_stack[1]), typemap_cast<A3>(arg_stack[3])));
 			}
 		};
 
 		template<typename R, typename A1> const Code::Value export_stacksub(interpreter* interp, const char* name, R (fptr)(A1)) {
-			return export_as(interp, name, export_stack<R, A1>::subroutine, reinterpret_cast<void*>(fptr));
+			return export_as(interp, name, export_stack<R, A1>::subroutine, fptr);
 		}
 		template<typename A> const Code::Value export_stacksub(interpreter* interp, const char* name, void (fptr)(A)) {
 			return export_as(interp, name, export_vstack<A>::subroutine, fptr);
 		}
 
 		template<typename R> const Code::Value export_sub(interpreter* interp, const char* name, R (fptr)()) {
-			return export_as(interp, name, export_sub_0<R>::subroutine, reinterpret_cast<void*>(fptr));
+			return export_as(interp, name, export_sub_0<R>::subroutine, fptr);
 		}
 		static inline const Code::Value export_sub(interpreter* interp, const char* name, void (fptr)()) {
 			return export_as(interp, name, export_sub_v0::subroutine, fptr);
 		}
 
 		template<typename R, typename A1> const Code::Value export_sub(interpreter* interp, const char* name, R (fptr)(A1)) {
-			return export_as(interp, name, export_sub_1<R, A1>::subroutine, reinterpret_cast<void*>(fptr));
+			return export_as(interp, name, export_sub_1<R, A1>::subroutine, fptr);
 		}
 		template<typename A1> const Code::Value export_sub(interpreter* interp, const char* name, void (fptr)(A1)) {
-			return export_as(interp, name, export_sub_v1<A1>::subroutine, reinterpret_cast<void*>(fptr));
+			return export_as(interp, name, export_sub_v1<A1>::subroutine, fptr);
 		}
 
 		template<typename R, typename A1, typename A2> const Code::Value export_sub(interpreter* interp, const char* name, R (fptr)(A1, A2)) {
-			return export_as(interp, name, export_sub_2<R, A1, A2>::subroutine, reinterpret_cast<void*>(fptr));
+			return export_as(interp, name, export_sub_2<R, A1, A2>::subroutine, fptr);
 		}
 		template<typename A1, typename A2> const Code::Value export_sub(interpreter* interp, const char* name, void (fptr)(A1, A2)) {
-			return export_as(interp, name, export_sub_v2<A1, A2>::subroutine, reinterpret_cast<void*>(fptr));
+			return export_as(interp, name, export_sub_v2<A1, A2>::subroutine, fptr);
 		}
 
 		template<typename R, typename A1, typename A2, typename A3> const Code::Value export_sub(interpreter* interp, const char* name, R (fptr)(A1, A2, A3)) {
-			return export_as(interp, name, export_sub_3<R, A1, A2, A3>::subroutine, reinterpret_cast<void*>(fptr));
+			return export_as(interp, name, export_sub_3<R, A1, A2, A3>::subroutine, fptr);
+		}
+
+		template<typename A1, typename A2, typename A3> const Code::Value export_sub(interpreter* interp, const char* name, void (fptr)(A1, A2, A3)) {
+			return export_as(interp, name, export_sub_v3<A1, A2, A3>::subroutine, fptr);
 		}
 
 		//Section methods
@@ -395,10 +407,10 @@ namespace perl {
 
 		struct constructor_info {
 			void* fptr;
-			Class_state& class_state;
-			constructor_info(void* _fptr, Class_state& _state) : fptr(_fptr), class_state(_state) {
+			const Class_state& class_state;
+			constructor_info(void* _fptr, const Class_state& _state) : fptr(_fptr), class_state(_state) {
 			}
-			template<typename T> constructor_info(T* _fptr, Class_state& _state, bool _persistent = false) : fptr(reinterpret_cast<void*>(_fptr)), class_state(_state) {
+			template<typename T> constructor_info(T* _fptr, const Class_state& _state, bool _persistent = false) : fptr(reinterpret_cast<void*>(_fptr)), class_state(_state) {
 			}
 			template<typename T> T get() const {
 				return reinterpret_cast<T>(fptr);
@@ -443,16 +455,16 @@ namespace perl {
 				}
 			};
 			public:
-			static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(), Class_state& state) {
+			static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(), const Class_state& state) {
 				return export_as(interp, name, arg0::subroutine, constructor_info(fptr, state));
 			}
-			template<typename A1> static const Code::Value export_cons(interpreter* interp, const char* name, T* (*fptr)(A1), Class_state& state) {
+			template<typename A1> static const Code::Value export_cons(interpreter* interp, const char* name, T* (*fptr)(A1), const Class_state& state) {
 				return export_as(interp, name, arg1<A1>::subroutine, constructor_info(fptr, state));
 			}
-			template<typename A1, typename A2> static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(A1, A2), Class_state& state) {
+			template<typename A1, typename A2> static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(A1, A2), const Class_state& state) {
 				return export_as(interp, name, arg2<A1, A2>::subroutine, constructor_info(fptr, state));
 			}
-			template<typename A1, typename A2, typename A3> static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(A1, A2, A3), Class_state& state) {
+			template<typename A1, typename A2, typename A3> static const Code::Value export_cons(interpreter* interp, const char* name, T* (fptr)(A1, A2, A3), const Class_state& state) {
 				return export_as(interp, name, arg3<A1, A2, A3>::subroutine, constructor_info(fptr, state));
 			}
 		};
@@ -521,6 +533,9 @@ namespace perl {
 		Package(interpreter*, SV*, bool = false);
 		const std::string& get_name() const;
 		operator const std::string&() const;
+		Scalar::Temp scalar(const char*) const;
+		Array::Temp array(const char*) const;
+		Hash::Temp hash(const char*) const;
 		
 		template<typename T> Code::Value export_sub(const char* name, const T& func) {
 			return implementation::export_sub(interp, (package_name + "::" + name).c_str(), func);
@@ -533,7 +548,7 @@ namespace perl {
 		template<typename T> void export_method(const char* name, const T& func) {
 			implementation::export_method(interp, (package_name + "::" + name).c_str(), func);
 		}
-		template<typename T, typename U> void export_constructor(const char* name, const U& constructor, implementation::Class_state& state) {
+		template<typename T, typename U> void export_constructor(const char* name, const U& constructor, const implementation::Class_state& state) {
 			implementation::constructor_exporter<T>::export_cons(interp, (package_name + "::" + name).c_str(), constructor, state);
 		}
 	};
@@ -575,7 +590,7 @@ namespace perl {
 		};
 		MGVTBL* get_object_vtbl(const std::type_info& type, int (*destruct_ptr)(interpreter*, SV*, MAGIC*));
 
-		void register_type(interpreter*, Class_state&);
+		Class_state& register_type(interpreter*, const char*, const std::type_info&, MGVTBL*, bool, bool);
 	}
 
 	template<typename A1 = implementation::null_type, typename A2 = implementation::null_type, typename A3 = implementation::null_type, typename A4 = implementation::null_type, typename A5 = implementation::null_type> struct init {
@@ -592,9 +607,8 @@ namespace perl {
 		void initialize(bool _is_persistent, bool _use_hash) {
 			SV* stash = reinterpret_cast<SV*>(package.stash);
 			if (! implementation::has_magic_string(package.interp, stash)) {
-				implementation::Class_state info(package.get_name().c_str(), typeid(T), implementation::get_object_vtbl(typeid(T), implementation::destructor<T>), _is_persistent, _use_hash);
-				implementation::set_magic_object(package.interp, stash, info);
-				implementation::register_type(package.interp, info);
+				const State& info= implementation::register_type(package.interp, package.get_name().c_str(), typeid(T), implementation::get_object_vtbl(typeid(T), implementation::destructor<T>), _is_persistent, _use_hash);
+				implementation::set_magic_string(package.interp, stash, &info, 0);
 			}
 		}
 		Class(const implementation::Class_temp& other) : package(other.package) {
@@ -624,6 +638,12 @@ namespace perl {
 		bool& is_persistent() {
 			return get_class_data().is_persistent;
 		}
+		void add_parent(const Class<T>& parent) {
+			const std::set<const std::type_info*>& parents = parent.get_class_data().family;
+			get_class_data().family.insert(parents.begin(), parents.end());
+			package.array("ISA").push(parent.get_name());
+		}
+		void add_parent(const char* parent_name); //TODO
 	};
 
 

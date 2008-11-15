@@ -34,7 +34,7 @@ namespace perl {
 
 		SV* make_magic_object(interpreter* interp, void* obj, const Class_state& state, bool owns) {
 			SV* const referee = state.use_hash ? reinterpret_cast<SV*>(newHV()) : newSV(0);
-			Object_buffer buffer(obj, owns);
+			Object_buffer buffer(obj, state.family, owns);
 			sv_magicext(referee, NULL, PERL_MAGIC_ext, state.magic_table, reinterpret_cast<const char*>(&buffer), sizeof buffer);
 			SV* const ret = newRV_noinc(referee);
 			return sv_bless(ret, gv_stashpv(state.classname, true));
@@ -76,15 +76,22 @@ namespace perl {
 			croak("%s\n", message);
 		}
 
-		static std::map<const std::type_info*, Class_state*> typemap; //FIXME should be interpreter specific
+		static boost::ptr_map<const std::type_info*, Class_state> typemap; //FIXME should be interpreter specific
 
-		void register_type(interpreter* interp, Class_state& state) {
-			const std::type_info* key = &state.type;
-			if (typemap.find(key) != typemap.end() && typemap[key]->magic_table != state.magic_table) {
-				throw Runtime_exception("Can't register type over another type");
+		Class_state& register_type(interpreter* interp, const char* classname, const std::type_info& type, MGVTBL* magic_table, bool is_persistent, bool use_hash) {
+			const std::type_info* key = &type;
+			if (typemap.find(key) != typemap.end()) {
+				if (typemap.at(key).magic_table != magic_table) {
+					return typemap.at(key);
+				}
+				else {
+					throw Runtime_exception("Can't register type over another type");
+				}
 			}
 			else {
-				typemap.insert(make_pair(key, &state));
+				Class_state* ret = new Class_state(classname, type, magic_table, is_persistent, use_hash);
+				typemap.insert(key, ret);
+				return *ret;
 			}
 		}
 
@@ -110,7 +117,7 @@ namespace perl {
 			key.append(reinterpret_cast<const char*>(&address), sizeof(void*));
 			SV** entry = hv_fetch(PL_modglobal, key.data(), key.length(), 0);
 			if (entry == NULL || !SvROK(*entry)) {
-				return store_in_cache_impl(interp, address, *typemap[&info], false);
+				return store_in_cache_impl(interp, address, typemap.at(&info), false);
 			}
 			return *entry;
 		}

@@ -50,7 +50,7 @@ $(LIBTAP): source/tap++.C headers/tap++.h
 blib/%.o: source/%.C 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-t/%.t: t/%.C
+t/%.t: t/%.C $(LIB)
 	$(CXX) $(ACXXFLAGS) -Lblib -lperl++ -ltap++ -o $@ $< 
 
 source/evaluate.C: source/evaluate.pl
@@ -59,10 +59,10 @@ source/evaluate.C: source/evaluate.pl
 headers/config.h: source/config.pre
 	cpp $(PERLCXX) $< > $@
 
-blib/combined: examples/combined.C
+blib/combined: examples/combined.C $(LIB)
 	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
 
-testbuild: $(LIB) $(TEST_GOALS)
+testbuild: $(TEST_GOALS)
 
 test: testbuild
 	@echo run_tests.pl $(TEST_GOALS)
