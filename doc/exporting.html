@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">  
+<head>
+	<title>Exporting using libperl++</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<style type="text/css">
+		code {
+			white-space: pre;
+			display: block;
+			margin: 1em 0em;
+		}
+	</style >
+</head>
+<body>
+<h1>Exporting using libperl++</h1>
+
+<p>libperl++ can export all kind of C++ types. First of all there are primitives such as int and std::string. These can be exported using
+
+<code>interpreter universe;
+std::string status;
+universe.export_var("Module::status", status);</code>
+Now status and universe will be synchronized. Simple and effective.</p>
+
+<p>Next there are functions. These aren&apos;t much harder
+<code>extern double atan2(double, double);
+universe.export_sub("atan2", atan2);</code>
+
+Again, it just does what you probably expect it to do. A special case is when the function takes a single array argument
+
+<code>void do_something(Array list) {...}</code>
+
+The Array argument is &apos;slurpy&apos;: it takes all arguments. One interesting aspect of this is that just like with @_ the elements can be written to if they were lvalues, so saying something like this
+
+<code>void do_something(Array list) {
+    list[0] += 2;
+}</code>
+
+Is entirely valid and does what you want it to do.</p>
+
+<p>Lastly there are classes.
+
+<code>Class&lt;foo&gt; class_foo = universe.get_class("Foo");
+class_foo.add(init&lt;int&gt;());
+class_foo.add("bar", &amp;foo::bar);</code>
+
+OK, that may need an explanation.</p>
+
+<p>The first line makes the object wrapping the C++ class <i>foo</i>, it&apos; Perl name is <i>Foo</i><br />
+The second line maps a constructor to the class. The constructor takes a single argument, an integer. Currently constructor overloading is not directly supported.<br />
+The third line exports the member bar. Currently only member functions (methods) are allowed, but I&apos;m expecting to add support for member variables in the near future.</p>
+
+<p>In perl you can now do this:
+
+<code>my $var = Foo-&gt;new;
+$var-&gt;bar("whatever");</code>
+
+and it will do what you want it to do.</p>
+
+<p>Member variables wil use the same syntax on the C++ side, and will be usable from perl as
+<code>$var->baz              # Get variable
+$var->baz("new value") # set value</code></p>
+</body>
+</html>
