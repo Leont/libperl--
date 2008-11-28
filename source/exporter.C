@@ -1,5 +1,5 @@
-#include <XSUB.h>
 #include "internal.h"
+#include <XSUB.h>
 #include "perl++.h"
 
 namespace perl {

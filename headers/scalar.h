@@ -678,15 +678,17 @@ namespace perl {
 
 	const Scalar::Temp convert(const Scalar::Base& val);
 
-	template<typename T> static inline const T convert(const Scalar::Temp& val) {
-		return static_cast<T>(val);
-	}
-	template<> static inline const Raw_string convert<Raw_string>(const Scalar::Temp& val) {
-		return val.operator Raw_string();
-	}
+	namespace {
+		template<typename T> inline const T convert(const Scalar::Temp& val) {
+			return static_cast<T>(val);
+		}
+		template<> inline const Raw_string convert<Raw_string>(const Scalar::Temp& val) {
+			return val.operator Raw_string();
+		}
 
-	template<typename T> static inline const T convert(const Scalar::Base& val) {
-		return convert<T>(convert(val));
+		template<typename T> inline const T convert(const Scalar::Base& val) {
+			return convert<T>(perl::convert(val));
+		}
 	}
 
 	enum compared {

@@ -199,11 +199,11 @@ namespace TAP {
 			/*TODO*/\
 		}\
 		catch(const std::exception& e) {\
-			TAP::fail(_current_message);\
+			if(_current_message) TAP::fail(_current_message);\
 			diag("Got error: ", e.what());\
 		}\
 		catch (...) {\
-			TAP::fail(_current_message);\
+			if(_current_message) TAP::fail(_current_message);\
 		}\
 		return TAP::exit_status();\
 	}

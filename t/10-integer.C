@@ -1,5 +1,6 @@
 #include "perl++.h"
 #include "tap++.h"
+#include <climits>
 
 using namespace perl;
 using namespace TAP;

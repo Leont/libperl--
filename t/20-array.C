@@ -2,6 +2,7 @@
 #include "tap++.h"
 #include "lambda.h"
 #include <algorithm>
+#include <climits>
 
 using namespace perl;
 using namespace TAP;
@@ -126,7 +127,7 @@ int main(int argc, char** argv) {
 	ok(forties.notall(_1 < 48), "forties.notall(_1 < 49");
 
 	is_convertible<Ref<Array>, Ref<Any> >("Ref<Array> is convertible into a Ref<Any>");
-	is_inconvertible<Ref<Any>, Ref<Array> >("Ref<Any> is convertible into a Ref<Array>");//XXX
+	is_inconvertible<Ref<Any>, Ref<Array> >("Ref<Any> is not convertible into a Ref<Array>");//XXX
 	is_convertible<Scalar::Temp, Ref<Array> >("Ref<Array> is convertible into a Ref<Any>");
 	is_inconvertible<Ref<Array>, Ref<Hash> >("Ref<Array> is not convertible into a Ref<Hash>");
 

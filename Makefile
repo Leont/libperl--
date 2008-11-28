@@ -50,7 +50,7 @@ $(LIBTAP): source/tap++.C headers/tap++.h
 blib/%.o: source/%.C 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-t/%.t: t/%.C $(LIB)
+t/%.t: t/%.C $(LIB) $(LIBTAP)
 	$(CXX) $(ACXXFLAGS) -Lblib -lperl++ -ltap++ -o $@ $< 
 
 source/evaluate.C: source/evaluate.pl
