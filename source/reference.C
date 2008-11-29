@@ -69,7 +69,7 @@ namespace perl {
 		/*
 		 * Class Ref<Array>::Value
 		 */
-		Ref<Array>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Array>(_interp, _handle) {
+		Ref<Array>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Nonscalar_base<Array>(_interp, _handle) {
 		}
 		Scalar::Temp Ref<Array>::Value::operator[](key_type index) const {
 			return operator*()[index];
@@ -82,7 +82,7 @@ namespace perl {
 		/*
 		 * Class Ref<Hash>::Value
 		 */
-		Ref<Hash>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Hash>(_interp, _handle) {
+		Ref<Hash>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Nonscalar_base<Hash>(_interp, _handle) {
 		}
 		Scalar::Temp Ref<Hash>::Value::operator[](Raw_string key) const {
 			return operator*()[key];
@@ -98,7 +98,7 @@ namespace perl {
 		/*
 		 * Class Ref<Code>::Value
 		 */
-		Ref<Code>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Code>(_interp, _handle) {
+		Ref<Code>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Nonscalar_base<Code>(_interp, _handle) {
 		}
 
 		bool Ref<Code>::Value::is_compatible_type(const Scalar::Base& var) {
@@ -112,7 +112,7 @@ namespace perl {
 		/*
 		 * Class Ref<Glob>::Value
 		 */
-		Ref<Glob>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Ref_specialized<Glob>(_interp, _handle) {
+		Ref<Glob>::Value::Nonscalar(interpreter* _interp, SV* _handle) : Nonscalar_base<Glob>(_interp, _handle) {
 		}
 
 		bool Ref<Glob>::Value::is_compatible_type(const Scalar::Base& var) {

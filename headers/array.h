@@ -385,7 +385,7 @@ namespace perl {
 			/*
 			 * Class Ref<Array>::Value
 			 */
-			template<> class Nonscalar<Array> : public Ref_specialized<Array> {
+			template<> class Nonscalar<Array> : public Nonscalar_base<Array> {
 				protected:
 				Nonscalar(interpreter*, SV*);
 				public:

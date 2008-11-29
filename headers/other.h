@@ -99,7 +99,7 @@ namespace perl {
 				typedef GV* raw_type;
 			};
 
-			template<> class Nonscalar<Glob> : public Ref_specialized<Glob> {
+			template<> class Nonscalar<Glob> : public Nonscalar_base<Glob> {
 				protected:
 				Nonscalar(interpreter*, SV*);
 				public:
@@ -111,7 +111,7 @@ namespace perl {
 				typedef IO* raw_type;
 			};
 
-			template<> class Nonscalar<Handle> : public Ref_specialized<Handle> {
+			template<> class Nonscalar<Handle> : public Nonscalar_base<Handle> {
 				protected:
 				Nonscalar(interpreter*, SV*);
 				public:
@@ -123,7 +123,7 @@ namespace perl {
 				typedef REGEXP* raw_type;
 			};
 
-			template<> class Nonscalar<perl::Regex> : public Ref_specialized<perl::Regex> {
+			template<> class Nonscalar<perl::Regex> : public Nonscalar_base<perl::Regex> {
 				protected:
 				Nonscalar(interpreter*, SV*);
 				public:

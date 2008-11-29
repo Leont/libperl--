@@ -113,22 +113,11 @@ namespace perl {
 				interpreter* const interp = var.interp;
 				return newRV(var.get_SV(false));
 			}
+			bool is_scalar_type(const Any::Temp& ref) {
+				return SvOK(reinterpret_cast<SV*>(ref.handle)) || implementation::is_this_type(ref, SVt_NULL);
+			}
+
 		}
-	}
-
-	/*
-	 * Class Scalar
-	 */
-
-	Scalar::Scalar(const Scalar& other) : Parent(other) {
-	}
-	Scalar::Scalar(const Scalar::Base& other) : Parent(other, override()) {
-	}
-	Scalar::Scalar(const Scalar::Temp& other) : Parent(other) {
-	}
-
-	bool Scalar::is_storage_type(const Any::Temp& ref) {
-		return SvOK(reinterpret_cast<SV*>(ref.handle)) || implementation::is_this_type(ref, SVt_NULL);
 	}
 
 	const Scalar::Temp convert(const Scalar::Base& val) {

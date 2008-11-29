@@ -143,7 +143,7 @@ namespace perl {
 			/*
 			 * Class Ref<Hash>::Value
 			 */
-			template<> class Nonscalar<Hash> : public Ref_specialized<Hash> {
+			template<> class Nonscalar<Hash> : public Nonscalar_base<Hash> {
 				protected:
 				Nonscalar(interpreter*, SV*);
 				public:

@@ -22,7 +22,13 @@ namespace perl {
 		};
 	};
 
-	class Scalar;
+	namespace implementation {
+		namespace scalar {
+			class Value;
+			template<typename T> class Variable;
+		}
+	}	
+	typedef implementation::scalar::Variable<implementation::scalar::Value> Scalar;
 
 	namespace implementation {
 		bool is_this_type(const Any::Temp& var, unsigned int type);
@@ -87,6 +93,7 @@ namespace perl {
 			void mortalize(const scalar::Base&);
 			void share(const scalar::Base&);
 			SV* take_ref(const scalar::Base&);
+			bool is_scalar_type(const Any::Temp&);
 		}
 
 		namespace scalar {
@@ -619,27 +626,26 @@ namespace perl {
 			 * Class Variable
 			 * Handles ownership in scalar types. 
 			 */
-			template<typename T> class Variable : public T {
+			template<typename T> class Ownership  : public T {
 				public:
 				typedef T Value;
 				typedef Temp_template<Value> Temp;
-				Variable(const Variable& other) : Value(other.interp, T::copy(other)) {
-				}
-				Variable(const Value& other) : Value(other.interp, T::copy(other)) {
-				}
-				Variable(const Temp& other) : Value(other.interp, (other.has_ownership() ? other.release() : T::copy(other))) {
-				}
-				template<typename U> Variable(const Temp_template<U>& other, typename boost::enable_if<typename boost::is_same<U, scalar::Value>::type, int>::type = 0) : Value(other.interp, T::copy(other)) { //TODO move?
-				}
 				protected:
-				Variable(const scalar::Base& other, const override&) : Value(other.interp, T::copy(other)) {
+				Ownership(const Ownership& other) : Value(other.interp, T::copy(other)) {
 				}
-				template<typename U> Variable(const Temp_template<U>& other, const override&) : Value(other.interp, (other.has_ownership() ? other.release() : T::copy(other))) {
+				Ownership(const Value& other) : Value(other.interp, T::copy(other)) {
 				}
-				public:
-				~Variable() {
+				Ownership(const Temp& other) : Value(other.interp, (other.has_ownership() ? other.release() : T::copy(other))) {
+				}
+
+				Ownership(const scalar::Base& other, const override&) : Value(other.interp, T::copy(other)) {
+				}
+				template<typename U> Ownership(const Temp_template<U>& other, const override&) : Value(other.interp, (other.has_ownership() ? other.release() : T::copy(other))) {
+				}
+				~Ownership() {
 					helper::decrement(*this);
 				}
+				public:
 				void share() {
 					helper::share(*this);
 				}
@@ -649,30 +655,38 @@ namespace perl {
 					return scalar::Temp_template<typename reference::Scalar_ref<T> >(T::interp, helper::take_ref(*this), true);
 				}
 			};
+			template<typename T> class Variable : public Ownership<T> {
+				public:
+				using Ownership<T>::operator=;
+				Variable(const Variable& other) : Ownership<T>(other) {
+				}
+				Variable(const typename Ownership<T>::Value& other) : Ownership<T>(other) {
+				}
+				Variable(const typename Ownership<T>::Temp& other) : Ownership<T>(other) {
+				}
+				Variable(const scalar::Temp& other) : Ownership<T>(other, override()) {
+				}
+			};
+			/* Class Scalar
+			 * Holds a Scalar variable. Can do anything a Scalar::Value can, with the difference that this is
+			 * an owning datatype.
+			 */
+			template<> class Variable<Value> : public Ownership<Value> {
+				public:
+				typedef Base Base;
+				using Ownership<Value>::operator=;
 
+				Variable(const Variable& other) : implementation::scalar::Ownership<implementation::scalar::Value>(other) {
+				}
+				Variable(const Base& other) : implementation::scalar::Ownership<implementation::scalar::Value>(other, override()) {
+				}
+				Variable(const Temp& other) : implementation::scalar::Ownership<implementation::scalar::Value>(other) {
+				}
+				template<typename T> Variable(const Temp_template<T>& other) : implementation::scalar::Ownership<implementation::scalar::Value>(other, override()) {
+				}
+			};
 		}
 	}
-
-	/* Class Scalar
-	 * Holds a Scalar variable. Can do anything a Scalar::Value can, with the difference that this is
-	 * an owning datatype.
-	 */
-	class Scalar : public implementation::scalar::Variable<implementation::scalar::Value> {
-		typedef implementation::scalar::Variable<implementation::scalar::Value> Parent;
-		public:
-		typedef implementation::scalar::Base Base;
-		typedef implementation::scalar::Value Value;
-		typedef implementation::scalar::Temp Temp;
-		using Parent::operator=;
-
-		Scalar(const Scalar&);
-		Scalar(const Scalar::Base&);
-		Scalar(const Scalar::Temp&);
-		template<typename T> Scalar(const implementation::scalar::Temp_template<T>& other) : Parent(other, override()) {
-		}
-
-		static bool is_storage_type(const Any::Temp&);
-	};
 
 	std::ostream& operator<<(std::ostream& stream, const Scalar::Base&);
 

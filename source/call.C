@@ -1,10 +1,10 @@
-#define INCLUDE_XSUB
 #include "internal.h"
+#include <XSUB.h>
 #include "perl++.h"
 #include "regex_impl.h"
 
 #ifndef FLAG_UNPACK_DO_UTF8
-// perl fails to export unpack flags. This is not very future-proof, but it works.
+// XXX: perl fails to export unpack flags. This is not very future-proof, but it works.
 #define FLAG_UNPACK_DO_UTF8   0x08
 #endif
 
