@@ -6,7 +6,7 @@ namespace perl {
 	 * Class Undefined::Value
 	 */
 	
-	Undefined::Value::Undefined(interpreter* _interp, SV* _value) : Scalar::Base(interp, _value) {
+	Undefined::Value::Undefined(interpreter* _interp, SV* _value) : Scalar::Base(_interp, _value) {
 	}
 	bool Undefined::Value::is_compatible_type(const Scalar::Base& val) {
 		return SvTYPE(val.get_SV(false)) == SVt_NULL;
@@ -50,19 +50,19 @@ namespace perl {
 		sv_inc(get_SV(true));
 		return *this;
 	}
-	Integer::Value Integer::Value::operator++(int) {
+	Integer::Temp Integer::Value::operator++(int) {
 		const int ret = int_value();
 		++*this;
-		return perl::Integer::Value(interp, newSViv(ret));
+		return perl::Integer::Temp(interp, newSViv(ret), true);
 	}
 	Integer::Value& Integer::Value::operator--() {
 		sv_dec(get_SV(true));
 		return *this;
 	}
-	Integer::Value Integer::Value::operator--(int) {
+	Integer::Temp Integer::Value::operator--(int) {
 		const int ret = int_value();
 		--*this;
-		return perl::Integer::Value(interp, newSViv(ret));
+		return perl::Integer::Temp(interp, newSViv(ret), true);
 	}
 
 	Integer::Value::operator IV() const {
@@ -133,19 +133,19 @@ namespace perl {
 		sv_inc(get_SV(true));
 		return *this;
 	}
-	UV Uinteger::Value::operator++(int) {
+	Uinteger::Temp Uinteger::Value::operator++(int) {
 		const UV ret = unsigned_value();
 		++*this;
-		return ret;
+		return perl::Uinteger::Temp(interp, newSVuv(ret), true);
 	}
 	Uinteger::Value& Uinteger::Value::operator--() {
 		sv_dec(get_SV(true));
 		return *this;
 	}
-	UV Uinteger::Value::operator--(int) {
+	Uinteger::Temp Uinteger::Value::operator--(int) {
 		const UV ret = unsigned_value();
 		--*this;
-		return ret;
+		return perl::Uinteger::Temp(interp, newSVuv(ret), true);
 	}
 
 	Uinteger::Value::operator UV() const {

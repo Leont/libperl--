@@ -31,9 +31,9 @@ namespace perl {
 			Integer& operator%=(IV);
 
 			Integer& operator++();
-			Integer operator++(int);
+			scalar::Temp_template<Integer> operator++(int);
 			Integer& operator--();
-			Integer operator--(int);
+			scalar::Temp_template<Integer> operator--(int);
 
 			bool operator==(const Integer&) const;
 			
@@ -70,9 +70,9 @@ namespace perl {
 			Uinteger& operator^=(UV);
 
 			Uinteger& operator++();
-			UV operator++(int);
+			scalar::Temp_template<Uinteger> operator++(int);
 			Uinteger& operator--();
-			UV operator--(int);
+			scalar::Temp_template<Uinteger> operator--(int);
 
 			bool operator==(const Uinteger&) const;
 			
