@@ -111,6 +111,8 @@ namespace perl {
 				interpreter* const interp;
 				AV* const handle;
 				Value(interpreter*, AV*);
+				~Value() {
+				}
 				public:
 
 				Value& operator=(const Value&);
@@ -247,7 +249,7 @@ namespace perl {
 				const Scalar::Temp max() const;
 				const Scalar::Temp min() const;
 				const Temp shuffled() const;
-				const int sum() const;
+				int sum() const;
 				//Endof TODO
 				template<typename T> bool any(const T& functor) const {
 					const key_type size = length();

@@ -410,7 +410,7 @@ namespace perl {
 			const Class_state& class_state;
 			constructor_info(void* _fptr, const Class_state& _state) : fptr(_fptr), class_state(_state) {
 			}
-			template<typename T> constructor_info(T* _fptr, const Class_state& _state, bool _persistent = false) : fptr(reinterpret_cast<void*>(_fptr)), class_state(_state) {
+			template<typename T> constructor_info(T* _fptr, const Class_state& _state) : fptr(reinterpret_cast<void*>(_fptr)), class_state(_state) {
 			}
 			template<typename T> T get() const {
 				return reinterpret_cast<T>(fptr);
@@ -502,7 +502,7 @@ namespace perl {
 			}
 		};
 
-		template<typename T> int destructor(interpreter* interp, SV* var, MAGIC* magic) {
+		template<typename T> int destructor(interpreter* , SV* , MAGIC* magic) {
 			Object_buffer& tmp = *get_magic_ptr<Object_buffer>(magic);
 			if (tmp.owns) {
 				delete tmp.get<T>();
@@ -626,7 +626,7 @@ namespace perl {
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const char* name, const init<A1, A2, A3, A4, A5>&) {
 			typedef typename implementation::constructor<T, A1, A2, A3, A4, A5> constructor;
 			State& state = get_class_data();
-			package.export_constructor<T>("new", constructor::construct, state);
+			package.export_constructor<T>(name, constructor::construct, state);
 		}
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const init<A1, A2, A3, A4, A5>& foo) {
 			add("new", foo);

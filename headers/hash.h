@@ -32,8 +32,11 @@ namespace perl {
 				public:
 				Value(interpreter*, HV*);
 				Value& operator=(const Value&);
+				protected:
+				~Value() {
+				}
 
-
+				public:
 				const Scalar::Temp operator[](const Raw_string) const;
 				Scalar::Temp operator[](const Raw_string);
 				const Scalar::Temp operator[](const Scalar::Base&) const;

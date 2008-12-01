@@ -18,6 +18,8 @@ namespace perl {
 				protected:
 				typedef Any::Temp Temp;
 				Reference_base(interpreter*, SV*);
+				~Reference_base() {
+				}
 				public:
 				bool is_object() const;
 				bool isa(const char*) const;
@@ -34,6 +36,8 @@ namespace perl {
 			template<typename T> class Nonscalar_base : public Reference_base {
 				protected:
 				Nonscalar_base(interpreter* _interp, SV* value) : Reference_base(_interp, value) {
+				}
+				~Nonscalar_base() {
 				}
 				public:
 				typename type_traits<T>::lvalue operator*() const {
@@ -90,7 +94,7 @@ namespace perl {
 					if (!is_compatible_type(*this)) {
 						throw Cast_exception(cast_error());
 					}
-					const Any::Temp ret = helper::dereference(*this); //XXX unoptimized
+					const Any::Temp ret = helper::dereference(*this); //TODO unoptimized
 					return scalar::Temp_template<T>(ret.interp, reinterpret_cast<SV*>(ret.handle), false);
 				}
 				static const std::string& cast_error() {
@@ -183,7 +187,7 @@ namespace perl {
 		}
 		template<typename U> Ref(const implementation::reference::Nonscalar<U>& other) : Parent(other, override()) {
 		}
-		template<typename U> Ref(const implementation::reference::Scalar_ref<U>& other, typename boost::enable_if<typename boost::is_base_of<Scalar::Base, U>::type, int>::type foo = 0) : Parent(other, override()) { // accept scalar references if T is Any or Scalar, but postpone resolution until it is used.
+		template<typename U> Ref(const implementation::reference::Scalar_ref<U>& other, typename boost::enable_if<typename boost::is_base_of<Scalar::Base, U>::type, int>::type = 0) : Parent(other, override()) { // accept scalar references if T is Any or Scalar, but postpone resolution until it is used.
 		}
 		using Parent::operator=;
 	};

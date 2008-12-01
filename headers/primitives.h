@@ -17,6 +17,8 @@ namespace perl {
 			Integer(const Integer&);
 			protected:
 			Integer(interpreter*, SV*);
+			~Integer() {
+			}
 			public:
 			
 			Integer& operator=(const Integer&);
@@ -51,6 +53,8 @@ namespace perl {
 			Uinteger(const Uinteger&);
 			protected:
 			Uinteger(interpreter*, SV*);
+			~Uinteger() {
+			}
 			public:
 			
 			Uinteger& operator=(const Uinteger&);
@@ -88,6 +92,8 @@ namespace perl {
 			Number(const Number&);
 			protected:
 			Number(interpreter*, SV*);
+			~Number() {
+			}
 			public:
 			
 			Number& operator=(const Number&);
@@ -115,6 +121,8 @@ namespace perl {
 			void no_such_comparator() const;
 			protected:
 			String(interpreter*, SV*);
+			~String() {
+			}
 			public:
 
 			operator const Raw_string() const;

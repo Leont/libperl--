@@ -52,7 +52,7 @@ namespace perl {
 			static boost::ptr_map<func_pair, MGVTBL> magic_cache;
 			func_pair key(get_val, set_val);
 			if (magic_cache.find(key) == magic_cache.end()) {
-				MGVTBL value = {get_val, set_val};
+				MGVTBL value = {get_val, set_val, 0, 0, 0};
 				magic_cache.insert(key, new MGVTBL(value));
 			}
 			return &magic_cache[key];

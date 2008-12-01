@@ -219,7 +219,7 @@ namespace perl {
 		static inline HV* get_stash(const Scalar::Value& value) {
 			SV* const handler = value.get_SV(true);
 			interpreter* const interp = value.interp;
-			return (SvROK(handler) && sv_isobject(handler)) ?  SvSTASH(SvRV(handler)) : gv_stashsv(handler, false);
+			return (SvROK(handler) && sv_isobject(handler)) ? SvSTASH(SvRV(handler)) : gv_stashsv(handler, false);
 		}
 		Stash::Stash(const Scalar::Value& value) : interp(value.interp), stash(get_stash(value)) {
 		}

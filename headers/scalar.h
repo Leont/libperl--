@@ -76,6 +76,8 @@ namespace perl {
 
 				protected:
 				static SV* copy_sv(const Base&);
+				~Base() {
+				}
 				public:
 				static bool is_compatible_type(const scalar::Base&); // NOOP
 				static const std::string& cast_error();
@@ -116,7 +118,7 @@ namespace perl {
 					other.owns = false;
 				}
 				template<typename U> friend class Temp_template;
-				template<typename U> Temp_template(const Temp_template<U>& other, typename boost::enable_if<typename accept_anything<U>::type, int>::type selector = 1) : Base_type(other.interp, other.get_SV(false)), owns(other.owns), transferable(other.transferable) {
+				template<typename U> Temp_template(const Temp_template<U>& other, typename boost::enable_if<typename accept_anything<U>::type, int>::type = 1) : Base_type(other.interp, other.get_SV(false)), owns(other.owns), transferable(other.transferable) {
 					other.owns = false;
 				}
 				template<typename U> Temp_template(const Temp_template<U>& other, const override&) : Base_type(other.interp, other.get_SV(false)), owns(other.owns), transferable(other.transferable) {
@@ -212,6 +214,8 @@ namespace perl {
 			Perl_stack(interpreter* _interp);
 			interpreter* const interp;
 			SV** sp; //very non-const ;-)
+			~Perl_stack() {
+			}
 			public:
 			void push(IV);
 			void push(UV);
@@ -318,6 +322,9 @@ namespace perl {
 			}
 			typedef typename implementation::return_type<T>::scalar_type scalar_type;
 			typedef typename implementation::return_type<T>::array_type array_type;
+			protected:
+			~function_calling() {
+			}
 			public:
 			const scalar_type operator()() const {
 				return implementation::Call_stack(self().interp).sub_scalar(self());
@@ -372,6 +379,9 @@ namespace perl {
 			typedef typename implementation::return_type<T>::scalar_type scalar_type;
 			typedef typename implementation::return_type<T>::array_type array_type;
 			typedef typename implementation::return_type<T>::code_type code_type;
+			protected:
+			~method_calling() {
+			}
 			public:
 			bool can(Raw_string name) const {
 				return Stash(self()).can(name);
@@ -456,8 +466,6 @@ namespace perl {
 		class String;
 
 		namespace scalar {
-			template<typename T> class Assignable;
-
 			/*
 			 * Class Scalar::Value
 			 * This class can be converted into anything any scalar can be converted in. If the the convertion 
@@ -466,6 +474,8 @@ namespace perl {
 			class Value: public Base, public implementation::function_calling<Value>, public implementation::method_calling<Value> {
 				protected:
 				Value(interpreter*, SV*);
+				~Value() {
+				}
 				public:
 				Value& operator=(const Base&);
 				Value& operator=(const Value&);
