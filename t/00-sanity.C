@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 	//TODO: more tests on Raw_string
 
 	TRY_DECL(Interpreter universe, "instantiating interpreter");
-	diag("so far so good...");
+	note("so far so good...");
 
 	ok(universe.value_of(1), "value_of(1)");
 	not_ok(universe.value_of(0), "value_of(0)");

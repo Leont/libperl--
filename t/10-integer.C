@@ -5,7 +5,7 @@
 using namespace perl;
 using namespace TAP;
 
-int main(int argc, char** argv) {
+int main() {
 	plan(19);
 	Interpreter universe;
 	Integer value = universe.value_of(1);
@@ -24,29 +24,29 @@ int main(int argc, char** argv) {
 	ok(value * 1, "value * 1");
 	ok(value / 1, "value / 1");
 
-	diag("++value");
+	note("++value");
 	++value;
 	ok(value, "value");
 	is(value, 2, "value == 2");
 	not_ok(value != 2, "not: value != 2");
 
-	diag("--value");
+	note("--value");
 	--value;
 	is(value, 1, "value == 1");
 
-	diag("value++");
+	note("value++");
 	value++;
 	is(value, 2, "value == 2");
 
-	diag("value -= 3");
+	note("value -= 3");
 	value -= 3;
 	is(value, -1, "value == -1");
 
-	diag("value *= -1");
+	note("value *= -1");
 	value *= -1;
 	is(value, 1, "value == 1");
 
-	diag("value = LONG_MAX");
+	note("value = LONG_MAX");
 	value = LONG_MAX;
 	ok(value, "value");
 	return exit_status();

@@ -41,14 +41,14 @@ int main(int argc, char** argv) {
 	is(hash.keys().length(), 2u, "hash.keys().length() == 2");
 	ok(hash.scalar(), "hash.scalar()");
 
-	diag("hash.clear()");
+	note("hash.clear()");
 	hash.clear();
 	is(hash.length(), 0u, "hash.length() == 0");
 
 	hash.insert("foo", universe.value_of("bar"));
 	hash.insert("baz", universe.value_of("quz"));
 	is(hash.length(), 2u, "hash.length() == 2");
-	diag("hash.undefine()");
+	note("hash.undefine()");
 	hash.undefine();
 	is(hash.length(), 0u, "hash.length() == 0");
 
@@ -93,14 +93,14 @@ int main(int argc, char** argv) {
 	is(hash.keys().length(), 2u, "hash.keys().length() == 2");
 	ok(hash.scalar(), "hash.scalar()");
 
-	diag("hash.clear()");
+	note("hash.clear()");
 	hash.clear();
 	is(hash.length(), 0u, "hash.length() == 0");
 
 	hash.insert(foo, universe.value_of("bar"));
 	hash.insert(baz, universe.value_of("quz"));
 	is(hash.length(), 2u, "hash.length() == 2");
-	diag("hash.undefine()");
+	note("hash.undefine()");
 	hash.undefine();
 	is(hash.length(), 0u, "hash.length() == 0");
 

@@ -15,14 +15,14 @@ int main(int argc, char** argv) {
 	is(value, std::string("test"), "value = std::string(\"test\")");
 	is(value.length(), 4u, "length(value) == 4");
 
-	diag("value.replace(2, 2, value)");
+	note("value.replace(2, 2, value)");
 	value.replace(2, 2, value);
 	is(value, "tetest", "value = \"tetest\"");
-	diag("value.insert(2, \"st\");");
+	note("value.insert(2, \"st\")");
 	value.insert(2, "st");
 	is(value, "testtest", "value == \"testest\"");
 
-	diag("value = \"test\"");
+	note("value = \"test\"");
 	value = "test";
 	is(value, "test", "value == \"test\"");
 

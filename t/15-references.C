@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
 	isnt(*value, 2.0f, "*value != 2.0f");
 
 	*value = 2;
-	diag("*value = 2");
+	note("*value = 2");
 
 	is(*value, 2, "*value == 2");
 

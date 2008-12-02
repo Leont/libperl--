@@ -27,16 +27,16 @@ int main(int argc, char** argv) {
 	ok(value * 1, "value * 1");
 	ok(value / 1, "value / 1");
 
-	diag("value -= 3");
+	note("value -= 3");
 	value -= 3;
 	is(value, -2, "value == -2");
 	isnt(value, 1, "value != 1");
 
-	diag("value *= -1");
+	note("value *= -1");
 	value *= -1;
 	is(value, 2, "value == 2");
 
-	diag("value = MAXDOUBLE");
+	note("value = MAXDOUBLE");
 	value = MAXDOUBLE;
 	ok(value, "value");
 	return exit_status();

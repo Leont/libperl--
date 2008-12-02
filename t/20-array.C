@@ -14,42 +14,42 @@ int main(int argc, char** argv) {
 	is(array.length(), 0u, "array.length() == 0");
 
 	array.push(1);
-	diag("array.push(1)");
+	note("array.push(1)");
 	is(array[0], 1, "array[0] == 1");
 	is(array[0], "1", "array[0] == \"1\"");
 
 	++array[0];
-	diag("++array[0]");
+	note("++array[0]");
 	is(array[0], 2, "array[0] == 1");
 	is(array[0], "2", "array[0] == \"1\"");
 
-	diag("array.push(UINT_MAX)");
+	note("array.push(UINT_MAX)");
 	array.push(UINT_MAX);
 	is(array[1], UINT_MAX, "array[1] == UINT_MAX");
 	ok(array[1] > static_cast<UV>(INT_MAX), "array[1] > (unsigned)INT_MAX");
 	is(array[1], -1, "array[1] == -1");
 
 	array.push(300E30);
-	diag("array.push(300E30)");
+	note("array.push(300E30)");
 	is(array[2], 300E30, "array[2] == 300E30");
 
 	array.push("test");
-	diag("array.push(\"test\")");
+	note("array.push(\"test\")");
 	is(array[3], "test", "array[3] == \"test\"");
 
 	array.push(Raw_string("test"));
-	diag("array.push(Raw_string(\"test\"))");
+	note("array.push(Raw_string(\"test\"))");
 	is(array[4], "test", "array[4] == \"test\"");
 
 	array.push(universe.value_of(1));
-	diag("array.push(universe.value_of(1))");
+	note("array.push(universe.value_of(1))");
 	is(array[5], 1, "array[4] == 1");
 
 	array.clear();
-	diag("array.clear()");
+	note("array.clear()");
 	is(array.length(), 0u, "array.length() == 0");
 	array.push(1, UINT_MAX, 300E30, "test", universe.undef());
-	diag("array.push(1, UINT_MAX, 300E30, \"test\")");
+	note("array.push(1, UINT_MAX, 300E30, \"test\")");
 
 	is(array[0], 1, "array[0] == 1");
 	is(array[1], UINT_MAX, "array[1] == UINT_MAX");
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 	ok(!array[4].defined(), "not: defined array[4]");
 
 	array.push(array);
-	diag("array.push(array)");
+	note("array.push(array)");
 	is(array[5], 1, "array[5] == 1");
 	is(array[6], UINT_MAX, "array[6] == UINT_MAX");
 	is(array[7], 300E30, "array[7] == 300E30");
@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 	array.unshift(300E30);
 	array.unshift(UINT_MAX);
 	array.unshift(1);
-	diag("array.unshift(1, UINT_MAX, 300E30, \"test\")");
+	note("array.unshift(1, UINT_MAX, 300E30, \"test\")");
 
 	is(array[0], 1, "array[0] == 1");
 	is(array[1], UINT_MAX, "array[1] == UINT_MAX");
@@ -81,17 +81,17 @@ int main(int argc, char** argv) {
 
 	ok(array.exists(3), "exists array[3]");
 	String string = array.remove(3);
-	diag("string = array.remove(3)");
+	note("string = array.remove(3)");
 	ok(string.length(), "string.length()");
 	ok(!array.exists(3), "not: exists array[3]");
 	is(array.length(), 3u, "array.length() == 3");
 
 	array.length() = 2;
-	diag("array.length() = 2");
+	note("array.length() = 2");
 	ok(!array.exists(2), "not: exists array[2]");
 	is(array.length(), 2u, "array.length() == 2");
 	array.extend(4);
-	diag("array.extend(4)");
+	note("array.extend(4)");
 	is(array.length(), 2u, "array.length == 2");
 
 	Array numbers = universe.list(1, 2, 3, 4);
@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
 	}
 
 	Array big = squares.grep(_1 > 8);
-	diag("Array big = squares.grep(_1 > 8)");
+	note("Array big = squares.grep(_1 > 8)");
 	is(big.length(), 2u, "big.length == 2");
 	is(big[0], 9, "big[0] == 9");
 
@@ -110,11 +110,11 @@ int main(int argc, char** argv) {
 	is(doubles[3], 8, "numbers.map(_1 * 2)[3] == 8");
 
 	IV sum = squares.reduce(_1 + _2, 0);
-	diag("sum = squares.reduce(_1 + _2, 0u)");
+	note("sum = squares.reduce(_1 + _2, 0u)");
 	is(sum, 30, "sum == 30");
 
 	big.each(_1 *= 2);
-	diag("big.each(_1 *= 2)");
+	note("big.each(_1 *= 2)");
 	is(big[0], 18, "big[0] == 18");
 
 	const Array forties = universe.list(46, 47, 48, 49);
@@ -135,14 +135,14 @@ int main(int argc, char** argv) {
 
 	is(ref[0], 46, "ref[0] == 46");
 	Array fifties = *ref;
-	diag("++ref[0]");
+	note("++ref[0]");
 	++ref[0];
 	is(ref[0], 47, "ref[0] == 47");
 	is(forties[0], 47, "forties[0] == 47");
 	is(fifties[0], 46, "fiftes[0] == 46");
 
 	*ref = fifties;
-	diag("*ref = fifties");
+	note("*ref = fifties");
 	is(ref[0], 46, "ref[0] == 46");
 	is(forties[0], 46, "forties[0] == 46");
 

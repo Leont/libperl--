@@ -9,68 +9,89 @@ namespace TAP {
 	namespace details {
 		struct skip_all_type {};
 		struct no_plan_type {};
-		extern std::ostream* diag_out;
+		extern std::ostream* output;
+		extern std::ostream* error;
 	}
 	extern const details::skip_all_type skip_all;
 	extern const details::no_plan_type no_plan;
-	void plan(int);
-	void plan(const details::skip_all_type&, const std::string& = "");
-	void plan(const details::no_plan_type&);
+	void plan(int) throw();
+	void plan(const details::skip_all_type&, const std::string& = "") throw();
+	void plan(const details::no_plan_type&) throw();
 
-	int planned();
-	int encountered();
+	int planned() throw();
+	int encountered() throw();
 
-	bool ok(bool, const std::string& = "");
-	bool not_ok(bool, const std::string& = "");
+	bool ok(bool, const std::string& = "") throw();
+	bool not_ok(bool, const std::string& = "") throw();
 
-	bool pass(const std::string& = "");
-	bool fail(const std::string& = "");
+	bool pass(const std::string& = "") throw();
+	bool fail(const std::string& = "") throw();
 
-	void skip(int, const std::string& = "");
-	void bail_out(const std::string& reason);
+	void skip(int, const std::string& = "") throw();
+	void bail_out(const std::string& reason) throw();
 
-	int exit_status();
+	int exit_status() throw();
+	bool summary() throw();
 
-	template<typename T> void diag(const T& first) {
-		*details::diag_out << "# " << first << std::endl;
+	void set_output(std::ostream&) throw();
+	void set_error(std::ostream&) throw();
+
+	template<typename T> void diag(const T& first) throw() {
+		*details::error << "# " << first << std::endl;
 	}
-	template<typename T1, typename T2> void diag(const T1& first, const T2& second) {
-		*details::diag_out << "# " << first << second << std::endl;
+	template<typename T1, typename T2> void diag(const T1& first, const T2& second) throw() {
+		*details::error << "# " << first << second << std::endl;
 	}
-	template<typename T1, typename T2, typename T3> void diag(const T1& first, const T2& second, const T3& third) {
-		*details::diag_out << "# " << first << second << third << std::endl;
+	template<typename T1, typename T2, typename T3> void diag(const T1& first, const T2& second, const T3& third) throw() {
+		*details::error << "# " << first << second << third << std::endl;
 	}
-	template<typename T1, typename T2, typename T3, typename T4> void diag(const T1& first, const T2& second, const T3& third, const T4& fourth) {
-		*details::diag_out << "# " << first << second << third << fourth << std::endl;
+	template<typename T1, typename T2, typename T3, typename T4> void diag(const T1& first, const T2& second, const T3& third, const T4& fourth) throw() {
+		*details::error << "# " << first << second << third << fourth << std::endl;
 	}
-	template<typename T1, typename T2, typename T3, typename T4, typename T5> void diag(const T1& first, const T2& second, const T3& third, const T4& fourth, const T5& fifth) {
-		*details::diag_out << "# " << first << second << third << fourth << fifth << std::endl;
+	template<typename T1, typename T2, typename T3, typename T4, typename T5> void diag(const T1& first, const T2& second, const T3& third, const T4& fourth, const T5& fifth) throw() {
+		*details::error << "# " << first << second << third << fourth << fifth << std::endl;
+	}
+
+	template<typename T> void note(const T& first) throw() {
+		*details::output << "# " << first << std::endl;
+	}
+	template<typename T1, typename T2> void note(const T1& first, const T2& second) throw() {
+		*details::output << "# " << first << second << std::endl;
+	}
+	template<typename T1, typename T2, typename T3> void note(const T1& first, const T2& second, const T3& third) throw() {
+		*details::output << "# " << first << second << third << std::endl;
+	}
+	template<typename T1, typename T2, typename T3, typename T4> void note(const T1& first, const T2& second, const T3& third, const T4& fourth) throw() {
+		*details::output << "# " << first << second << third << fourth << std::endl;
+	}
+	template<typename T1, typename T2, typename T3, typename T4, typename T5> void note(const T1& first, const T2& second, const T3& third, const T4& fourth, const T5& fifth) throw() {
+		*details::output << "# " << first << second << third << fourth << fifth << std::endl;
 	}
 
 	template<typename T, typename U> typename boost::disable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "") {
 		try {
 			bool ret = ok(left == right, message);
 			if (!ret) {
-				diag("Failed test '", message, "'");
-				diag("       Got: ", left);
-				diag("  Expected: ", right);
+				note("Failed test '", message, "'");
+				note("       Got: ", left);
+				note("  Expected: ", right);
 			}
 			return ret;
 		}
 		catch(const std::exception& e) {
 			fail(message);
-			diag("Failed test '", message, "'");
-			diag("Cought exception '", e.what(), "'");
-			diag("       Got: ", left);
-			diag("  Expected: ", right);
+			note("Failed test '", message, "'");
+			note("Cought exception '", e.what(), "'");
+			note("       Got: ", left);
+			note("  Expected: ", right);
 			return false;
 		}
 		catch(...) {
 			fail(message);
-			diag("Failed test '", message, "'");
-			diag("Cought unknown exception");
-			diag("       Got: ", left);
-			diag("  Expected: ", right);
+			note("Failed test '", message, "'");
+			note("Cought unknown exception");
+			note("       Got: ", left);
+			note("  Expected: ", right);
 			return false;
 		}
 	}
@@ -80,38 +101,65 @@ namespace TAP {
 			return ok(left != right, message);
 		}
 		catch(const std::exception& e) {
-			diag("In test ", message);
-			diag("Cought exception: ", e.what());
+			fail(message);
+			note("In test ", message);
+			note("Cought exception: ", e.what());
 			return false;
 		}
 		catch(...) {
-			diag("In test ", message);
-			diag("Cought unknown exception");
+			fail(message);
+			note("In test ", message);
+			note("Cought unknown exception");
 			return false;
 		}
 	}
 
-	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "", double deviation = 0.01) {
+	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "", double epsilon = 0.01) {
 		try {
-			if(2 * fabs(left - right) / (fabs(left) + fabs(right)) < deviation) {
-				pass(message);
-				return true;
+			bool ret = ok(2 * fabs(left - right) / (fabs(left) + fabs(right)) < epsilon);
+			if (!ret) {
+				note("Failed test '", message, "'");
+				note("       Got: ", left);
+				note("  Expected: ", right);
 			}
+			return ret;
 		}
-		catch(...) {}
-		return fail(message);
+		catch(const std::exception& e) {
+			fail(message);
+			note("Failed test '", message, "'");
+			note("Cought exception '", e.what(), "'");
+			note("       Got: ", left);
+			note("  Expected: ", right);
+			return false;
+		}
+		catch(...) {
+			fail(message);
+			note("Failed test '", message, "'");
+			note("Cought unknown exception");
+			note("       Got: ", left);
+			note("  Expected: ", right);
+			return false;
+		}
 	}
 
-	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type isnt(const T& left, const U& right, const std::string& message = "", double deviation = 0.01) {
+	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type isnt(const T& left, const U& right, const std::string& message = "", double epsilon = 0.01) {
 		try {
-			if(2 * fabs(left - right) / (fabs(left) + fabs(right)) > deviation) {
-				pass(message);
-				return true;
-			}
+			bool ret = 2 * fabs(left - right) / (fabs(left) + fabs(right)) > epsilon;
+			ok(ret, message);
+			return ret;
 		}
-		catch(...) {}
-		fail(message);
-		return false;
+		catch(const std::exception& e) {
+			fail(message);
+			note("Failed test '", message, "'");
+			note("Cought exception '", e.what(), "'");
+			return false;
+		}
+		catch(...) {
+			fail(message);
+			note("Failed test '", message, "'");
+			note("Cought unknown exception");
+			return false;
+		}
 	}
 
 	template<typename T, typename U> bool is_convertible(const std::string& message) {
@@ -162,7 +210,7 @@ namespace TAP {
 		}\
 		catch (const std::exception& e) {\
 			TAP::fail(name);\
-			diag("Reported error: ", e.what());\
+			note("Caught exception: ", e.what());\
 		}\
 		catch (...) {\
 			TAP::fail(name);\
@@ -186,10 +234,10 @@ namespace TAP {
 
 #define TEST_END \
 			if (TAP::encountered() < TAP::planned()) {\
-				TAP::diag("Looks like you planned ", TAP::planned(), " tests but only ran ", TAP::encountered());\
+				TAP::note("Looks like you planned ", TAP::planned(), " tests but only ran ", TAP::encountered());\
 			}\
 			else if(TAP::encountered() > TAP::planned()) {\
-				TAP::diag("Looks like you planned ", TAP::planned(), " tests but ran ", TAP::encountered() - TAP::planned(), " extra");\
+				TAP::note("Looks like you planned ", TAP::planned(), " tests but ran ", TAP::encountered() - TAP::planned(), " extra");\
 			}\
 		}\
 		catch(TAP::details::Skip_exception& skipper) {\
@@ -200,7 +248,7 @@ namespace TAP {
 		}\
 		catch(const std::exception& e) {\
 			if(_current_message) TAP::fail(_current_message);\
-			diag("Got error: ", e.what());\
+			note("Got error: ", e.what());\
 		}\
 		catch (...) {\
 			if(_current_message) TAP::fail(_current_message);\
@@ -216,7 +264,7 @@ namespace TAP {
 
 #define BLOCK_END \
 		if (TAP::encountered() != TAP::details::stop_block()) {\
-			diag("There seems to be a wrong number of tests!");\
+			note("There seems to be a wrong number of tests!");\
 		}\
 	}\
 	catch(TAP::details::Skip_exception& skipper) {\
@@ -227,7 +275,7 @@ namespace TAP {
 	}\
 	catch(const std::exception& e) {\
 		TAP::fail(_current_message);\
-		diag("Got error: ", e.what());\
+		note("Got error: ", e.what());\
 	}\
 	catch (...) {\
 		TAP::fail(_current_message);\

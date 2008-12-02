@@ -23,21 +23,21 @@ int main(int argc, char** argv) {
 	ok(value * 1, "value * 1");
 	ok(value / 1, "value / 1");
 
-	diag("++value");
+	note("++value");
 	++value;
 	ok(value, "value");
 	is(value, 2, "value == 2");
 	not_ok(value != 2, "not: value != 2");
 
-	diag("--value");
+	note("--value");
 	--value;
 	is(value, 1, "value == 1");
 
-	diag("value++");
+	note("value++");
 	value++;
 	is(value, 2, "value == 2");
 
-	diag("value -= 2");
+	note("value -= 2");
 	value -= 2;
 	is(value, 0, "value == 0");
 
