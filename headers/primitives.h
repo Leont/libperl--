@@ -13,7 +13,7 @@ namespace perl {
 		/*
 		 * Class Integer::Value
 		 */
-		class Integer : public Scalar::Base {
+		class Integer : public Scalar::Base, public scalar::Referencable<Integer> {
 			Integer(const Integer&);
 			protected:
 			Integer(interpreter*, SV*);
@@ -43,13 +43,14 @@ namespace perl {
 			static bool is_compatible_type(const Scalar::Base&);
 			static const std::string& cast_error();
 			static SV* move(Scalar::Base&);
+			using scalar::Referencable<Integer>::take_ref;
 		};
 		bool operator!=(const Integer&, const Integer&);
 
 		/*
 		 * Class Uinteger::Value
 		 */
-		class Uinteger : public Scalar::Base {
+		class Uinteger : public Scalar::Base, public scalar::Referencable<Uinteger> {
 			Uinteger(const Uinteger&);
 			protected:
 			Uinteger(interpreter*, SV*);
@@ -82,13 +83,14 @@ namespace perl {
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);
 			static const std::string& cast_error();
+			using scalar::Referencable<Uinteger>::take_ref;
 		};
 		bool operator!=(const Uinteger&, const Uinteger&);
 
 		/*
 		 * Class Number::Value
 		 */
-		class Number : public Scalar::Base {
+		class Number : public Scalar::Base, public scalar::Referencable<Number> {
 			Number(const Number&);
 			protected:
 			Number(interpreter*, SV*);
@@ -110,12 +112,13 @@ namespace perl {
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);
 			static const std::string& cast_error();
+			using scalar::Referencable<Number>::take_ref;
 		};
 
 		/*
 		 * Class String::Value
 		 */
-		class String : public Scalar::Base {
+		class String : public Scalar::Base, public scalar::Referencable<String> {
 			String(const String&);
 			typedef void (String::*bool_type)() const;
 			void no_such_comparator() const;
@@ -166,6 +169,7 @@ namespace perl {
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);
 			static const std::string& cast_error();
+			using scalar::Referencable<String>::take_ref;
 		};
 		bool operator==(const std::string&, const String&);
 		bool operator==(const char*, const String&);

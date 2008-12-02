@@ -38,8 +38,9 @@ namespace perl {
 		sv_magic(get_SV(false), tier.get_SV(false), PERL_MAGIC_tiedscalar, "", 0);
 	}
 	void Scalar::Base::untie() {
+		typedef Temp_template< reference::Scalar_ref<Base> > Tier;
 		if (MAGIC* mg = SvRMAGICAL(get_SV(false)) ? mg_find(get_SV(false), PERL_MAGIC_tiedscalar) : NULL) {
-			Ref<Any> tier = mg->mg_obj != NULL ?  Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : take_ref();
+			Tier tier = mg->mg_obj != NULL ? Tier(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : take_ref();
 			if (tier.can("UNTIE")) {
 				tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
 			}
@@ -53,10 +54,6 @@ namespace perl {
 		return Scalar::Temp(interp, newSV(0), true);
 	}
 	
-	const Ref<Any>::Temp Scalar::Base::take_ref() const {
-		return Ref<Any>::Temp(interp, newRV_inc(get_SV(false)), true);
-	}
-
 	bool Scalar::Base::is_compatible_type(const Scalar::Base&) {
 		return true;
 	}

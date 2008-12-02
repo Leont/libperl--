@@ -36,7 +36,6 @@ namespace perl {
 		namespace reference {
 			template<typename T> class Nonscalar;
 			template<typename T> class Scalar_ref;
-			template<typename T, typename = void> class ref;
 			class Reference_base;
 		}
 
@@ -44,12 +43,17 @@ namespace perl {
 			class Value;
 			template<typename T> class Temp_template;
 			typedef Temp_template<Value> Temp;
+
+			template<typename T> class Referencable {
+				public:
+				const scalar::Temp_template<typename reference::Scalar_ref<T> > take_ref() const;
+			};
 			/*
 			 * Class Scalar::Base
 			 * This class represents scalar values. It's a thin interface, as different kinds of scalar
 			 * values have little in common.
 			 */
-			class Base {
+			class Base : public Referencable<Base> {
 				Base(const Base&);
 				Base& operator=(const Base&);
 				protected:
@@ -72,7 +76,6 @@ namespace perl {
 				const Temp_template<Value> tied() const;
 				void untie();
 				template<typename T1, typename T2, typename T3, typename T4, typename T5> const Temp_template<reference::Nonscalar<Any> > tie(const char* package_name, const T1& t1 = null_type(), const T2& t2 = null_type(), const T3& t3 = null_type(), const T4& t4 = null_type(), const T5& t5 = null_type());
-				const Temp_template< reference::Nonscalar<Any> > take_ref() const;
 
 				protected:
 				static SV* copy_sv(const Base&);
@@ -99,6 +102,10 @@ namespace perl {
 		}
 
 		namespace scalar {
+
+			template<typename T> const scalar::Temp_template<typename reference::Scalar_ref<T> > Referencable<T>::take_ref() const {
+				return Temp_template<reference::Scalar_ref<T> >(static_cast<const T*>(this)->interp, helper::take_ref(*static_cast<const T*>(this)), true);
+			}
 			/*
 			 * A template to generate X::Temp
 			 */
@@ -147,9 +154,6 @@ namespace perl {
 					}
 				}
 				using T::operator=;
-				const scalar::Temp_template<typename reference::Scalar_ref<T> > take_ref() const {
-					return scalar::Temp_template<typename reference::Scalar_ref<T> >(T::interp, helper::take_ref(*this), true);
-				}
 			};
 
 			class Value;
@@ -466,12 +470,13 @@ namespace perl {
 		class String;
 
 		namespace scalar {
+
 			/*
 			 * Class Scalar::Value
 			 * This class can be converted into anything any scalar can be converted in. If the the convertion 
 			 * fails, it throws an exception. It can also be used as a reference, but the same caveat applies.
 			 */
-			class Value: public Base, public implementation::function_calling<Value>, public implementation::method_calling<Value> {
+			class Value: public Base, public implementation::function_calling<Value>, public implementation::method_calling<Value>, public Referencable<Value> {
 				protected:
 				Value(interpreter*, SV*);
 				~Value() {
@@ -549,6 +554,7 @@ namespace perl {
 				const char* get_classname() const;
 
 				static SV* copy(const Base&);
+				using Referencable<Value>::take_ref;
 			};
 
 			bool operator==(const Value&, IV);
@@ -661,9 +667,6 @@ namespace perl {
 				}
 
 				using T::operator=;
-				const scalar::Temp_template<typename reference::Scalar_ref<T> > take_ref() const {
-					return scalar::Temp_template<typename reference::Scalar_ref<T> >(T::interp, helper::take_ref(*this), true);
-				}
 			};
 			template<typename T> class Variable : public Ownership<T> {
 				public:
