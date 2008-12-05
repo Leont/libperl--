@@ -6,7 +6,7 @@
 using namespace perl;
 using namespace TAP;
 
-int main(int argc, char** argv) {
+int main() {
 //	TEST_START(17);
 	plan(17);
 	Interpreter universe;

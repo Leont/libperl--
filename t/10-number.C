@@ -6,7 +6,7 @@
 using namespace perl;
 using namespace TAP;
 
-int main(int argc, char** argv) {
+int main() {
 	plan(17);
 	Interpreter universe;
 	is_convertible<Number, double>("is_convertible<Number, double>()");

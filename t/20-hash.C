@@ -20,7 +20,7 @@ void print(const Raw_string key, const String::Base& value) {
 	std::cout << key << ": " << value << std::endl;
 }
 
-int main(int argc, char** argv) {
+int main() {
 	plan(32);
 	Interpreter universe;
 	Hash hash = universe.hash();

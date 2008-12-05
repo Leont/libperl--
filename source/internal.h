@@ -13,3 +13,9 @@
 #undef aTHX
 #define aTHX interp
 #undef die
+
+#ifdef MGf_LOCAL
+#define MAGIC_TAIL ,0, 0, 0
+#else
+#define MAGIC TAIL 
+#endif

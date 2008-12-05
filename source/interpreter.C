@@ -202,7 +202,7 @@ namespace perl {
 			static boost::ptr_map<const std::type_info*, MGVTBL> table;
 			const std::type_info* key = &pre_key;
 			if (table.find(key) == table.end()) {
-				const MGVTBL tmp = {0, 0, 0, 0, destruct_ptr};
+				const MGVTBL tmp = {0, 0, 0, 0, destruct_ptr MAGIC_TAIL};
 				table.insert(key, new MGVTBL(tmp));
 			}
 			return &table[key];

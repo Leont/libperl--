@@ -7,7 +7,7 @@
 using namespace perl;
 using namespace TAP;
 
-int main(int argc, char** argv) {
+int main() {
 	plan(65);
 	Interpreter universe;
 	Array array = universe.list();

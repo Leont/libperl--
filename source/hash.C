@@ -47,7 +47,7 @@ namespace perl {
 			SvSETMAGIC(tmp);
 			return 0;
 		}
-		MGVTBL string_magic = { 0, string_store, 0, 0, 0 };
+		MGVTBL string_magic = { 0, string_store, 0, 0, 0 MAGIC_TAIL };
 	}
 	Scalar::Temp Hash::Value::operator[](const Raw_string index) {
 		SV* const * const ret = hv_fetch(handle, index.value, index.length, false);
@@ -77,7 +77,7 @@ namespace perl {
 			SvSETMAGIC(tmp);
 			return 0;
 		}
-		MGVTBL scalar_magic = { 0, scalar_store, 0, 0, 0 };
+		MGVTBL scalar_magic = { 0, scalar_store, 0, 0, 0 MAGIC_TAIL };
 	}
 	Scalar::Temp Hash::Value::operator[](const Scalar::Base& key) {
 		HE* const entry = hv_fetch_ent(handle, key.get_SV(true), false, 0);

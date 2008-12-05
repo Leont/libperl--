@@ -52,7 +52,7 @@ namespace perl {
 			static boost::ptr_map<func_pair, MGVTBL> magic_cache;
 			func_pair key(get_val, set_val);
 			if (magic_cache.find(key) == magic_cache.end()) {
-				MGVTBL value = {get_val, set_val, 0, 0, 0};
+				MGVTBL value = {get_val, set_val, 0, 0, 0 MAGIC_TAIL };
 				magic_cache.insert(key, new MGVTBL(value));
 			}
 			return &magic_cache[key];
@@ -73,12 +73,12 @@ namespace perl {
 			return Code::Value(interp, tmp);
 		}
 		void die(interpreter* interp, const char* message) {
-			croak("%s\n", message);
+			Perl_croak(interp, "%s\n", message);
 		}
 
 		static boost::ptr_map<const std::type_info*, Class_state> typemap; //FIXME should be interpreter specific
 
-		Class_state& register_type(interpreter* interp, const char* classname, const std::type_info& type, MGVTBL* magic_table, bool is_persistent, bool use_hash) {
+		Class_state& register_type(interpreter*, const char* classname, const std::type_info& type, MGVTBL* magic_table, bool is_persistent, bool use_hash) {
 			const std::type_info* key = &type;
 			if (typemap.find(key) != typemap.end()) {
 				if (typemap.at(key).magic_table != magic_table) {

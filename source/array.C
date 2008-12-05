@@ -145,7 +145,7 @@ namespace perl {
 			SvSETMAGIC(tmp);
 			return 0;
 		}
-		MGVTBL array_set_magic = { 0, array_store, 0, 0, 0 };
+		MGVTBL array_set_magic = { 0, array_store, 0, 0, 0 MAGIC_TAIL };
 	}
 
 	Scalar::Temp Array::Value::operator[](const key_type index) {
