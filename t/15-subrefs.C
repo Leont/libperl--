@@ -6,16 +6,18 @@ using namespace perl;
 using namespace TAP;
 
 int main() {
-	TEST_START(12);
+	TEST_START(15);
 	Interpreter universe;
 
 	universe.eval(
 		"sub first { return 1 }\n"
 		"sub second { return scalar @_ }\n"
 		"sub third { return $_[0] }\n"
+		"sub fourth { return ++$_[0] }\n"
 	);
 	Ref<Code> first = universe.eval("\\&first");
 	ok(first(), "first()");
+	is(first(), 1, "first() == 1");
 
 	Ref<Code> second = universe.eval("\\&second");
 	ok(second(1), "second(1)");
@@ -35,6 +37,13 @@ int main() {
 	is(third(1), 1, "third(1) == 1");
 	is(third ("foo"), "foo", "third(\"foo\") == \"foo\"");
 	is(third(more), 1, "third(more) == 1");
+
+	Ref<Code> fourth = universe.eval("\\&fourth");
+	Integer value = universe.value_of(1);
+	note("value = 1");
+
+	is(fourth(value), 2, "fourth(value) == 2");
+	is(value, 2, "value == 2");
 
 	// TODO: list context
 

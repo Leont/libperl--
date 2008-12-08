@@ -8,7 +8,7 @@ using namespace TAP;
 
 int main() {
 //	TEST_START(17);
-	plan(17);
+	plan(25);
 	Interpreter universe;
 
 	{
@@ -44,7 +44,23 @@ int main() {
 	note("*value = 2");
 
 	is(*value, 2, "*value == 2");
-	note("");
+	}
+
+	{
+	Ref<Number> value = universe.value_of(1.0).take_ref();
+	is(*value, 1, "*value == 1");
+	is(*value, 1u, "*value == 1u");
+	is(*value, 1l, "*value == 1l");
+
+	is(*value, 1.0, "*value == 1.0");
+	isnt(*value, 2.0, "*value != 2.0");
+	is(*value, 1.0f, "*value == 1.0f");
+	isnt(*value, 2.0f, "*value != 2.0f");
+
+	*value = 2.0;
+	note("*value = 2");
+
+	is(*value, 2.0, "*value == 2");
 	}
 //	TEST_END;
 	return exit_status();

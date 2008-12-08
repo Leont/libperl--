@@ -660,6 +660,7 @@ namespace perl {
 		Interpreter(interpreter*);
 		public:
 		Interpreter();
+		Interpreter(int, const char*[]);
 
 		Interpreter clone() const;
 		friend bool operator==(const Interpreter& first, const Interpreter& second);
@@ -667,6 +668,8 @@ namespace perl {
 		void report() const;
 		void set_context() const;
 		Hash::Temp modglobal() const;
+		int run() const;
+
 
 		const Scalar::Temp eval(const char*) const;
 		const Scalar::Temp eval(const Scalar::Base&) const;

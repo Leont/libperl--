@@ -21,7 +21,7 @@ namespace perl {
 			PERL_SYS_TERM();
 		}
 
-		interpreter* initialize_interpreter() {
+		void initialize_system() {
 			static bool inited;
 			if (!inited) {
 				const char** aargs PERL_UNUSED_DECL = args;
@@ -29,12 +29,17 @@ namespace perl {
 				atexit(terminator);
 				inited = true;
 			}
+		}
+		interpreter* initialize_interpreter(int argc, const char* argv[]) {
 			interpreter* interp = perl_alloc();
 			perl_construct(interp);
 			PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
 
-			perl_parse(interp, xs_init, arg_count, const_cast<char**>(args), NULL);
+			perl_parse(interp, xs_init, argc, const_cast<char**>(argv), NULL);
 			return interp;
+		}
+		interpreter* initialize_interpreter() {
+			return initialize_interpreter(arg_count, args);
 		}
 	}
 
@@ -52,6 +57,9 @@ namespace perl {
 	Interpreter::Interpreter() : raw_interp(initialize_interpreter(), destructor) {
 		eval(implementation::to_eval);
 	}
+	Interpreter::Interpreter(int argc, const char* argv[]) : raw_interp(initialize_interpreter(argc, argv), destructor) {
+		eval(implementation::to_eval);
+	}
 	Interpreter::Interpreter(interpreter* other) : raw_interp(other, destructor) {
 		eval(implementation::to_eval);
 	}
@@ -66,6 +74,9 @@ namespace perl {
 	}
 	Hash::Temp Interpreter::modglobal() const {
 		return Hash::Temp(raw_interp.get(), PL_modglobal, false);
+	}
+	int Interpreter::run() const {
+		return perl_run(raw_interp.get());
 	}
 	Package Interpreter::get_package(const char* name) const {
 		return Package(*this, name);
