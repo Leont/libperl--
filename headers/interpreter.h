@@ -22,12 +22,12 @@ namespace perl {
 		void set_magic_string(interpreter*, SV*, const void*, unsigned length);
 
 		void* get_magic_ptr(interpreter*, SV*, int);
-		void** get_magic_object_impl(interpreter*, SV*, int);
+		void*& get_magic_object_impl(interpreter*, SV*, int);
 		template<typename T> T* get_magic_object(const Scalar::Base& var) {
-			return reinterpret_cast<T*>(*get_magic_object_impl(var.interp, var.get_SV(false), sizeof(T*)));
+			return static_cast<T*>(get_magic_object_impl(var.interp, var.get_SV(false), sizeof(T*)));
 		}
 		template<typename T> T& get_magic_buffer(interpreter* interp, SV* var) {
-			return *reinterpret_cast<T*>(get_magic_object_impl(interp, var, sizeof(T)));
+			return reinterpret_cast<T&>(get_magic_object_impl(interp, var, sizeof(T)));
 		}
 		template<typename T> T& get_magic_buffer(const Scalar::Base& var) {
 			return get_magic_buffer<T>(var.interp, var.get_SV(false));
@@ -40,7 +40,7 @@ namespace perl {
 
 		void* get_magic_ptr(const MAGIC*);
 		template<typename T> T* get_magic_ptr(const MAGIC* magic) {
-			return reinterpret_cast<T*>(get_magic_ptr(magic));
+			return static_cast<T*>(get_magic_ptr(magic));
 		}
 
 		struct Object_buffer {
@@ -49,8 +49,8 @@ namespace perl {
 			bool owns;
 			Object_buffer(void* _ref, const std::set<const std::type_info*>& _types, bool _owns) : ref(_ref), types(_types), owns(_owns) {
 			}
-			template<typename T> T*& get() {
-				return reinterpret_cast<T*&>(ref);
+			template<typename T> T* get() {
+				return static_cast<T*>(ref);
 			}
 		};
 
@@ -601,7 +601,7 @@ namespace perl {
 		bool hash;
 		typedef implementation::Class_state State;
 		State& get_class_data() {
-			return *reinterpret_cast<State*>(implementation::get_magic_ptr(package.interp, reinterpret_cast<SV*>(package.stash), sizeof(State)));
+			return *static_cast<State*>(implementation::get_magic_ptr(package.interp, reinterpret_cast<SV*>(package.stash), sizeof(State)));
 		}
 		public:
 		void initialize(bool _is_persistent, bool _use_hash) {
@@ -696,7 +696,7 @@ namespace perl {
 		const String::Temp value_of(Raw_string) const;
 		const String::Temp value_of(const char*) const;
 		const String::Temp value_of(const std::string&) const;
-		template<typename T, typename U> const typename Ref<U>::Temp value_of(T* object, const U* = reinterpret_cast<Any*>(0)) const {
+		template<typename T, typename U> const typename Ref<U>::Temp value_of(T* object, const U* = static_cast<Any*>(0)) const {
 			return Ref<U>::Temp(raw_interp, implementation::value_of_pointer(raw_interp, object), false);
 		}
 

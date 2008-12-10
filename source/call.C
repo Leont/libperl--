@@ -1,5 +1,4 @@
 #include "internal.h"
-#include <XSUB.h>
 #include "perl++.h"
 #include "regex_impl.h"
 
@@ -158,10 +157,6 @@ namespace perl {
 		AV* Call_stack::pop_array(int count) {
 			AV* ret = av_make(count, SP - count + 1);
 			SP -= count;
-			int ax = (SP - PL_stack_base) + 1;
-			for(int i = 0; i < count; ++i) {
-				SvREFCNT_dec(ST(i));
-			}
 			return ret;
 		}
 

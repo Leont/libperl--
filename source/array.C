@@ -206,7 +206,7 @@ namespace perl {
 		if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? mg_find(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
 			Ref<Any> tier(Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true));
 			if (tier.can("UNTIE")) {
-				tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
+				tier.call("UNTIE", SvREFCNT(SvRV(tier.get_SV(false))));
 			}
 		}
 		sv_unmagic(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);

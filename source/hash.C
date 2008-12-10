@@ -84,7 +84,7 @@ namespace perl {
 		if (!entry) {
 			SV* magical = newSV(0);
 			SV* saved = key.get_SV(false);
-			sv_magicext(magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &scalar_magic, reinterpret_cast<const char*>(&saved), sizeof(SV));
+			sv_magicext(magical, reinterpret_cast<SV*>(handle), PERL_MAGIC_uvar, &scalar_magic, reinterpret_cast<const char*>(&saved), sizeof saved);
 			return Scalar::Temp(interp, magical, true, false);
 		}
 		SV* const ret = HeVAL(entry);
@@ -172,16 +172,16 @@ namespace perl {
 	}
 	void Hash::Value::untie() {
 		if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? mg_find(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
-			Ref<Any> tier(Ref<Any>::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true));
+			Ref<Any> tier(Ref<Any>::Temp(interp, SvREFCNT_inc(mg->mg_obj), true));
 			if (tier.can("UNTIE")) {
-				tier.call("UNTIE", static_cast<int>(SvREFCNT(SvRV(tier.get_SV(false)))));
+				tier.call("UNTIE", SvREFCNT(SvRV(tier.get_SV(false))));
 			}
 		}
 		sv_unmagic(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied);
 	}
 	const Scalar::Temp Hash::Value::tied() const {
 		if (MAGIC* mg = SvRMAGICAL(reinterpret_cast<SV*>(handle)) ? mg_find(reinterpret_cast<SV*>(handle), PERL_MAGIC_tied) : NULL) {
-			return (mg->mg_obj != NULL) ?  Scalar::Temp(interp, SvREFCNT_inc(reinterpret_cast<SV*>(mg->mg_obj)), true) : Scalar::Temp(take_ref());
+			return (mg->mg_obj != NULL) ?  Scalar::Temp(interp, SvREFCNT_inc(mg->mg_obj), true) : Scalar::Temp(take_ref());
 		}
 		return Scalar::Temp(interp, newSV(0), true);
 	}
