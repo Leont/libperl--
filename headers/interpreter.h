@@ -22,12 +22,12 @@ namespace perl {
 		void set_magic_string(interpreter*, SV*, const void*, unsigned length);
 
 		void* get_magic_ptr(interpreter*, SV*, int);
-		void*& get_magic_object_impl(interpreter*, SV*, int);
+		void* get_magic_object_impl(interpreter*, SV*, int);
 		template<typename T> T* get_magic_object(const Scalar::Base& var) {
-			return static_cast<T*>(get_magic_object_impl(var.interp, var.get_SV(false), sizeof(T*)));
+			return *static_cast<T**>(get_magic_object_impl(var.interp, var.get_SV(false), sizeof(T*)));
 		}
 		template<typename T> T& get_magic_buffer(interpreter* interp, SV* var) {
-			return reinterpret_cast<T&>(get_magic_object_impl(interp, var, sizeof(T)));
+			return *static_cast<T*>(get_magic_object_impl(interp, var, sizeof(T)));
 		}
 		template<typename T> T& get_magic_buffer(const Scalar::Base& var) {
 			return get_magic_buffer<T>(var.interp, var.get_SV(false));

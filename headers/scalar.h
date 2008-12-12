@@ -257,13 +257,13 @@ namespace perl {
 			explicit Call_stack(interpreter*);
 
 			const scalar::Temp method_scalar(const char* name);
-			const array::Temp method_array(const char* name);
+			const array::Temp method_list(const char* name);
 			const scalar::Temp sub_scalar(const char* name);
 			const scalar::Temp sub_scalar(const implementation::reference::Nonscalar<Code>& ref);
-			const scalar::Temp sub_scalar(const scalar::Value& ref); //TODO
-			const array::Temp sub_array(const char* name);
-			const array::Temp sub_array(const implementation::reference::Nonscalar<Code>& ref);
-			const array::Temp sub_array(const scalar::Value& ref); //TODO
+			const scalar::Temp sub_scalar(const scalar::Value& ref);
+			const array::Temp sub_list(const char* name);
+			const array::Temp sub_list(const implementation::reference::Nonscalar<Code>& ref);
+			const array::Temp sub_list(const scalar::Value& ref);
 
 			const scalar::Temp_template<implementation::String> pack(const Raw_string pattern);
 			const array::Temp unpack(const Raw_string pattern, const Raw_string value);
@@ -333,28 +333,71 @@ namespace perl {
 			const scalar_type operator()() const {
 				return implementation::Call_stack(self().interp).sub_scalar(self());
 			}
-			template<typename T1> const scalar_type operator()(const T1& t1) const {
+			template<typename T1> scalar_type operator()(const T1& t1) const {
 				return implementation::Call_stack(self().interp).push(t1).sub_scalar(self());
 			}
-			template<typename T1, typename T2> const scalar_type operator()(const T1& t1, const T2& t2) const {
+			template<typename T1, typename T2> scalar_type operator()(const T1& t1, const T2& t2) const {
 				return implementation::Call_stack(self().interp).push(t1, t2).sub_scalar(self());
 			}
-			template<typename T1, typename T2, typename T3> const scalar_type operator()(const T1& t1, const T2& t2, const T3& t3) const {
+			template<typename T1, typename T2, typename T3> scalar_type operator()(const T1& t1, const T2& t2, const T3& t3) const {
 				return implementation::Call_stack(self().interp).push(t1, t2, t3).sub_scalar(self());
 			}
-			template<typename T1, typename T2, typename T3, typename T4> const scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
+			template<typename T1, typename T2, typename T3, typename T4> scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
 				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4).sub_scalar(self());
 			}
-			template<typename T1, typename T2, typename T3, typename T4, typename T5> const scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) const {
+			template<typename T1, typename T2, typename T3, typename T4, typename T5> scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) const {
 				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5).sub_scalar(self());
 			}
-			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> const scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6) const {
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6) const {
 				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6).sub_scalar(self());
 			}
-			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> const scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7) const {
-				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6).sub_scalar(self());
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6, t7).sub_scalar(self());
 			}
-			//TODO: call_array
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6, t7, t8).sub_scalar(self());
+			}
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9> scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6, t7, t8, t9).sub_scalar(self());
+			}
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10> scalar_type operator()(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9, const T10& t10) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10).sub_scalar(self());
+			}
+
+
+			array_type list() const {
+				return implementation::Call_stack(self().interp).sub_list(self());
+			}
+			template<typename T1> array_type list(const T1& t1) const {
+				return implementation::Call_stack(self().interp).push(t1).sub_list(self());
+			}
+			template<typename T1, typename T2> array_type list(const T1& t1, const T2& t2) const {
+				return implementation::Call_stack(self().interp).push(t1, t2).sub_list(self());
+			}
+			template<typename T1, typename T2, typename T3> array_type list(const T1& t1, const T2& t2, const T3& t3) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3).sub_list(self());
+			}
+			template<typename T1, typename T2, typename T3, typename T4> array_type list(const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4).sub_list(self());
+			}
+			template<typename T1, typename T2, typename T3, typename T4, typename T5> array_type list(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5).sub_list(self());
+			}
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> array_type list(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6).sub_list(self());
+			}
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> array_type list(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6, t7).sub_list(self());
+			}
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> array_type list(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6, t7, t8).sub_list(self());
+			}
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9> array_type list(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6, t7, t8, t9).sub_list(self());
+			}
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10> array_type list(const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9, const T10& t10) const {
+				return implementation::Call_stack(self().interp).push(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10).sub_list(self());
+			}
 		};
 
 		/*
@@ -427,38 +470,38 @@ namespace perl {
 				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6, t7, t8, t9, t10).method_scalar(name);
 			}
 
-			array_type call_array(const char* name) const {
-				return implementation::Call_stack(self().interp).push(self()).method_array(name);
+			array_type call_list(const char* name) const {
+				return implementation::Call_stack(self().interp).push(self()).method_list(name);
 			}
-			template<typename T1> array_type call_array(const char* name, const T1& t1) const {
-				return implementation::Call_stack(self().interp).push(self(), t1).method_array(name);
+			template<typename T1> array_type call_list(const char* name, const T1& t1) const {
+				return implementation::Call_stack(self().interp).push(self(), t1).method_list(name);
 			}
-			template<typename T1, typename T2> array_type call_array(const char* name, const T1& t1, const T2& t2) const {
-				return implementation::Call_stack(self().interp).push(self(), t1, t2).method_array(name);
+			template<typename T1, typename T2> array_type call_list(const char* name, const T1& t1, const T2& t2) const {
+				return implementation::Call_stack(self().interp).push(self(), t1, t2).method_list(name);
 			}
-			template<typename T1, typename T2, typename T3> array_type call_array(const char* name, const T1& t1, const T2& t2, const T3& t3) const {
-				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3).method_array(name);
+			template<typename T1, typename T2, typename T3> array_type call_list(const char* name, const T1& t1, const T2& t2, const T3& t3) const {
+				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3).method_list(name);
 			}
-			template<typename T1, typename T2, typename T3, typename T4> array_type call_array(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
-				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4).method_array(name);
+			template<typename T1, typename T2, typename T3, typename T4> array_type call_list(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
+				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4).method_list(name);
 			}
-			template<typename T1, typename T2, typename T3, typename T4, typename T5> array_type call_array(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) const {
-				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5).method_array(name);
+			template<typename T1, typename T2, typename T3, typename T4, typename T5> array_type call_list(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5) const {
+				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5).method_list(name);
 			}
-			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> array_type call_array(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6) const {
-				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6).method_array(name);
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> array_type call_list(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6) const {
+				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6).method_list(name);
 			}
-			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> array_type call_array(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7) const {
-				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6, t7).method_array(name);
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> array_type call_list(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7) const {
+				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6, t7).method_list(name);
 			}
-			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> array_type call_array(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8) const {
-				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6, t7, t8).method_array(name);
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> array_type call_list(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8) const {
+				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6, t7, t8).method_list(name);
 			}
-			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9> array_type call_array(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9) const {
-				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6, t7, t8, t9).method_array(name);
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9> array_type call_list(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9) const {
+				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6, t7, t8, t9).method_list(name);
 			}
-			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10> array_type call_array(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9, const T10& t10) const {
-				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6, t7, t8, t9, t10).method_array(name);
+			template<typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10> array_type call_list(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const T5& t5, const T6& t6, const T7& t7, const T8& t8, const T9& t9, const T10& t10) const {
+				return implementation::Call_stack(self().interp).push(self(), t1, t2, t3, t4, t5, t6, t7, t8, t9, t10).method_list(name);
 			}
 		};
 

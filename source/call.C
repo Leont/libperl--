@@ -98,7 +98,7 @@ namespace perl {
 			assertion<Runtime_exception>( method_call(name, G_SCALAR) == 1, "More than one value returned in scalar call");
 			return Scalar::Temp(interp, pop(), true);
 		}
-		const Array::Temp Call_stack::method_array(const char* name) {
+		const Array::Temp Call_stack::method_list(const char* name) {
 			const int count = method_call(name, G_ARRAY);
 			return Array::Temp(interp, pop_array(count), true);
 		}
@@ -111,12 +111,20 @@ namespace perl {
 			assertion<Runtime_exception>( sub_call(ref.get_SV(true), G_SCALAR) == 1, "More than one value returned in scalar call");
 			return Scalar::Temp(interp, pop(), true);
 		}
+		const Scalar::Temp Call_stack::sub_scalar(const Scalar::Value& ref) {
+			assertion<Runtime_exception>( sub_call(ref.get_SV(true), G_SCALAR) == 1, "More than one value returned in scalar call");
+			return Scalar::Temp(interp, pop(), true);
+		}
 
-		const Array::Temp Call_stack::sub_array(const char* const name) {
+		const Array::Temp Call_stack::sub_list(const char* const name) {
 			const int count = sub_call(name, G_ARRAY);
 			return Array::Temp(interp, pop_array(count), true);
 		}
-		const Array::Temp Call_stack::sub_array(const Ref<Code>::Value& ref) {
+		const Array::Temp Call_stack::sub_list(const Ref<Code>::Value& ref) {
+			const int count = sub_call(ref.get_SV(true), G_ARRAY);
+			return Array::Temp(interp, pop_array(count), true);
+		}
+		const Array::Temp Call_stack::sub_list(const Scalar::Value& ref) {
 			const int count = sub_call(ref.get_SV(true), G_ARRAY);
 			return Array::Temp(interp, pop_array(count), true);
 		}

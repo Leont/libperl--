@@ -39,12 +39,12 @@ namespace perl {
 			SV* const ret = newRV_noinc(referee);
 			return sv_bless(ret, gv_stashpv(state.classname, true));
 		}
-		void*& get_magic_object_impl(interpreter* interp, SV* var, int min_length) {
+		void* get_magic_object_impl(interpreter* interp, SV* var, int min_length) {
 			MAGIC* tmp = mg_find(SvRV(var), PERL_MAGIC_ext);
 			if (tmp == NULL || tmp->mg_ptr == NULL || tmp->mg_len < min_length) {
 				throw Not_an_object_exception();
 			}
-			return *reinterpret_cast<void**>(tmp->mg_ptr);
+			return tmp->mg_ptr;
 		}
 
 		static MGVTBL* get_mgvtbl(magic_fun get_val, magic_fun set_val) {

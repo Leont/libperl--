@@ -71,7 +71,7 @@ int main() {
 
 		Ref<Hash> foo = dbi.call("connect", "dbi:SQLite:dbname=dbfile", "", "");
 
-		Array bar = foo.call_array("selectrow_array", "SELECT * FROM test WHERE name = ?", universe.undef(), "a");
+		Array bar = foo.call_list("selectrow_array", "SELECT * FROM test WHERE name = ?", universe.undef(), "a");
 //		Array bar = universe.list("a", "b");		
 		bar[4] = "e";
 		cout << "Array is " << bar.length() << " elements long" << endl;

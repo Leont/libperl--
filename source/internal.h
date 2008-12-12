@@ -19,3 +19,4 @@
 #else
 #define MAGIC TAIL 
 #endif
+#undef call_list
