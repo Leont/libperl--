@@ -54,6 +54,10 @@ class tester {
 	}
 };
 
+struct member {
+	int count;
+};
+
 int converter(int arg) {
 	return arg * arg;
 }
@@ -131,11 +135,21 @@ int main() {
 		classr.add("set", &tester::set);
 
 		{
-		Ref<Any> testr = universe.get_package("Tester").call("new", 1);
+		Ref<Any> testr = universe.package("Tester").call("new", 1);
 		testr.call("print");
 		testr.call("set", 3);
 		testr.call("print");
 		}
+
+		Class<member> classm = universe.add_class("Member");
+		classm.add(init<>());
+		classm.add("count", &member::count);
+
+		Ref<Any> testm = universe.package("Member").call("new");
+		cout << "testm.count = " << testm.call("count") << endl;
+		testm.call("count", 1);
+		cout << "testm.count = " << testm.call("count") << endl;
+
 		String packed = universe.pack("Nni", 1001, 32768, -4096);
 		Array unpacked = packed.unpack("Nni");
 		test1(unpacked);

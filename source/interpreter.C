@@ -78,7 +78,7 @@ namespace perl {
 	int Interpreter::run() const {
 		return perl_run(raw_interp.get());
 	}
-	Package Interpreter::get_package(const char* name) const {
+	Package Interpreter::package(const char* name) const {
 		return Package(*this, name);
 	}
 	void Interpreter::set_context() const {
@@ -91,13 +91,13 @@ namespace perl {
 		return Hash::Temp(interp, newHV(), true);
 	}
 
-	Package Interpreter::use(const char* package) const {
-		load_module(PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), NULL, NULL);
-		return get_package(package);
+	Package Interpreter::use(const char* package_name) const {
+		load_module(PERL_LOADMOD_NOIMPORT, value_of(package_name).get_SV(true), NULL, NULL);
+		return package(package_name);
 	}
-	Package Interpreter::use(const char* package, double version) const {
-		load_module(PERL_LOADMOD_NOIMPORT, value_of(package).get_SV(true), value_of(version).get_SV(true), NULL);
-		return get_package(package);
+	Package Interpreter::use(const char* package_name, double version) const {
+		load_module(PERL_LOADMOD_NOIMPORT, value_of(package_name).get_SV(true), value_of(version).get_SV(true), NULL);
+		return package(package_name);
 	}
 
 	const Scalar::Temp Interpreter::eval(const char* string) const {

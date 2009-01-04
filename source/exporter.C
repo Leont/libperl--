@@ -145,6 +145,9 @@ namespace perl {
 	Array::Temp Argument_stack::get_arg() {
 		return Array::Temp(interp, av_make(marker.items, sp - marker.items + 1), true);
 	}
+	unsigned Argument_stack::get_num_args() const {
+		return marker.items;
+	}
 	const Scalar::Temp Argument_stack::operator[](unsigned pos) const {
 		assertion<Runtime_exception>(pos < marker.items, "No such argument!");
 		return Scalar::Temp(interp, ST(pos), false);

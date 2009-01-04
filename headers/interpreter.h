@@ -174,6 +174,7 @@ namespace perl {
 		~Argument_stack();
 		const Array::Temp get_arg() const;
 		Array::Temp get_arg();
+		unsigned get_num_args() const;
 		const Scalar::Temp call(const char* name);
 		const Scalar::Temp call(const Ref<Code>::Value& name);
 		context get_context() const;
@@ -403,6 +404,28 @@ namespace perl {
 			implementation::export_as(interp, name, export_method_v1<T, A1>::method, fptr);
 		}
 
+		//Section member variables
+
+		template<typename T, typename A> struct export_member_ptr {
+			typedef A T::* const memb_ptr;
+			static void method(interpreter* me_perl, CV* cef) {
+				Argument_stack arg_stack(me_perl);
+				const memb_ptr ref = implementation::get_function_pointer<memb_ptr>(me_perl, cef);
+				if (arg_stack.get_num_args() == 0) {
+					die(me_perl, "Fatal error");//FIXME description
+				}
+				else if (arg_stack.get_num_args() == 1) {
+					TRY_OR_THROW(arg_stack.returns(get_magic_object<T>(arg_stack[0])->*ref));
+				}
+				else {
+					TRY_OR_THROW(arg_stack.returns(get_magic_object<T>(arg_stack[0])->*ref = arg_stack[1]));
+				}
+			}
+		};
+		template<typename T, typename A> static void export_member(interpreter* const interp, const char* name, A T::* const member) {
+			implementation::export_as(interp, name, export_member_ptr<T, A>::method, member);
+		}
+
 		//Section constructors
 
 		struct constructor_info {
@@ -471,8 +494,8 @@ namespace perl {
 #undef TRY_OR_THROW
 
 		template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5> class constructor;
-		template<typename T> class constructor<T, null_type, null_type, null_type, null_type, null_type> {
-			static T* contruct() {
+		template<typename T> struct constructor<T, null_type, null_type, null_type, null_type, null_type> {
+			static T* construct() {
 				return new T();
 			}
 		};
@@ -547,6 +570,9 @@ namespace perl {
 		private:
 		template<typename T> void export_method(const char* name, const T& func) {
 			implementation::export_method(interp, (package_name + "::" + name).c_str(), func);
+		}
+		template<typename T, typename A> void export_member(const char* name, A T::* const var) {
+			implementation::export_member(interp, (package_name + "::" + name).c_str(), var);
 		}
 		template<typename T, typename U> void export_constructor(const char* name, const U& constructor, const implementation::Class_state& state) {
 			implementation::constructor_exporter<T>::export_cons(interp, (package_name + "::" + name).c_str(), constructor, state);
@@ -623,6 +649,9 @@ namespace perl {
 		template<typename U> typename boost::enable_if<typename boost::is_member_function_pointer<U>::type, void>::type add(const char * name, const U& method) {
 				package.export_method(name, method);
 		}
+		template<typename U> typename boost::enable_if<typename boost::is_member_object_pointer<U T::*>::type, void>::type add(const char * name, U T::* const member) {
+				package.export_member<T, U>(name, member);
+		}
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const char* name, const init<A1, A2, A3, A4, A5>&) {
 			typedef typename implementation::constructor<T, A1, A2, A3, A4, A5> constructor;
 			State& state = get_class_data();
@@ -678,7 +707,7 @@ namespace perl {
 		Package use(const char* package_name) const;
 		Package use(const char* package_name, double version) const;
 
-		Package get_package(const char* name) const;
+		Package package(const char* name) const;
 
 		Scalar::Temp scalar(const char*) const;
 		Array::Temp array(const char*) const;
