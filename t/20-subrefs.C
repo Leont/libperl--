@@ -6,7 +6,7 @@ using namespace perl;
 using namespace TAP;
 
 int main() {
-	TEST_START(15);
+	TEST_START(19);
 	Interpreter universe;
 
 	universe.eval(
@@ -14,6 +14,7 @@ int main() {
 		"sub second { return scalar @_ }\n"
 		"sub third { return $_[0] }\n"
 		"sub fourth { return ++$_[0] }\n"
+		"sub fifth { @_ }\n"
 	);
 	Ref<Code> first = universe.eval("\\&first");
 	ok(first(), "first()");
@@ -45,7 +46,13 @@ int main() {
 	is(fourth(value), 2, "fourth(value) == 2");
 	is(value, 2, "value == 2");
 
-	// TODO: list context
+
+	is(second.list(1)[0], 1, "second(1) == 1");
+	is(second.list(1, 1)[0], 2, "second(1, 1) == 2");
+
+	Ref<Code> fifth = universe.eval("\\&fifth");
+	is(fifth.list(1, 2, 3).length(), 3u, "fifth(1, 2, 3).length() == 3");
+	is(fifth.list(1, 2, 3)[2], 3, "list[2] == 3");
 
 	TEST_END;
 }

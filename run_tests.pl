@@ -28,7 +28,7 @@ foreach my $file (@files) {
 		printf "%s results\n", $file;
 	}
 	my $aggregate = TAP::Parser::Aggregator->new;
-	$aggregate->add('testcases', $parser);
+	$aggregate->add($file, $parser);
 	printf "\tPassed: %s\n\tFailed: %s\n", scalar $aggregate->passed, scalar $aggregate->failed;
 	$passed += $aggregate->passed;
 	$failed += $aggregate->failed;
