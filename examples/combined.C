@@ -110,10 +110,10 @@ int main() {
 
 //		Ref< Ref<Any> > doubleref = universe.eval("\\\\1");
 
-		universe.export_sub("test", test);
+		universe.add("test", test);
 		universe.eval("test('test works')");
 
-		universe.export_sub("complex", test1);
+		universe.add("complex", test1);
 		Ref<Code> complex = universe.eval("\\&complex");
 		int test = complex("foo", bar, quz);
 		cout << "complex('foo', bar, quz) : " << test << endl;
@@ -125,7 +125,7 @@ int main() {
 		cout << "zaab is " << zaab << endl;
 
 		int number(0);
-		universe.export_var("foo", number);
+		universe.add("foo", number);
 		universe.eval("$foo = 42");
 		cout << "foo is " << number << endl;
 
@@ -161,7 +161,6 @@ int main() {
 		if ( zaab.match(regex)) {
 			cout << "It matches!" << endl;
 		}
-		universe.eval("printf 'substitute is %s\n', defined &Embed::Perlpp::substitute ? 'defined' : 'not defined'");
 		zaab.substitute(universe.regex("(B\\w{2})"), "Muah $1");
 		cout << "zaab is " << zaab << endl;
 

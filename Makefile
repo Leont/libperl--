@@ -64,11 +64,11 @@ blib/combined: examples/combined.C $(LIB)
 
 testbuild: $(TEST_GOALS)
 
-test: testbuild
+test: $(TEST_GOALS)
 	@echo run_tests.pl $(TEST_GOALS)
 	@$(LIBRARY_VAR)=blib ./run_tests.pl $(TEST_GOALS)
 
-prove: testbuild
+prove: $(TEST_GOALS)
 	@echo prove $(TEST_GOALS)
 	@$(LIBRARY_VAR)=blib prove -e"sh -c" $(TEST_GOALS)
 

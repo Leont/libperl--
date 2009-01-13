@@ -79,7 +79,7 @@ namespace perl {
 		return perl_run(raw_interp.get());
 	}
 	Package Interpreter::package(const char* name) const {
-		return Package(*this, name);
+		return Package(interp, name);
 	}
 	void Interpreter::set_context() const {
 		PERL_SET_CONTEXT(interp);
@@ -194,7 +194,7 @@ namespace perl {
 		/*
 		 * Class implementation::Class_temp
 		 */
-		Class_temp::Class_temp(const Interpreter& interp, const char* name) : package(interp, name, true), persistence(false), use_hash(false) {
+		Class_temp::Class_temp(interpreter* interp, const char* name) : package(interp, name, true), persistence(false), use_hash(false) {
 		}
 		Class_temp& Class_temp::is_persistent(bool _persistence) {
 			persistence = _persistence;
@@ -239,8 +239,6 @@ namespace perl {
 		}
 	}
 	Package::Package(const Package& other) : interp(other.interp), package_name(other.package_name), stash(other.stash) {
-	}
-	Package::Package(const Interpreter& _interp, const char* _name, bool create) : interp(_interp.get_interpreter()), package_name(_name), stash(get_stash(interp, _name, create)) {
 	}
 	Package::Package(interpreter* _interp, const char* _name, bool create) : interp(_interp), package_name(_name), stash(get_stash(interp, _name, create)) {
 	}

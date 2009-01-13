@@ -279,6 +279,7 @@ namespace TAP {
 	}\
 	catch (...) {\
 		TAP::fail(_current_message);\
+		note("Died with some mysterious error");\
 	}
 
 /* This small macro is a main reason for this ugly exercise. I can't introduce a new scope because

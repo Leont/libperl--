@@ -551,7 +551,6 @@ namespace perl {
 		template<typename T> friend class Class;
 		public:
 		Package(const Package&);
-		Package(const Interpreter&, const char*, bool = false);
 		Package(interpreter*, const char*, bool = false);
 		Package(interpreter*, SV*, bool = false);
 		const std::string& get_name() const;
@@ -560,19 +559,19 @@ namespace perl {
 		Array::Temp array(const char*) const;
 		Hash::Temp hash(const char*) const;
 		
-		template<typename T> Code::Value export_sub(const char* name, const T& func) {
-			return implementation::export_sub(interp, (package_name + "::" + name).c_str(), func);
+		template<typename U> typename boost::enable_if<typename boost::is_function<typename boost::remove_pointer<U>::type >::type, const Ref<Code>::Temp>::type add(const char * name, const U& function) {
+			return implementation::export_sub(interp, (package_name + "::" + name).c_str(), function).take_ref();
 		}
-		template<typename T> Code::Value export_stacksub(const char* name, const T& func) {
+		template<typename T> Code::Value add_stacksub(const char* name, const T& func) {
 			return implementation::export_stacksub(interp, (package_name + "::" + name).c_str(), func);
 		}
 
 		private:
-		template<typename T> void export_method(const char* name, const T& func) {
-			implementation::export_method(interp, (package_name + "::" + name).c_str(), func);
+		template<typename T, typename U> typename boost::enable_if<typename boost::is_member_function_pointer<U T::*>::type, void>::type add(const char* name, U T::* const method) {
+			implementation::export_method(interp, (package_name + "::" + name).c_str(), method);
 		}
-		template<typename T, typename A> void export_member(const char* name, A T::* const var) {
-			implementation::export_member(interp, (package_name + "::" + name).c_str(), var);
+		template<typename T, typename U> typename boost::enable_if<typename boost::is_member_object_pointer<U T::*>::type, void>::type add(const char * name, U T::* const member) {
+			implementation::export_member(interp, (package_name + "::" + name).c_str(), member);
 		}
 		template<typename T, typename U> void export_constructor(const char* name, const U& constructor, const implementation::Class_state& state) {
 			implementation::constructor_exporter<T>::export_cons(interp, (package_name + "::" + name).c_str(), constructor, state);
@@ -610,7 +609,7 @@ namespace perl {
 			Package package;
 			bool persistence;
 			bool use_hash;
-			Class_temp(const Interpreter& interp, const char* classname);
+			Class_temp(interpreter* interp, const char* classname);
 			Class_temp& is_persistent(bool = true);
 			Class_temp& uses_hash(bool = true);
 		};
@@ -633,7 +632,7 @@ namespace perl {
 		void initialize(bool _is_persistent, bool _use_hash) {
 			SV* stash = reinterpret_cast<SV*>(package.stash);
 			if (! implementation::has_magic_string(package.interp, stash)) {
-				const State& info= implementation::register_type(package.interp, package.get_name().c_str(), typeid(T), implementation::get_object_vtbl(typeid(T), implementation::destructor<T>), _is_persistent, _use_hash);
+				const State& info = implementation::register_type(package.interp, package.get_name().c_str(), typeid(T), implementation::get_object_vtbl(typeid(T), implementation::destructor<T>), _is_persistent, _use_hash);
 				implementation::set_magic_string(package.interp, stash, &info, 0);
 			}
 		}
@@ -644,13 +643,10 @@ namespace perl {
 			initialize(false, false);
 		}
 		template<typename U> typename boost::enable_if<typename boost::is_function<typename boost::remove_pointer<U>::type >::type, void>::type add(const char * name, const U& function) {
-				package.export_sub(name, function);
+				package.add(name, function);
 		}
-		template<typename U> typename boost::enable_if<typename boost::is_member_function_pointer<U>::type, void>::type add(const char * name, const U& method) {
-				package.export_method(name, method);
-		}
-		template<typename U> typename boost::enable_if<typename boost::is_member_object_pointer<U T::*>::type, void>::type add(const char * name, U T::* const member) {
-				package.export_member<T, U>(name, member);
+		template<typename U> void add(const char * name, U T::* const member) {
+				package.add(name, member);
 		}
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const char* name, const init<A1, A2, A3, A4, A5>&) {
 			typedef typename implementation::constructor<T, A1, A2, A3, A4, A5> constructor;
@@ -734,17 +730,19 @@ namespace perl {
 		Handle out() const;
 		Handle err() const;
 
-		template<typename T> const Ref<Code>::Temp export_sub(const char* name, T& fptr) const {
-			return implementation::export_sub(raw_interp.get(), name, fptr).take_ref();
+		template<typename U> typename boost::enable_if<typename boost::is_function<typename boost::remove_pointer<U>::type >::type, const Ref<Code>::Temp>::type add(const char * name, const U& function) {
+			return implementation::export_sub(raw_interp.get(), name, function).take_ref();
 		}
-		template<typename T> const Code::Value export_stack(const char* name, T& fptr) const {
+		template<typename T> const Code::Value add_stacksub(const char* name, const T& fptr) const {
 			return implementation::export_stacksub(raw_interp.get(), name, fptr);
 		}
 		const implementation::Class_temp add_class(const char* name) const {
-			return implementation::Class_temp(*this, name);
+			return implementation::Class_temp(raw_interp.get(), name);
 		}
-		template<typename T> void export_var(const char* name, T& variable) {
-			magical::readwrite(scalar(name), variable);
+		template<typename T> typename boost::disable_if<typename boost::is_pointer<T>::type, Scalar::Temp>::type add(const char* name, T& variable) {
+			Scalar::Temp ret = scalar(name);
+			magical::readwrite(ret, variable);
+			return ret;
 		}
 
 		const Array::Temp list() const;
@@ -770,16 +768,19 @@ namespace perl {
 		}
 		const Hash::Temp hash() const;
 		
-		template<typename T1> Scalar::Temp call(const char* name, const T1& t1) const {
+		const Scalar::Temp call(const char* name) const {
+			return implementation::Call_stack(get_interpreter()).sub_scalar(name);
+		}
+		template<typename T1> const Scalar::Temp call(const char* name, const T1& t1) const {
 			return implementation::Call_stack(get_interpreter()).push(t1).sub_scalar(name);
 		}
-		template<typename T1, typename T2> Scalar::Temp call(const char* name, const T1& t1, const T2& t2) const {
+		template<typename T1, typename T2> const Scalar::Temp call(const char* name, const T1& t1, const T2& t2) const {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2).sub_scalar(name);
 		}
-		template<typename T1, typename T2, typename T3> Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3) const {
+		template<typename T1, typename T2, typename T3> const Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3) const {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3).sub_scalar(name);
 		}
-		template<typename T1, typename T2, typename T3, typename T4> Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
+		template<typename T1, typename T2, typename T3, typename T4> const Scalar::Temp call(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).sub_scalar(name);
 		}
 
