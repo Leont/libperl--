@@ -43,30 +43,6 @@ namespace perl {
 			return static_cast<T*>(get_magic_ptr(magic));
 		}
 
-		struct Object_buffer {
-			void* ref;
-			const std::set<const std::type_info*>& types;
-			bool owns;
-			Object_buffer(void* _ref, const std::set<const std::type_info*>& _types, bool _owns) : ref(_ref), types(_types), owns(_owns) {
-			}
-			template<typename T> T* get() {
-				return static_cast<T*>(ref);
-			}
-		};
-
-		struct Class_state {
-			const char* classname;
-			MGVTBL* const magic_table;
-			const std::type_info& type;
-			bool is_persistent;
-			bool use_hash;
-			Class_state(const char*, const std::type_info&, MGVTBL*, bool, bool);
-			std::set<const std::type_info*> family;
-			private:
-			Class_state(const Class_state&);
-			Class_state& operator=(const Class_state&);
-		};
-
 		namespace magic {
 			struct read_type {};
 			struct write_type {};
@@ -117,6 +93,30 @@ namespace perl {
 				return 0;
 			}
 		}
+		struct Object_buffer {
+			void* ref;
+			const std::set<const std::type_info*>& types;
+			bool owns;
+			Object_buffer(void* _ref, const std::set<const std::type_info*>& _types, bool _owns) : ref(_ref), types(_types), owns(_owns) {
+			}
+			template<typename T> T* get() {
+				return static_cast<T*>(ref);
+			}
+		};
+
+		struct Class_state {
+			const char* classname;
+			MGVTBL* const magic_table;
+			const std::type_info& type;
+			bool is_persistent;
+			bool use_hash;
+			Class_state(const char*, const std::type_info&, MGVTBL*, bool, bool);
+			std::set<const std::type_info*> family;
+			private:
+			Class_state(const Class_state&);
+			Class_state& operator=(const Class_state&);
+		};
+
 	}
 
 	namespace magical {

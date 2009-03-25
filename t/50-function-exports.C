@@ -40,7 +40,7 @@ int main() {
 	plan(8);
 
 	Interpreter universe;
-	universe.add("first", &first);
+	universe.add("first", first);
 	universe.call("first");
 	universe.add("second", &second);
 	universe.call("second", 1);
