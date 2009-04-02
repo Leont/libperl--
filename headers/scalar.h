@@ -253,6 +253,7 @@ namespace perl {
 
 			SV* pop();
 			AV* pop_array(int);
+			int match(REGEXP*, SV*, IV, IV);
 			public:
 			explicit Call_stack(interpreter*);
 
@@ -270,6 +271,9 @@ namespace perl {
 
 			const scalar::Temp eval_scalar(SV*);
 			const array::Temp eval_list(SV*);
+
+			int match_scalar(REGEXP*, const scalar::Base&, IV flags);
+			const array::Temp match_array(REGEXP*, const scalar::Base&, IV flags);
 
 			~Call_stack();
 			template<typename T> Call_stack& push(const T& t) {

@@ -211,6 +211,13 @@ namespace perl {
 			return Array::Temp(interp, pop_array(count), true);
 		}
 
+		int Call_stack::match_scalar(REGEXP* rx, const Scalar::Base& string, IV flags) {
+			match(rx, string.get_SV(true), G_SCALAR, flags);
+		}
+		const Array::Temp  Call_stack::match_array(REGEXP* rx, const Scalar::Base& string, IV flags) {
+			match(rx, string.get_SV(true), G_ARRAY, flags);
+		}
+
 		/*
 		 * class Stash
 		 */

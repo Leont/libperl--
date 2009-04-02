@@ -142,8 +142,12 @@ namespace perl {
 	}
 
 	const Regex Interpreter::regex(const String::Value& regexp) const {
+#if PERL_VERSION < 9
 		Scalar::Temp temp = implementation::Call_stack(raw_interp.get()).push(regexp).sub_scalar("Embed::Perlpp::regexp");
 		return Regex(std::auto_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), temp.release())));
+#else
+		return Regex(std::auto_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), regexp.get_SV(true), 0)));
+#endif
 	}
 
 	const Scalar::Temp Interpreter::undef() const {

@@ -19,7 +19,7 @@ LIB = blib/$(LIBNAME)
 LIBTAP = blib/$(LIBTAPNAME)
 
 HDRS := $(wildcard *.h)
-PRESRCS := array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C scalar.C
+PRESRCS := array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C regex_foreign.C scalar.C
 SRCS := $(patsubst %,source/%,$(PRESRCS))
 OBJS := $(patsubst %.C,blib/%.o,$(PRESRCS))
 
