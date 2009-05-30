@@ -1,7 +1,5 @@
-#!/usr/bin/perl
-
-# Name:          run_all.pl
-# Purpose:       A test scheduler and runner
+#!/usr/bin/env perl
+# A simple test runner
 
 use strict;
 use warnings;
