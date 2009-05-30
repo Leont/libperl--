@@ -21,24 +21,46 @@ namespace perl {
 		}
 	}
 #else 
-	
-	int Regex::match(const String::Value& string) const {
-		return implementation::Call_stack(pattern->interp).match_scalar(pattern->pattern, string, 0);
-	}
-	int Regex::substitute(String::Value& string, const String::Value& replacement) const {
-		return 0;
-	}
-	int Regex::substitute(String::Value& string, Raw_string replacement) const {
-		return 0;
-	}
 	namespace {
-		UV get_flags(const char*) {
-			return 0;
+		UV get_flags(const char* flag_string) {
+			int flags;
+			for (char current_flag = *flag_string; *flag_string; flag_string++) {
+				switch(current_flag) {
+					case IGNORE_PAT_MOD:    flags |= RXf_PMf_FOLD;       break;
+					case MULTILINE_PAT_MOD: flags |= RXf_PMf_MULTILINE;  break;
+					case SINGLE_PAT_MOD:    flags |= RXf_PMf_SINGLELINE; break;
+					case XTENDED_PAT_MOD:   flags |= RXf_PMf_EXTENDED;   break;
+					case GLOBAL_PAT_MOD:    flags |= PMf_GLOBAL;         break;
+					case CONTINUE_PAT_MOD:  flags |= PMf_CONTINUE;       break;
+					case ONCE_PAT_MOD:      flags |= PMf_KEEP;           break;
+					case KEEPCOPY_PAT_MOD:  flags |= PMf_KEEPCOPY;       break;
+				}
+			}
+			return flags;
 		}
-		REGEXP* regcomp(interpreter* interp, SV* pattern, const char* _flags) {
-			UV flags = get_flags(_flags);
+		REGEXP* regcomp(interpreter* interp, SV* pattern, const char* flag_string) {
+			UV flags = get_flags(flag_string);
 			return CALLREGCOMP(pattern, flags);
 		}
+	}
+
+	int Regex::match(const String::Value& string, const char* flags) const {
+		return implementation::Call_stack(pattern->interp).match_scalar(pattern->pattern, string, get_flags(flags));
+	}
+	int Regex::match(const Scalar::Value& string, const char* flags) const {
+		return implementation::Call_stack(pattern->interp).match_scalar(pattern->pattern, string, get_flags(flags));
+	}
+	int Regex::match(const char* string, const char* flags) const {
+		interpreter* interp = pattern->interp;
+		return implementation::Call_stack(pattern->interp).match_scalar(pattern->pattern, String::Temp(interp, newSVpv(string, 0), true), get_flags(flags));
+	}
+	int Regex::substitute(String::Value& string, const String::Value& replacement) const {
+		return implementation::Call_stack(pattern->interp).subst_scalar(pattern->pattern, string, replacement, 0);
+	}
+	int Regex::substitute(String::Value& string, Raw_string replacement) const {
+		interpreter* interp = pattern->interp;
+		SV* replacement_sv = newSVpvn(replacement.value, replacement.length);
+		return implementation::Call_stack(interp).subst_scalar(pattern->pattern, string, String::Temp(interp, replacement_sv, true), 0);
 	}
 	namespace implementation {
 		Regex::Regex(interpreter* _interp, SV* _pattern, const char* flags) : interp(_interp), pattern(regcomp(_interp, _pattern, flags)) {

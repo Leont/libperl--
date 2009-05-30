@@ -146,7 +146,7 @@ namespace perl {
 		Scalar::Temp temp = implementation::Call_stack(raw_interp.get()).push(regexp).sub_scalar("Embed::Perlpp::regexp");
 		return Regex(std::auto_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), temp.release())));
 #else
-		return Regex(std::auto_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), regexp.get_SV(true), 0)));
+		return Regex(std::auto_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), regexp.get_SV(true), "")));
 #endif
 	}
 

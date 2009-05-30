@@ -213,9 +213,24 @@ namespace perl {
 
 		int Call_stack::match_scalar(REGEXP* rx, const Scalar::Base& string, IV flags) {
 			match(rx, string.get_SV(true), G_SCALAR, flags);
+			finish_call();
+			return Scalar::Temp(interp, pop(), true);
 		}
-		const Array::Temp  Call_stack::match_array(REGEXP* rx, const Scalar::Base& string, IV flags) {
-			match(rx, string.get_SV(true), G_ARRAY, flags);
+		const Array::Temp Call_stack::match_array(REGEXP* rx, const Scalar::Base& string, IV flags) {
+			const int count = match(rx, string.get_SV(true), G_ARRAY, flags);
+			finish_call();
+			return Array::Temp(interp, pop_array(count), true);
+		}
+
+		int Call_stack::subst_scalar(REGEXP* rx, const Scalar::Base& string, const Scalar::Base& dest, IV flags) {
+			subst(rx, string.get_SV(true), dest.get_SV(true), flags);
+			finish_call();
+			return Scalar::Temp(interp, pop(), true);
+		}
+		const Array::Temp Call_stack::subst_array(REGEXP* rx, const Scalar::Base& string, const Scalar::Base& dest, IV flags) {
+			const int count = subst(rx, string.get_SV(true), dest.get_SV(true), flags);
+			finish_call();
+			return Array::Temp(interp, pop_array(count), true);
 		}
 
 		/*
