@@ -1,0 +1,6 @@
+.*.swp
+t/
+blib/
+headers/config.h
+source/evaluate.C
+test.out
