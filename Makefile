@@ -45,7 +45,7 @@ $(LIB): headers/config.h $(OBJS)
 	gcc -shared -o $@ -Wl,-soname,$(LIBNAME) $(OBJS) $(LIBLDFLAGS)
 
 $(LIBTAP): source/tap++.C headers/tap++.h
-	gcc -shared -o $@ -Wl,-soname,$(LIBTAPNAME) -Iheaders/ source/tap++.C
+	gcc -fPIC -shared -o $@ -Wl,-soname,$(LIBTAPNAME) -Iheaders/ source/tap++.C
 
 blib/%.o: source/%.C 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
