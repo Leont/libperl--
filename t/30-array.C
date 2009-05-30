@@ -2,10 +2,16 @@
 #include "tap++.h"
 #include "lambda.h"
 #include <algorithm>
-#include <climits>
+#include <limits>
+
+using std::numeric_limits;
 
 using namespace perl;
 using namespace TAP;
+
+#define UV_MAX numeric_limits<UV>::max()
+#define IV_MAX numeric_limits<IV>::max()
+#define NV_MAX numeric_limits<NV>::max()
 
 int main() {
 	plan(65);
@@ -23,15 +29,15 @@ int main() {
 	is(array[0], 2, "array[0] == 1");
 	is(array[0], "2", "array[0] == \"1\"");
 
-	note("array.push(UINT_MAX)");
-	array.push(UINT_MAX);
-	is(array[1], UINT_MAX, "array[1] == UINT_MAX");
-	ok(array[1] > static_cast<UV>(INT_MAX), "array[1] > (unsigned)INT_MAX");
+	note("array.push(UV_MAX)");
+	array.push(UV_MAX);
+	is(array[1], UV_MAX, "array[1] == UV_MAX");
+	ok(array[1] > static_cast<UV>(IV_MAX), "array[1] > (unsigned)IV_MAX");
 	is(array[1], -1, "array[1] == -1");
 
-	array.push(300E30);
-	note("array.push(300E30)");
-	is(array[2], 300E30, "array[2] == 300E30");
+	array.push(NV_MAX);
+	note("array.push(NV_MAX)");
+	is(array[2], NV_MAX, "array[2] == NV_MAX");
 
 	array.push("test");
 	note("array.push(\"test\")");
@@ -48,12 +54,12 @@ int main() {
 	array.clear();
 	note("array.clear()");
 	is(array.length(), 0u, "array.length() == 0");
-	array.push(1, UINT_MAX, 300E30, "test", universe.undef());
-	note("array.push(1, UINT_MAX, 300E30, \"test\")");
+	array.push(1, UV_MAX, NV_MAX, "test", universe.undef());
+	note("array.push(1, UV_MAX, NV_MAX, \"test\")");
 
 	is(array[0], 1, "array[0] == 1");
-	is(array[1], UINT_MAX, "array[1] == UINT_MAX");
-	is(array[2], 300E30, "array[2] == 300E30");
+	is(array[1], UV_MAX, "array[1] == UV_MAX");
+	is(array[2], NV_MAX, "array[2] == NV_MAX");
 	is(array[3], "test", "array[3] == \"test\"");
 	ok(array.exists(4), "exists array[4]");
 	ok(!array[4].defined(), "not: defined array[4]");
@@ -61,22 +67,22 @@ int main() {
 	array.push(array);
 	note("array.push(array)");
 	is(array[5], 1, "array[5] == 1");
-	is(array[6], UINT_MAX, "array[6] == UINT_MAX");
-	is(array[7], 300E30, "array[7] == 300E30");
+	is(array[6], UV_MAX, "array[6] == UV_MAX");
+	is(array[7], NV_MAX, "array[7] == NV_MAX");
 	is(array[8], "test", "array[8] == \"test\"");
 	ok(array.exists(9), "exists array[9]");
 	ok(!array[9].defined(), "not: defined array[9]");
 
 	array.clear();
 	array.unshift("test");
-	array.unshift(300E30);
-	array.unshift(UINT_MAX);
+	array.unshift(NV_MAX);
+	array.unshift(UV_MAX);
 	array.unshift(1);
-	note("array.unshift(1, UINT_MAX, 300E30, \"test\")");
+	note("array.unshift(1, UV_MAX, NV_MAX, \"test\")");
 
 	is(array[0], 1, "array[0] == 1");
-	is(array[1], UINT_MAX, "array[1] == UINT_MAX");
-	is(array[2], 300E30, "array[2] == 300E30");
+	is(array[1], UV_MAX, "array[1] == UV_MAX");
+	is(array[2], NV_MAX, "array[2] == NV_MAX");
 	is(array[3], "test", "array[3] == \"test\"");
 
 	ok(array.exists(3), "exists array[3]");
