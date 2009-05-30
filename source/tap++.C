@@ -49,7 +49,11 @@ namespace TAP {
 	}
 
 	int exit_status() throw () {
-		if (expected == counter || no_planned) {
+		if (no_planned) {
+			*details::output << "1.." << encountered() << std::endl;
+			return std::min(254, not_oks);
+		}
+		else if (expected == counter) {
 			return std::min(254, not_oks);
 		}
 		else {
