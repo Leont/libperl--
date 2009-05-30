@@ -135,12 +135,12 @@ namespace perl {
 
 			const std::string to_string() const;
 
-			unsigned length() const;
+			size_t length() const;
 
-			void replace(unsigned offset, unsigned length, Raw_string other);
-			void replace(unsigned offset, unsigned length, const char*, unsigned);
-			void insert(unsigned offset, Raw_string other);
-			void insert(unsigned offset, const char*, unsigned);
+			void replace(size_t offset, size_t length, Raw_string other);
+			void replace(size_t offset, size_t length, const char*, size_t);
+			void insert(size_t offset, Raw_string other);
+			void insert(size_t offset, const char*, size_t);
 
 			String& operator=(const String&);
 			String& operator=(Raw_string other);

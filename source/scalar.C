@@ -29,7 +29,7 @@ namespace perl {
 		return SvNVx(get_SV(true));
 	}
 	perl::Raw_string Scalar::Base::string_value() const {
-		unsigned len;
+		size_t len;
 		const char* const tmp = SvPVx(get_SV(true), len);
 		return perl::Raw_string(tmp, len, SvUTF8(get_SV(false)));
 	}
@@ -247,7 +247,7 @@ namespace perl {
 //		return operator Raw_string();
 //	}
 	Scalar::Value::operator const std::string() const {
-		unsigned len;
+		size_t len;
 		const char* const tmp = SvPVx(get_SV(true), len);
 		return std::string(tmp, len);
 	}
@@ -255,7 +255,7 @@ namespace perl {
 	bool Scalar::Value::defined() const {
 		return SvOK(get_SV(true));
 	}
-	unsigned Scalar::Value::length() const {
+	size_t Scalar::Value::length() const {
 		return sv_len(get_SV(true));
 	}
 

@@ -262,7 +262,7 @@ namespace perl {
 	String::Value::operator String::bool_type() const {
 		return length() > 0 ? &String::no_such_comparator : 0;
 	}
-	unsigned String::Value::length() const {
+	size_t String::Value::length() const {
 		return sv_len(get_SV(true)); // Unicode!?
 	}
 	String::Value& String::Value::operator+=(const perl::String::Value& other) {
@@ -318,16 +318,16 @@ namespace perl {
 		}
 	}
 
-	void String::Value::replace(unsigned offset, unsigned sublength, const char* other, unsigned other_length) {
+	void String::Value::replace(size_t offset, size_t sublength, const char* other, size_t other_length) {
 		sv_insert(get_SV(true), offset, sublength, const_cast<char*>(other), other_length);
 	}
-	void String::Value::replace(unsigned offset, unsigned sublength, Raw_string other) {
+	void String::Value::replace(size_t offset, size_t sublength, Raw_string other) {
 		replace(offset, sublength, other.value, other.length);
 	}
-	void String::Value::insert(unsigned offset, Raw_string other) {
+	void String::Value::insert(size_t offset, Raw_string other) {
 		replace(offset, 0, other.value, other.length);
 	}
-	void String::Value::insert(unsigned offset, const char* other, unsigned other_length) {
+	void String::Value::insert(size_t offset, const char* other, size_t other_length) {
 		replace(offset, 0, other, other_length);
 	}
 

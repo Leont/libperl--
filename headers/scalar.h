@@ -588,7 +588,7 @@ namespace perl {
 				bool as_bool() const;
 
 				bool defined() const;
-				unsigned length() const;
+				size_t length() const;
 				const array::Temp unpack(const Raw_string) const;
 			
 				scalar::Temp operator[](int) const;
