@@ -373,7 +373,8 @@ namespace perl {
 			}
 		};
 
-		template<typename R, typename T, typename A1> struct export_method_1 {
+		template<typename R, typename T, typename A1, typename = void> struct export_method_1;
+		template<typename R, typename T, typename A1> struct export_method_1<R, T, A1, typename boost::disable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
 			typedef R (T::*func_ptr)(A1);
 			static void method(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
@@ -382,12 +383,34 @@ namespace perl {
 			}
 		};
 
-		template<typename T, typename A1> struct export_method_v1 {
+		template<typename R, typename T, typename A1> struct export_method_1<R, T, A1, typename boost::enable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
+			typedef R (T::*func_ptr)(A1);
+			static void method(interpreter* me_perl, CV* cef) {
+				Argument_stack arg_stack(me_perl);
+				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
+				Array::Temp arg = arg_stack.get_arg();
+				arg.shift();
+				TRY_OR_THROW(arg_stack.returns((get_magic_object<T>(arg_stack[0])->*ref)(arg)));
+			}
+		};
+
+		template<typename T, typename A1, typename = void> struct export_method_v1;
+		template<typename T, typename A1> struct export_method_v1<T, A1, typename boost::disable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
 			typedef void (T::*func_ptr)(A1);
 			static void method(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
 				TRY_OR_THROW((get_magic_object<T>(arg_stack[0])->*ref)(static_cast<A1>(arg_stack[1])));
+			}
+		};
+		template<typename T, typename A1> struct export_method_v1<T, A1, typename boost::enable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
+			typedef void (T::*func_ptr)(A1);
+			static void method(interpreter* me_perl, CV* cef) {
+				Argument_stack arg_stack(me_perl);
+				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
+				Array::Temp arg = arg_stack.get_arg();
+				arg.shift();
+				TRY_OR_THROW((get_magic_object<T>(arg_stack[0])->*ref)(arg));
 			}
 		};
 
