@@ -72,4 +72,6 @@ int main() {
 
 	testerc.add("eigth", &tester::eigth);
 	ok(object.call("eigth", 1), "$object->eight(1)");
+
+	return exit_status();
 }

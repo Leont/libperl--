@@ -89,7 +89,7 @@ namespace perl {
 			template<typename T> int var_write(interpreter* interp, SV* var, MAGIC* magic_ptr) {
 				T& tmp = *implementation::get_magic_ptr<T>(magic_ptr);
 				Scalar::Temp val(interp, var, false);
-				tmp = val;
+				tmp = (T)val;
 				return 0;
 			}
 		}
