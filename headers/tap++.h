@@ -17,6 +17,7 @@ namespace TAP {
 	void plan(int) throw();
 	void plan(const details::skip_all_type&, const std::string& = "") throw();
 	void plan(const details::no_plan_type&) throw();
+	void done_testing() throw();
 
 	int planned() throw();
 	int encountered() throw();

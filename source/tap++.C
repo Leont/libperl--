@@ -41,6 +41,13 @@ namespace TAP {
 		no_planned = true;
 	}
 
+	void done_testing() throw() {
+		if (no_planned) {
+			*details::output << "1.." << encountered() << std::endl;
+			no_planned = false;
+		}
+	}
+
 	int planned() throw() {
 		return expected;
 	}
