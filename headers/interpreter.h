@@ -195,15 +195,12 @@ namespace perl {
 		}
 
 		void die(interpreter*, const char* message);
-		template<typename T, typename U> typename boost::enable_if<typename boost::is_convertible<const U&, T>::type, T>::type typemap_cast(const U& u) {
-			return static_cast<T>(u);
-		}
 
-		//TODO: make it throw an object
 #define TRY_OR_THROW(a) try {\
 			a;\
 		}\
 		catch(std::exception& e) {\
+			/* TODO: make it throw an object */ \
 			die(me_perl, e.what());\
 		}\
 		catch(...) {\
@@ -235,7 +232,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack.returns(ref(typemap_cast<A1>(arg_stack[0]))));
+				TRY_OR_THROW(arg_stack.returns(ref(typecast_to<A1>(me_perl, arg_stack[0]))));
 			}
 		};
 		template<typename R, typename A1> struct export_sub_1<R, A1, typename boost::enable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
@@ -253,7 +250,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack.returns(ref(typemap_cast<A1>(arg_stack[0]), typemap_cast<A2>(arg_stack[1]))));
+				TRY_OR_THROW(arg_stack.returns(ref(typecast_to<A1>(me_perl, arg_stack[0]), typecast_to<A2>(arg_stack[1]))));
 			}
 		};
 		template<typename R, typename A1, typename A2, typename A3> struct export_sub_3 {
@@ -261,7 +258,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack(ref(typemap_cast<A1>(arg_stack[0]), typemap_cast<A2>(arg_stack[1]), typemap_cast<A3>(arg_stack[2]))));
+				TRY_OR_THROW(arg_stack(ref(typecast_to<A1>(me_perl, arg_stack[0]), typecast_to<A2>(arg_stack[1]), typecast_to<A3>(arg_stack[2]))));
 			}
 		};
 
@@ -286,7 +283,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				ref(typemap_cast<A1>(arg_stack[0]));
+				ref(typecast_to<A1>(me_perl, arg_stack[0]));
 			}
 		};
 		template<typename A1> struct export_sub_v1<A1, typename boost::enable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
@@ -295,7 +292,7 @@ namespace perl {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
 				Array::Temp arg = arg_stack.get_arg();
-				ref(typemap_cast<A1>(arg));
+				ref(typecast_to<A1>(me_perl, arg));
 			}
 		};
 
@@ -304,7 +301,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				ref(typemap_cast<A1>(arg_stack[0]), typemap_cast<A2>(arg_stack[1]));
+				ref(typecast_to<A1>(me_perl, arg_stack[0]), typecast_to<A2>(me_perl, arg_stack[1]));
 			}
 		};
 
@@ -313,7 +310,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				ref(typemap_cast<A1>(arg_stack[0], typemap_cast<A2>(arg_stack[1]), typemap_cast<A3>(arg_stack[3])));
+				ref(typecast_to<A1>(me_perl, arg_stack[0], typecast_to<A2>(me_perl, arg_stack[1]), typecast_to<A3>(me_perl, arg_stack[3])));
 			}
 		};
 
@@ -379,7 +376,7 @@ namespace perl {
 			static void method(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW(arg_stack.returns((get_magic_object<T>(arg_stack[0])->*ref)(static_cast<A1>(arg_stack[1]))));
+				TRY_OR_THROW(arg_stack.returns((get_magic_object<T>(arg_stack[0])->*ref)(typecast_to<A1>(me_perl, arg_stack[1]))));
 			}
 		};
 
@@ -400,7 +397,7 @@ namespace perl {
 			static void method(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				TRY_OR_THROW((get_magic_object<T>(arg_stack[0])->*ref)(static_cast<A1>(arg_stack[1])));
+				TRY_OR_THROW((get_magic_object<T>(arg_stack[0])->*ref)(typecast_to<A1>(me_perl, arg_stack[1])));
 			}
 		};
 		template<typename T, typename A1> struct export_method_v1<T, A1, typename boost::enable_if<typename boost::is_convertible<Array::Temp, A1>::type>::type> {
@@ -479,7 +476,7 @@ namespace perl {
 					Argument_stack arg_stack(me_perl);
 					const constructor_info data = implementation::get_function_pointer<constructor_info>(me_perl, cef);
 					const func_ptr ref = data.get<func_ptr>();
-					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(static_cast<A1>(arg_stack[1])), data.class_state)));
+					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(typecast_to<A1>(me_perl, arg_stack[1])), data.class_state)));
 				}
 			};
 			template<typename A1, typename A2> struct arg2 {
@@ -488,7 +485,7 @@ namespace perl {
 					Argument_stack arg_stack(me_perl);
 					const constructor_info data = implementation::get_function_pointer<constructor_info>(me_perl, cef);
 					const func_ptr ref = data.get<func_ptr>();
-					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(static_cast<A1>(arg_stack[1]), static_cast<A2>(arg_stack[2])), data.class_state)));
+					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(typecast_to<A1>(me_perl, arg_stack[1]), typecast_to<A2>(arg_stack[2])), data.class_state)));
 				}
 			};
 			template<typename A1, typename A2, typename A3> struct arg3 {
@@ -497,7 +494,7 @@ namespace perl {
 					Argument_stack arg_stack(me_perl);
 					const constructor_info data = implementation::get_function_pointer<constructor_info>(me_perl, cef);
 					const func_ptr ref = data.get<func_ptr>();
-					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(static_cast<A1>(arg_stack[1]), static_cast<A2>(arg_stack[2]), static_cast<A3>(arg_stack[3])), data.class_state)));
+					TRY_OR_THROW(arg_stack.returns(store_in_cache(me_perl, ref(typecast_to<A1>(me_perl, arg_stack[1]), typecast_to<A2>(arg_stack[2]), typecast_to<A3>(arg_stack[3])), data.class_state)));
 				}
 			};
 			public:

@@ -143,11 +143,24 @@ namespace perl {
 
 	struct override { };
 
+	namespace scalar {
+		class Temp;
+	}
+
 	namespace implementation {
 		struct null_type { };
 
 		template<typename T, typename = void> struct perl_type {
 			typedef boost::false_type type;
 		};
+
+		template<typename T> class typemap_castable  {
+			typedef boost::false_type from;
+			typedef typename boost::is_convertible<const scalar::Temp, T>::type to;
+		};
+
+		template<typename T> const T& typecast_to(interpreter*, const T& t) {
+			return t;
+		}
 	}
 }

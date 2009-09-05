@@ -235,6 +235,9 @@ namespace perl {
 			void push(const implementation::array::Value& val);
 			void push(const null_type&);
 			void push(const Regex&);
+			template<typename T> typename boost::enable_if< typename typemap_castable<T>::from>::type push(const T& t) {
+				push(typecast_from(t));
+			}
 //			template<typename T> void push(T* arg);
 		};
 
