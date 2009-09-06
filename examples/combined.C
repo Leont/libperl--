@@ -1,4 +1,5 @@
 #include "perl++.h"
+#include <utility>
 #include <algorithm>
 
 using namespace perl;
@@ -51,6 +52,10 @@ class tester {
 	}
 	~tester() {
 		cout << "tester gets destroyed" << endl;
+	}
+
+	const std::pair<int, double> pair(std::pair<double, int> args) {
+		return std::make_pair(args.second, args.first);
 	}
 };
 
@@ -133,6 +138,7 @@ int main() {
 		classr.add(init<int>());
 		classr.add("print", &tester::print);
 		classr.add("set", &tester::set);
+		classr.add("pair", &tester::pair);
 
 		{
 		Ref<Any> testr = universe.package("Tester").call("new", 1);
