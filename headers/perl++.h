@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstring>
+#include <vector>
 #include <map>
 #include <set>
 #include <exception>
@@ -11,6 +12,8 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
+#include <boost/mpl/logical.hpp>
+#include <boost/utility/result_of.hpp>
 
 #include <boost/type_traits/function_traits.hpp>
 #include <boost/type_traits/remove_pointer.hpp>
@@ -41,4 +44,5 @@
 #include "array.h"
 #include "hash.h"
 #include "other.h"
+#include "typecasts.h"
 #include "interpreter.h"
