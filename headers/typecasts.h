@@ -4,6 +4,9 @@ namespace perl {
 			typedef typename boost::mpl::or_<typename boost::is_convertible<Scalar::Temp, T>::type, typename typemap<T>::from_type>::type type;
 		};
 
+		template<> struct typemap<Scalar::Value> {
+			typedef boost::false_type from_type;
+		};
 		template<typename T> struct typemap<T, typename boost::enable_if<typename boost::is_convertible<const Scalar::Value, T>::type>::type> {
 			typedef boost::false_type from_type;
 			typedef boost::true_type to_type;
