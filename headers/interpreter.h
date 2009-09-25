@@ -1,4 +1,31 @@
 namespace perl {
+	namespace typecast {
+		template<typename T, typename E> struct typemap {
+			typedef boost::false_type from_type;
+		};
+	}
+
+	namespace implementation {
+		template<typename T> struct typemap_from_info {
+			typedef typeof(typecast::typemap<T>::cast_from) from_type;
+			typedef typename boost::function_traits<from_type>::result_type result_type;
+			typedef typename boost::function_traits<from_type>::arg2_type arg_type;
+		};
+
+		template<typename T> struct typemap_to_info {
+			typedef typeof(typecast::typemap<T>::cast_to) to_type;
+			typedef typename boost::function_traits<to_type>::result_type result_type;
+			typedef typename boost::function_traits<to_type>::arg1_type arg_type;
+		};
+	}
+
+	template<typename T> const typename implementation::typemap_from_info<T>::result_type typecast_from(interpreter* interp, const T& t) {
+		return typecast::typemap<T>::cast_from(interp, t);
+	}
+	template<typename T> const typename implementation::typemap_to_info<T>::result_type typecast_to(const typename implementation::typemap_to_info<T>::arg_type& t) {
+		return typecast::typemap<T>::cast_to(t);
+	}
+
 	class lock {
 		interpreter* const interp;
 		SV* const variable;
@@ -292,7 +319,7 @@ namespace perl {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
 				Array::Temp arg = arg_stack.get_arg();
-				ref(typecast_to<A1>(arg));
+				ref(static_cast<A1>(arg));
 			}
 		};
 
@@ -411,13 +438,26 @@ namespace perl {
 			}
 		};
 
+		template<typename T, typename R> static void export_method(interpreter* const interp, const char* name, R (T::* const fptr)() const) {
+			implementation::export_as(interp, name, export_method_0<R,T>::method, fptr);
+		}
+		template<typename T> static void export_method(interpreter* const interp, const char* name, void (T::* const fptr)() const) {
+			implementation::export_as(interp, name, export_method_v0<T>::method, fptr);
+		}
+		template<typename T, typename R, typename A1> static void export_method(interpreter* const interp, const char* name, R (T::* const fptr)(A1) const) {
+			implementation::export_as(interp, name, export_method_1<R, T, A1>::method, fptr);
+		}
+		template<typename T, typename A1> static void export_method(interpreter* const interp, const char* name, void (T::* const fptr)(A1) const) {
+			implementation::export_as(interp, name, export_method_v1<T, A1>::method, fptr);
+		}
+
 		template<typename T, typename R> static void export_method(interpreter* const interp, const char* name, R (T::* const fptr)()) {
 			implementation::export_as(interp, name, export_method_0<R,T>::method, fptr);
 		}
 		template<typename T> static void export_method(interpreter* const interp, const char* name, void (T::* const fptr)()) {
 			implementation::export_as(interp, name, export_method_v0<T>::method, fptr);
 		}
-		template<typename T, typename R, typename A1> static void export_method(interpreter* const interp, const char* name, R (T::*fptr)(A1)) {
+		template<typename T, typename R, typename A1> static void export_method(interpreter* const interp, const char* name, R (T::* const fptr)(A1)) {
 			implementation::export_as(interp, name, export_method_1<R, T, A1>::method, fptr);
 		}
 		template<typename T, typename A1> static void export_method(interpreter* const interp, const char* name, void (T::* const fptr)(A1)) {
@@ -817,15 +857,4 @@ namespace perl {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).pack(pattern);
 		}
 	};
-
-	namespace typecast {
-		template<typename T> const Scalar::Temp typemap<T, typename boost::enable_if<typename boost::is_convertible<const Scalar::Value, T>::type>::type>::cast_from(interpreter* pre_interp, const T& t) {
-			return Interpreter(pre_interp).value_of(t);
-		}
-
-		template<typename T, typename U> const Ref<Array>::Temp typemap< std::pair<T, U> >::cast_from(interpreter* pre_interp, const std::pair<T, U>& t) {
-			return Interpreter(pre_interp).list(typecast_from(pre_interp, t.first), typecast_from(pre_interp, t.second)).take_ref();
-		}
-	}
-
 }
