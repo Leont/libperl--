@@ -1,0 +1,43 @@
+=pod
+
+=head1 NAME
+
+libperl++ - Tutorial
+
+=head1 VERSION
+
+XXX
+
+=head1 INSTALLATION
+
+Currently the recommended way to get libperl++ is to checkout the latest version from git at L<git://github.com/Leont/libperl--.git>. Releases are currently uncommon. It can be installed using plain old make: a more portable solution is being planned.
+
+=head1 GETTING STARTED
+
+libperl++ is a library for embedding perl. In this tutorial I'm taking simple imaginary game and expose it to perl for scripting.
+
+	struct player {
+		string get_name() const;
+		pair<int, int> get_position() const;
+		void set_position(pair<int, int>);
+
+		double get_strength() const;
+		void set_strength(double);
+		void die(string);
+	};
+
+
+First of all, we need an interpreter object. For this simple game, we'll use a global interpreter:
+
+	static Interpreter universe;
+
+The class 
+
+	Class<player> player_class = universe.add_class("Player");
+	
+
+=head1 AUTHOR
+
+Leon Timmermans (fawaka@gmail.com)
+
+=cut

@@ -27,7 +27,7 @@ TEST_SRCS := $(wildcard t/*.C)
 TEST_OBJS := $(patsubst %.C,%.t,$(TEST_SRCS))
 TEST_GOALS = $(TEST_OBJS)
 
-all: blib $(LIB) $(LIBTAP) blib/combined
+all: blib $(LIB) $(LIBTAP) blib/combined blib/game
 
 source/ppport.h:
 	perl -MDevel::PPPort -eDevel::PPPort::WriteFile\(\'$@\'\)
@@ -60,6 +60,9 @@ headers/config.h: source/config.pre
 	cpp $(PERLCXX) $< > $@
 
 blib/combined: examples/combined.C $(LIB)
+	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
+
+blib/game: examples/game.C $(LIB)
 	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
 
 testbuild: $(TEST_GOALS)
