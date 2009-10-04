@@ -32,9 +32,9 @@ namespace perl {
 			sv_magic(var, NULL, PERL_MAGIC_ext, static_cast<const char*>(value), length);
 		}
 
-		SV* make_magic_object(interpreter* interp, void* obj, const Class_state& state, bool owns) {
+		SV* make_magic_object(interpreter* interp, const void* obj, const Class_state& state, bool owns) {
 			SV* const referee = state.use_hash ? reinterpret_cast<SV*>(newHV()) : newSV(0);
-			Object_buffer buffer(obj, state.family, owns);
+			Object_buffer buffer(const_cast<void*>(obj), state.family, owns);
 			sv_magicext(referee, NULL, PERL_MAGIC_ext, state.magic_table, reinterpret_cast<const char*>(&buffer), sizeof buffer);
 			SV* const ret = newRV_noinc(referee);
 			return sv_bless(ret, gv_stashpv(state.classname, true));
@@ -97,9 +97,9 @@ namespace perl {
 
 		static const char cache_namespace[] = "perl++/objects/";
 
-		static SV* store_in_cache_impl(interpreter* interp, void* address, const implementation::Class_state& state, bool owns) {
+		static SV* store_in_cache_impl(interpreter* interp, const void* address, const implementation::Class_state& state, bool owns) {
 			std::string key(cache_namespace);
-			key.append(reinterpret_cast<const char*>(&address), sizeof(void*));
+			key.append(reinterpret_cast<const char*>(&address), sizeof address);
 
 			SV* const ret = make_magic_object(interp, address, state, owns);
 			SV* const * const other = hv_store(PL_modglobal, key.data(), key.length(), newSVsv(ret), 0);
@@ -108,13 +108,13 @@ namespace perl {
 			}
 			return ret;
 		}
-		Ref<Any>::Temp store_in_cache(interpreter* interp, void* address, const implementation::Class_state& state) {
+		Ref<Any>::Temp store_in_cache(interpreter* interp, const void* address, const implementation::Class_state& state) {
 			return Ref<Any>::Temp(interp, store_in_cache_impl(interp, address, state, true), true);
 		}
 
-		SV* value_of_pointer(interpreter* interp, void* address, const std::type_info& info) {
+		SV* value_of_pointer(interpreter* interp, const void* address, const std::type_info& info) {
 			std::string key(cache_namespace);
-			key.append(reinterpret_cast<const char*>(&address), sizeof(void*));
+			key.append(reinterpret_cast<const char*>(&address), sizeof address);
 			SV** entry = hv_fetch(PL_modglobal, key.data(), key.length(), 0);
 			if (entry == NULL || !SvROK(*entry)) {
 				return store_in_cache_impl(interp, address, typemap.at(&info), false);

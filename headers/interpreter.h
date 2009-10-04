@@ -221,6 +221,12 @@ namespace perl {
 			return *reinterpret_cast<const T*>(ret.value);
 		}
 
+		SV* value_of_pointer(interpreter*, const void*, const std::type_info&);
+		template<typename T> const Scalar::Temp value_of_pointer(interpreter* interp, T* pointer) {
+			return Scalar::Temp(interp, value_of_pointer(interp, pointer, typeid(T)), false);
+		}
+		Ref<Any>::Temp store_in_cache(interpreter*, const void*, const implementation::Class_state&);
+
 		void die(interpreter*, const char* message);
 
 #define TRY_OR_THROW(a) try {\
@@ -592,11 +598,19 @@ namespace perl {
 			}
 			return 0;
 		}
+	}
 
-
-		SV* value_of_pointer(interpreter*, void*);
-		Ref<Any>::Temp store_in_cache(interpreter*, void*, const implementation::Class_state&);
-	 }
+	namespace typecast {
+		template<typename T> struct exported_type {
+			typedef boost::true_type from_type;
+			static const Scalar::Temp cast_from(interpreter* interp, const T& value) {
+				return implementation::value_of_pointer(interp, &value);
+			}
+			static const T& cast_to(const Scalar::Value& value) {
+				return *implementation::get_magic_object<T>(value);
+			}
+		};
+	}
 
 	template<typename T> class Class;
 
@@ -741,7 +755,7 @@ namespace perl {
 	class Interpreter {
 		const boost::shared_ptr<interpreter> raw_interp;
 		public:
-		Interpreter& operator=(const Interpreter&); //What should that do?
+		Interpreter& operator=(const Interpreter&);
 		Interpreter(interpreter*);
 		public:
 		Interpreter();
@@ -781,8 +795,8 @@ namespace perl {
 		const String::Temp value_of(Raw_string) const;
 		const String::Temp value_of(const char*) const;
 		const String::Temp value_of(const std::string&) const;
-		template<typename T, typename U> const typename Ref<U>::Temp value_of(T* object, const U* = static_cast<Any*>(0)) const {
-			return Ref<U>::Temp(raw_interp, implementation::value_of_pointer(raw_interp, object), false);
+		template<typename T, typename U> const typename implementation::typemap_from_info<T>::result_type value_of(const T& t, const U* = static_cast<Any*>(0)) const {
+			return typecast::typemap<T>::cast_from(raw_interp.get(), t);
 		}
 
 		Handle open(Raw_string) const;
