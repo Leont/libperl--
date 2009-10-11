@@ -19,9 +19,6 @@ namespace perl {
 		};
 	}
 
-	template<typename T> const typename implementation::typemap_from_info<T>::result_type typecast_from(interpreter* interp, const T& t) {
-		return typecast::typemap<T>::cast_from(interp, t);
-	}
 	template<typename T> const typename implementation::typemap_to_info<T>::result_type typecast_to(const typename implementation::typemap_to_info<T>::arg_type& t) {
 		return typecast::typemap<T>::cast_to(t);
 	}
@@ -600,18 +597,6 @@ namespace perl {
 		}
 	}
 
-	namespace typecast {
-		template<typename T> struct exported_type {
-			typedef boost::true_type from_type;
-			static const Scalar::Temp cast_from(interpreter* interp, const T& value) {
-				return implementation::value_of_pointer(interp, &value);
-			}
-			static const T& cast_to(const Scalar::Value& value) {
-				return *implementation::get_magic_object<T>(value);
-			}
-		};
-	}
-
 	template<typename T> class Class;
 
 	class Package : public implementation::method_calling<Package> {
@@ -756,7 +741,7 @@ namespace perl {
 		const boost::shared_ptr<interpreter> raw_interp;
 		public:
 		Interpreter& operator=(const Interpreter&);
-		Interpreter(interpreter*);
+		explicit Interpreter(interpreter*);
 		public:
 		Interpreter();
 		Interpreter(int, const char*[]);
@@ -871,4 +856,25 @@ namespace perl {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).pack(pattern);
 		}
 	};
+
+	template<typename T> const typename implementation::typemap_from_info<T>::result_type typecast_from(Interpreter& interp, const T& t) {
+		return typecast::typemap<T>::cast_from(interp, t);
+	}
+	template<typename T> const typename implementation::typemap_from_info<T>::result_type typecast_from(interpreter* pre_interp, const T& t) {
+		Interpreter interp(pre_interp);
+		return typecast_from<T>(interp, t);
+	}
+
+	namespace typecast {
+		template<typename T> struct exported_type {
+			typedef boost::true_type from_type;
+			static const Scalar::Temp cast_from(Interpreter& interp, const T& value) {
+				return implementation::value_of_pointer(interp.get_interpreter(), &value);
+			}
+			static const T& cast_to(const Scalar::Value& value) {
+				return *implementation::get_magic_object<T>(value);
+			}
+		};
+	}
+
 }
