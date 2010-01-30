@@ -6,7 +6,7 @@ using namespace perl;
 using namespace TAP;
 
 int main() {
-	TEST_START(38);
+	TEST_START(39);
 
 	ok(true, "True is ok");
 	not_ok(false, "False is not ok");

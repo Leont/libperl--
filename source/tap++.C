@@ -1,6 +1,7 @@
 #define WANT_TEST_EXTRAS
 #include "tap++.h"
 #include <stack>
+#include <boost/lexical_cast.hpp>
 
 namespace TAP {
 	std::string TODO = "";
@@ -9,11 +10,11 @@ namespace TAP {
 	const details::no_plan_type no_plan = details::no_plan_type();
 
 	namespace {
-		int expected = 0;
-		int counter = 0;
-		int not_oks = 0;
+		unsigned expected = 0;
+		unsigned counter = 0;
+		unsigned not_oks = 0;
 
-		std::string todo_test() {
+		std::string todo_test() throw() {
 			if (TODO == "") {
 				return TODO;
 			}
@@ -23,17 +24,50 @@ namespace TAP {
 		}
 		bool is_planned = false;
 		bool no_planned = false;
+		bool has_output_plan = false;
+
+		void output_plan(unsigned tests, const std::string& extra = "") throw(fatal_exception) {
+			if (has_output_plan) {
+				throw fatal_exception("Can't plan twice");
+			}
+			*details::output << "1.." << tests << extra << std::endl;
+			has_output_plan = true;
+		}
+		inline const std::string to_string(unsigned num) throw() {
+			return boost::lexical_cast<std::string>(num);
+		}
+
+		inline void _done_testing(unsigned tests) throw(fatal_exception) {
+			static bool is_done = false;
+			if (is_done) {
+				fail("done_testing() was already called");
+				return;
+			}
+			is_done = true;
+
+			if (expected && tests != expected) {
+				fail(std::string("planned to run ") + to_string(expected) + " tests but done_testing() expects " + to_string(tests));
+			}
+			else {
+				expected = tests;
+			}
+			is_planned = true;
+			if (!has_output_plan) {
+				output_plan(tests);
+			}
+		}
+
 	}
-	void plan(int tests) throw() {
+	void plan(unsigned tests) throw(fatal_exception) {
 		if (is_planned) {
 			bail_out("Can't plan again!");
 		}
 		is_planned = true;
-		*details::output << "1.." << tests << std::endl;
+		output_plan(tests);
 		expected = tests;
 	}
-	void plan(const details::skip_all_type&, const std::string& reason) throw() {
-		*details::output << "1..0 #skip " << reason << std::endl;
+	void plan(const details::skip_all_type&, const std::string& reason) throw(fatal_exception) {
+		output_plan(0, " #skip " + reason);
 		exit(0);
 	}
 	void plan(const details::no_plan_type&) throw() {
@@ -41,27 +75,33 @@ namespace TAP {
 		no_planned = true;
 	}
 
-	void done_testing() throw() {
-		if (no_planned) {
-			*details::output << "1.." << encountered() << std::endl;
-			no_planned = false;
-		}
+	void done_testing() throw(fatal_exception) {
+		_done_testing(encountered());
 	}
 
-	int planned() throw() {
+	void done_testing(unsigned tests) throw(fatal_exception) {
+		no_planned = false;
+		_done_testing(tests);
+	}
+
+	unsigned planned() throw() {
 		return expected;
 	}
-	int encountered() throw() {
+	unsigned encountered() throw() {
 		return counter;
 	}
 
 	int exit_status() throw () {
+		bool passing;
+		if (!is_planned && encountered()) {
+			diag("Tests were run but no plan was declared and done_testing() was not seen.");
+		}
 		if (no_planned) {
-			*details::output << "1.." << encountered() << std::endl;
-			return std::min(254, not_oks);
+			output_plan(encountered());
+			return std::min(254u, not_oks);
 		}
 		else if (expected == counter) {
-			return std::min(254, not_oks);
+			return std::min(254u, not_oks);
 		}
 		else {
 			return 255;
@@ -95,48 +135,48 @@ namespace TAP {
 		return ok(false, message);
 	}
 
-	void skip(int num, const std::string& reason) throw ()  {
-		for(int i = 0; i < num; ++i) {
+	void skip(unsigned num, const std::string& reason) throw ()  {
+		for(unsigned i = 0; i < num; ++i) {
 			pass(" # skip " + reason);
 		}
 	}
 
-	void set_output(std::ostream& new_output) throw () {
+	void set_output(std::ostream& new_output) throw (fatal_exception) {
 		if (is_planned) {
-			bail_out("Can't set output after plan()");
+			throw fatal_exception("Can't set output after plan()");
 		}
 		details::output = &new_output;
 	}
-	void set_error(std::ostream& new_error) throw() {
+	void set_error(std::ostream& new_error) throw(fatal_exception) {
 		if (is_planned) {
-			bail_out("Can't set error after plan()");
+			throw fatal_exception("Can't set error after plan()");
 		}
 		details::error = &new_error;
 	}
 	namespace details {
 		std::ostream* output = &std::cout;
 		std::ostream* error = &std::cerr;
-		static std::stack<int> block_expected;
-		void start_block(int expected) {
+		static std::stack<unsigned> block_expected;
+		void start_block(unsigned expected) throw() {
 			block_expected.push(encountered() + expected);
 		}
-		int stop_block() {
-			int ret = block_expected.top();
+		unsigned stop_block() throw(fatal_exception) {
+			unsigned ret = block_expected.top();
 			block_expected.pop();
 			return ret;
 		}
 
-		todo_guard::todo_guard() : value(TODO) {
+		todo_guard::todo_guard() throw() : value(TODO) {
 		}
-		todo_guard::~todo_guard() {
+		todo_guard::~todo_guard() throw() {
 			TODO = value;
 		}
 	}
 	
-	void skip(const std::string& reason) {
+	void skip(const std::string& reason) throw(details::Skip_exception) {
 		throw details::Skip_exception(reason);
 	}
-	void skip_todo(const std::string& reason) {
+	void skip_todo(const std::string& reason) throw(details::Todo_exception) {
 		throw details::Todo_exception(reason);
 	}
 

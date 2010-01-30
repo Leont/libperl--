@@ -12,15 +12,27 @@ namespace TAP {
 		extern std::ostream* output;
 		extern std::ostream* error;
 	}
+	class fatal_exception : public std::exception {
+		std::string message;
+		public:
+		fatal_exception(const std::string& _message) : message(_message) {
+		}
+		const char* what() const throw() {
+			return message.c_str();
+		}
+		~fatal_exception() throw() {
+		}
+	};
 	extern const details::skip_all_type skip_all;
 	extern const details::no_plan_type no_plan;
-	void plan(int) throw();
-	void plan(const details::skip_all_type&, const std::string& = "") throw();
+	void plan(unsigned) throw(fatal_exception);
+	void plan(const details::skip_all_type&, const std::string& = "") throw(fatal_exception);
 	void plan(const details::no_plan_type&) throw();
-	void done_testing() throw();
+	void done_testing() throw(fatal_exception);
+	void done_testing(unsigned) throw(fatal_exception);
 
-	int planned() throw();
-	int encountered() throw();
+	unsigned planned() throw();
+	unsigned encountered() throw();
 
 	bool ok(bool, const std::string& = "") throw();
 	bool not_ok(bool, const std::string& = "") throw();
@@ -28,14 +40,14 @@ namespace TAP {
 	bool pass(const std::string& = "") throw();
 	bool fail(const std::string& = "") throw();
 
-	void skip(int, const std::string& = "") throw();
+	void skip(unsigned, const std::string& = "") throw();
 	void bail_out(const std::string& reason) throw();
 
 	int exit_status() throw();
 	bool summary() throw();
 
-	void set_output(std::ostream&) throw();
-	void set_error(std::ostream&) throw();
+	void set_output(std::ostream&) throw(fatal_exception);
+	void set_error(std::ostream&) throw(fatal_exception);
 
 	template<typename T> void diag(const T& first) throw() {
 		*details::error << "# " << first << std::endl;
@@ -180,28 +192,28 @@ namespace TAP {
 	namespace details {
 		struct Skip_exception {
 			const std::string reason;
-			Skip_exception(const std::string& _reason) : reason(_reason) {
+			Skip_exception(const std::string& _reason) throw() : reason(_reason) {
 			}
 		};
 		struct Todo_exception {
 			const std::string reason;
-			Todo_exception(const std::string& _reason) : reason(_reason) {
+			Todo_exception(const std::string& _reason) throw() : reason(_reason) {
 			}
 		};
 
-		void start_block(int);
-		int stop_block();
+		void start_block(unsigned) throw();
+		unsigned stop_block() throw(fatal_exception);
 
 		class todo_guard {
 			const std::string value;
 			public:
-			todo_guard();
-			~todo_guard();
+			todo_guard() throw();
+			~todo_guard() throw();
 		};
 	}
 
-	void skip(const std::string& reason);
-	void skip_todo(const std::string& reason);
+	void skip(const std::string& reason) throw(details::Skip_exception);
+	void skip_todo(const std::string& reason) throw(details::Todo_exception);
 }
 
 #define TRY(action, name) do {\
@@ -242,14 +254,18 @@ namespace TAP {
 			}\
 		}\
 		catch(TAP::details::Skip_exception& skipper) {\
-			TAP::skip(TAP::encountered() - TAP::planned(), skipper.reason);\
+			TAP::skip(TAP::planned() - TAP::encountered(), skipper.reason);\
 		}\
 		catch(TAP::details::Todo_exception& todoer) {\
 			/*TODO*/\
 		}\
+		catch(const TAP::fatal_exception& e) {\
+			if(_current_message) TAP::fail(_current_message);\
+			note("A fatal error occured:,", e.what()," aborting");\
+		}\
 		catch(const std::exception& e) {\
 			if(_current_message) TAP::fail(_current_message);\
-			note("Got error: ", e.what());\
+			note("Got unknown error: ", e.what());\
 		}\
 		catch (...) {\
 			if(_current_message) TAP::fail(_current_message);\
@@ -269,7 +285,7 @@ namespace TAP {
 		}\
 	}\
 	catch(TAP::details::Skip_exception& skipper) {\
-		TAP::skip(TAP::encountered() - TAP::planned(), skipper.reason);\
+		TAP::skip(TAP::details::stop_block() - TAP::encountered(), skipper.reason);\
 	}\
 	catch(TAP::details::Todo_exception& todoer) {\
 		/*TODO*/\
