@@ -7,6 +7,7 @@
 #include <set>
 #include <exception>
 #include <iostream>
+#include <stdint.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/utility/enable_if.hpp>
