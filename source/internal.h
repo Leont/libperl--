@@ -2,9 +2,11 @@
  * This is an internal header and should not be included in your programs
  */
 #define PERL_NO_GET_CONTEXT
-#include <iostream>
 #include <EXTERN.h>
 #include <perl.h>
+
+#undef do_open
+#undef do_close
 //#include <perlio.h>
 //#ifdef INCLUDE_XSUB
 //#include <XSUB.h>
