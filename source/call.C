@@ -216,7 +216,7 @@ namespace perl {
 			finish_call();
 			return Scalar::Temp(interp, pop(), true);
 		}
-		const Array::Temp Call_stack::match_array(REGEXP* rx, const Scalar::Base& string, IV flags) {
+		const Array::Temp Call_stack::match_list(REGEXP* rx, const Scalar::Base& string, IV flags) {
 			const int count = match(rx, string.get_SV(true), G_ARRAY, flags);
 			finish_call();
 			return Array::Temp(interp, pop_array(count), true);

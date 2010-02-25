@@ -54,6 +54,18 @@ namespace perl {
 		interpreter* interp = pattern->interp;
 		return implementation::Call_stack(pattern->interp).match_scalar(pattern->pattern, String::Temp(interp, newSVpv(string, 0), true), get_flags(flags));
 	}
+
+	const Array::Temp Regex::comb(const String::Value& string, const char* flags) const {
+		return implementation::Call_stack(pattern->interp).match_list(pattern->pattern, string, get_flags(flags));
+	}
+	const Array::Temp Regex::comb(const Scalar::Value& string, const char* flags) const {
+		return implementation::Call_stack(pattern->interp).match_list(pattern->pattern, string, get_flags(flags));
+	}
+	const Array::Temp Regex::comb(const char* string, const char* flags) const {
+		interpreter* interp = pattern->interp;
+		return implementation::Call_stack(pattern->interp).match_list(pattern->pattern, String::Temp(interp, newSVpv(string, 0), true), get_flags(flags));
+	}
+
 	int Regex::substitute(String::Value& string, const String::Value& replacement) const {
 		return implementation::Call_stack(pattern->interp).subst_scalar(pattern->pattern, string, replacement, 0);
 	}

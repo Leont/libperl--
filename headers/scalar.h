@@ -277,7 +277,7 @@ namespace perl {
 			const array::Temp eval_list(SV*);
 
 			int match_scalar(REGEXP*, const scalar::Base&, IV flags);
-			const array::Temp match_array(REGEXP*, const scalar::Base&, IV flags);
+			const array::Temp match_list(REGEXP*, const scalar::Base&, IV flags);
 
 			int subst_scalar(REGEXP*, const scalar::Base&, const scalar::Base&, IV flags);
 			const array::Temp subst_array(REGEXP*, const scalar::Base&, const scalar::Base&, IV flags);
@@ -574,8 +574,6 @@ namespace perl {
 
 				Value& operator++();
 				Value& operator--();
-
-				bool is_defined() const;
 
 				operator int() const;
 				operator unsigned int() const;

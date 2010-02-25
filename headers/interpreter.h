@@ -702,10 +702,10 @@ namespace perl {
 			initialize(false, false);
 		}
 		template<typename U> typename boost::enable_if<typename boost::is_function<typename boost::remove_pointer<U>::type >::type, void>::type add(const char * name, const U& function) {
-				package.add(name, function);
+			package.add(name, function);
 		}
 		template<typename U> void add(const char * name, U T::* const member) {
-				package.add(name, member);
+			package.add(name, member);
 		}
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const char* name, const init<A1, A2, A3, A4, A5>&) {
 			typedef typename implementation::constructor<T, A1, A2, A3, A4, A5> constructor;
