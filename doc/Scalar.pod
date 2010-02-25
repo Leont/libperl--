@@ -10,15 +10,23 @@ This documentation refers to libperl++ version 0.0.48
 
     Scalar foo = universe.eval("1 + 1");
 
+	int double = 2 * foo;
+
 =head1 DESCRIPTION
 
-Scalar classes provide interfaces to perl scalars. There are two kinds of classes: Abstract classes, I<value> classes and I<temporary> classes. Abstract classes provide an interface, but aren't instanciatable or copy-constructable. Both variable class X (Scalar, Integer, Ref<T>, etc…) and temporary class X::Temp will always be a subclass of abstract class X::Value. The main difference between the two is that variables have ownership over their resource, temporaries generally don't (or if they do, they give it away ASAP). Otherwise they act the same. You should B<never> store temporaries. Doing so may result in crashes or data corruption.
+Scalar classes provide interfaces to perl scalars. There are three kinds of classes: Variable classes, Value classes and Temporary classes. Value classes provide an interface, but aren't instanciatable or copy-constructable. Their name will always be like X::Value. Some functions take references to them as arguments. Variable class X(Scalar, Integer, Ref<T>, etc…) can be instanciated from any function returning a temporary class X::Temp, and from Scalar::Temp. Variable class X and temporary class X::Temp will always be a subclass of X::Value. The main difference between the two is that variables have ownership over their resource, temporaries generally don't (or if they do, they try to give it away ASAP). Otherwise they act the same. You should B<never> store temporaries.
 
 There are two families of Scalars, generic and specific. The generic classes can hold all kinds of scalars, but sometimes they are lacking some functionality. Specific classes can only hold one kind of value, but have a little more functionality for that specific type. In most cases you probably want to use the generic classes.
 
-=head2 Scalar::Base
+=head2 Helper classes
 
-Scalar::Base is the base class of B<all> scalar classes. As such, it provides a thin interface.
+=head3 Raw_string
+
+=head2 Base class
+
+=head3 Scalar::Base
+
+Scalar::Base is the base class of B<all> scalar classes. As such, it provides a thin interface of utility functions.
 
 =over
 
@@ -32,7 +40,7 @@ This method taints a variable.
 
 =item Ref<Any>::Temp take_ref() const;
 
-Take a reference to this value. The return type of this method in subclasses will be slightly different, but will always be a Ref<T>::Temp type.
+Take a reference to this value. Note that the return type of this method in subclasses will be slightly different, but will always be a Ref<T>::Temp type.
 
 =item const Ref<Any>::Temp tie(const char* classname, list... );
 
@@ -46,31 +54,184 @@ This method ties a value to a different value. This can be used to tie a value t
 
 This method unties the value.
 
-=item Scalar::Temp tied() const;
+=item const Scalar::Temp tied() const;
 
-This method returns the implementation object of a variable. On non-tied values it returns undef.
+This method returns the implementation object of a tied variable. On non-tied values it returns undef.
+
+=back
+
+=head2 Generic Scalars
+
+=head3 Scalar::Value
+
+Scalar::Value is the base class of all generic classes. It can be converted into various integral, floating point and string types. Also methods can be called on it if it is an object and it can be used as a function if it is a reference to a I<sub> (see L<Functions>). Lastly, it can be used as a reference to a hash or an array. There are two kinds of Scalar Values: the variable (C<Scalar>) and the temporary value(C<Scalar::Temp>). If you use a scalar as a reference type that it doesn't represent, and exception will be thrown.
+
+=over 4
+
+=item scalar::Temp operator[](int) const;
+
+=item scalar::Temp operator[](Raw_string index) const;
+
+=item scalar::Temp operator[](const Base& index) const;
+
+Array/hash accessors. Note that you will have to cast to a Ref<Array> or Ref<Hash> if you need methods such as I<exists> and I<each>.
+
+=item Value& operator=(const Base&);
+
+=item Value& operator=(const Value&);
+
+=item Value& operator=(signed int);
+
+=item Value& operator=(unsigned int);
+
+=item Value& operator=(double);
+
+=item Value& operator=(Raw_string);
+
+=item Value& operator=(const std::string&);
+
+=item Value& operator=(const char*);
+
+Assignment operators for various kinds of values
+
+=item Value& operator+=(signed int);
+
+=item Value& operator+=(unsigned int);
+
+=item Value& operator+=(double);
+
+
+=item Value& operator-=(signed int);
+
+=item Value& operator-=(unsigned int);
+
+=item Value& operator-=(double);
+
+=item Value& operator*=(signed int);
+
+=item Value& operator*=(unsigned int);
+
+=item Value& operator*=(double);
+
+=item Value& operator/=(signed int);
+
+=item Value& operator/=(unsigned int);
+
+=item Value& operator/=(double);
+
+=item Value& operator%=(signed int);
+
+=item Value& operator%=(unsigned int);
+
+=item Value& operator%=(double);
+
+Assignment by addition/substraction/etc operators
+
+=item Value& operator+=(Raw_string);
+
+=item Value& operator+=(const std::string&);
+
+=item Value& operator+=(const char*);
+
+Concatenation operators.
+
+=item Value& operator++();
+
+=item Value& operator--();
+
+Prefix increment and decrement operators
+
+=item operator int() const;
+
+=item operator unsigned int() const;
+
+=item operator long() const;
+
+=item operator long long() const;
+
+=item operator unsigned long() const;
+
+=item operator short() const;
+
+=item operator unsigned short() const;
+
+=item operator unsigned long long() const;
+
+=item operator double() const;
+
+=item operator float() const;
+
+=item operator long double() const;
+
+=item operator Raw_string() const;
+
+=item operator const std::string() const;
+
+=item operator bool() const;
+
+=item bool as_bool() const;
+
+Various conversion operators. Note that implicit conversion can cause subtle bugs. Care is warranted.
+
+=item bool defined() const;
+
+Returns true if the scalar is defined.
+
+=item size_t length() const;
+
+Returns the string length of the variable.
+
+=item const Array::Temp unpack(const Raw_string) const;
+
+Unpacks a string, as described in L<perlfunc> and L<perlpacktut>.
+
+=item bool is_object() const;
+
+This method checks if an object is a blessed object.
+
+=item bool isa(const char* classname) const;
+
+This method checks if this object is of type I<classname>.
+
+=item bool is_exactly(const char* classname) const;
+
+This method checks if this object is of type I<classname>. The difference between this method and the previous is that this method doesn't check inheritance relationship.
+
+=item const char* get_classname() const.
+
+Get the classname of a reference.
 
 =back
 
 =head2 Numeric Classes
 
-Numeric values have the arithmetic operators you expect them to have. Bitwise operators will be implemented too soon. They are converted implicitly to the primitive they represent.
+Numeric classes (Integer, Uinteger, Number) have the arithmetic operators you expect them to have (C<+>, C<->, C<*=>, etc...). Bitwise operators will be implemented too soon. They are converted implicitly to the primitive they represent.
 
-=head2 String::Value
+=head2 String classes
 
-String::Value defines a simple string class.
+=head3 String::Value
+
+String::Value defines a simple string class. It can 
 
 =over 4
 
-=item replace(unsigned offset, unsigned length, Raw_string other)
+=item size_t length() const
 
-=item replace(unsigned offset, unsigned length, const char* other, unsigned other_length)
+Return the length of the string.
+
+=item std::string to_string() const
+
+Cast to an std::string.
+
+=item void replace(unsigned offset, unsigned length, Raw_string other)
+
+=item void replace(unsigned offset, unsigned length, const char* other, unsigned other_length)
 
 replaces a part of the current string with the I<other> string.
 
-=item insert(unsigned offset, Raw_string other)
+=item void insert(unsigned offset, Raw_string other)
 
-=item insert(unsigned offset, const char* other, unsigned other_length)
+=item void insert(unsigned offset, const char* other, unsigned other_length)
 
 Inserts string other at position offset
 
@@ -78,11 +239,17 @@ Inserts string other at position offset
 
 Appends a value to a string
 
+=item Array::Temp unpack(const Raw_string format)
+
+Unpacks a string, as described in L<perlfunc> and L<perlpacktut>.
+
 =back
 
-=head2 Ref<T>::Value
+=head2 Reference classes
 
-The exact capabitities of Reference values depends on the type they refer to. All reference types support method calling, as specified by I<Functions>. I<Ref<AnyE<gt>> is a special type in that it can refer to any type. As a consequence it can't be dereferenced.  All other types define an operator*().
+=head3 Ref<T>::Value
+
+The exact capabitities of Reference values depends on the type they refer to. All reference types support method calling, as specified in L<Functions>. I<Ref<AnyE<gt>> is a special type in that it can refer to any type. As a consequence it can't be dereferenced.  All other types define an operator*().
 
 =over 4
 
@@ -97,6 +264,10 @@ This method checks if this object is of type I<classname>.
 =item bool is_exactly(const char* classname) const;
 
 This method checks if this object is of type I<classname>. The difference between this method and the previous is that this method doesn't check inheritance relationship.
+
+=item const char* get_classname() const.
+
+Get the classname of a reference.
 
 =item void weaken() const;
 
@@ -114,23 +285,15 @@ This type will dereference the value and return the referee.
 
 =back
 
-I<Ref<CodeE<gt>> also supports function calling. This is explained in I<Functions>. Also, I<Ref<ArrayE<gt>> and I<Ref<HashE<gt>> will define an operator[]();
+I<Ref<CodeE<gt>> also supports function calling. This is explained in I<Functions>. Also, I<Ref<ArrayE<gt>> and I<Ref<HashE<gt>> will define an appropriate operator[]();
 
 =over 4
 
-=item Scalar::Lvalue operator[](argument)
+=item Scalar::Temp operator[](argument)
 
 These are equivalent of C<(*value)[argument]>.
 
 =back
-
-=head2 Scalar::Value
-
-Scalar::Value is the base class of all generic classes. It can be converted into all primitive types. Also methods can be called on it if it is an object. If it isn't. Likewise if it is a reference to a I<sub>, it can be used as a function. Lastly, it can be used as a reference to a hash or an array. There are two kinds of Scalar Values: the variable (C<Scalar>) and the temporary value(C<Scalar::Temp>)
-
-=head2 Scalar::Lvalue
-
-Scalar::Lvalue represents a scalar value than can be assigned to.
 
 =head1 DIAGNOSTICS
 
@@ -138,7 +301,6 @@ TODO:
 A list of every error and warning message that the module can generate
 (even the ones that will "never happen"), with a full explanation of each
 problem, one or more likely causes, and any suggested remedies.
-(See also "Documenting Errors" in Chapter 13.)
 
 =head1 AUTHOR
 
