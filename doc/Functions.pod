@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-libperl++ - 
+libperl++ - Function and method calling
 
 =head1 VERSION
 
@@ -33,7 +33,6 @@ context to help them understand the methods that are subsequently described.
 A list of every error and warning message that the module can generate
 (even the ones that will "never happen"), with a full explanation of each
 problem, one or more likely causes, and any suggested remedies.
-(See also "Documenting Errors" in Chapter 13.)
 
 =head1 AUTHOR
 

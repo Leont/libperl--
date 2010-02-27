@@ -156,6 +156,8 @@ Get a backwards iterator pointing to the beginning of the array.
 
 Array is a subclass of Array::Value. It supports all actions Array supports. It can be initialized in two ways:
 
+=head2 Array::Temp
+
 =head2 Iterators
 
 This class provides both forward and backward random access iterators. Iterators remain valid when values are changes or when values are added to the end, but will not remain valid when a value is added to the beginning or in the middle.
