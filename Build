@@ -1,0 +1,111 @@
+#! /usr/bin/perl
+
+#This should eventually become the product of a Build.PL
+
+use 5.008;
+use strict;
+use warnings;
+
+use lib 'inc';
+use Library::Build;
+use Config;
+use ExtUtils::Embed qw/ldopts/;
+
+my @debug = qw/-ggdb3 -DDEBUG/;
+my @warnings = qw/-Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra/;
+
+my @testcleanfiles = (<t/*.o>, <t/*.t>);
+my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C headers/config.h blib}, @testcleanfiles);
+
+my @cc_flags = (@debug, @warnings);
+
+my %libraries = (
+	'perl++' => {
+		input => [ qw/array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C regex_foreign.C scalar.C/ ],
+		input_dir => 'source',
+		linker_flags => ldopts . ' -lstdc++',
+		include_dirs => [qw/headers source/],
+		cc_flags => \@cc_flags,
+		'c++' => 1,
+	},
+	'tap++' => {
+		input => 'tap++.C',
+		input_dir => 'source',
+		include_dirs => [ qw/headers/ ],
+		cc_flags => \@cc_flags,
+		linker_flags => '-lstdc++',
+		'c++' => 1,
+	},
+);
+
+sub build {
+	create_dir 'blib';
+
+	create_by_system { "$Config{cpp} $Config{ccflags} -I$Config{archlibexp}/CORE  source/config.pre > $_" } 'headers/config.h';
+
+	create_by_system { "$^X $_.PL > $_" } 'source/evaluate.C';
+
+	for my $library_name (keys %libraries) {
+		build_library($library_name => $libraries{$library_name});
+	}
+}
+
+my %tests = map { (my $foo = $_) =~ s/\.C$/.t/; $_ => $foo } glob 't/*.C';
+
+sub build_tests {
+	for my $test_source (sort keys %tests) {
+		build_executable($test_source, $tests{$test_source},
+			include_dirs         => [ 'headers' ],
+			extra_compiler_flags => [ @debug, @warnings ],
+			extra_linker_flags   => [ qw/-lstdc++ -Lblib -lperl++ -ltap++/ ],
+		);
+	}
+}
+
+my %examples = map { (my $foo = $_) =~ s{ ^ examples/ (.*) \.C $ } {blib/$1}x; $_ => $foo } glob 'examples/*.C';
+
+my %options;
+
+my %action_map = (
+	build     => \&build,
+	test      => sub {
+		build;
+		build_tests;
+
+		my @test_goals = $options{test_files} ? split / /, $options{test_files} : sort values %tests;
+		run_tests(\%options, @test_goals)
+	},
+	testbuild => sub {
+		build;
+		build_tests;
+	},
+	examples  => sub {
+		build,
+		build_executable($_, $examples{$_},
+			include_dirs => [ 'headers' ],
+			extra_linker_flags => [ qw/-lstdc++ -Lblib -lperl++/ ],
+		) for keys %examples;
+	},
+	clean     => sub {
+		remove_tree(@cleanfiles);
+	},
+	testclean => sub {
+		remove_tree(@testcleanfiles);
+	},
+	help      => sub {
+		print "No help available yet\n";
+	},
+);
+
+my $action = $action_map{shift || 'build'} or die "No such action defined\n";
+
+for my $argument (@ARGV) {
+	if ($argument =~ / ^ (\w+) = (.*) $ /xms) {
+		$options{$1} = $2;
+	}
+	else {
+		$options{$argument} = 1;
+	}
+}
+
+$action->();

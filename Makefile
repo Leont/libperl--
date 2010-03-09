@@ -53,7 +53,7 @@ blib/%.o: source/%.C
 t/%.t: t/%.C $(LIB) $(LIBTAP)
 	$(CXX) $(ACXXFLAGS) -Lblib -lperl++ -ltap++ -o $@ $< 
 
-source/evaluate.C: source/evaluate.pl
+source/evaluate.C: source/evaluate.C.PL
 	perl $< > $@
 
 headers/config.h: source/config.pre
@@ -76,7 +76,7 @@ prove: $(TEST_GOALS)
 	@$(LIBRARY_VAR)=blib prove -e"sh -c" $(TEST_GOALS)
 
 clean:
-	-rm -r tap_tester examples/combined source/ppport.h source/evaluate.C headers/config.h blib $(wildcard t/*.t) 2>/dev/null
+	-rm -r tap_tester examples/combined source/ppport.h source/evaluate.C headers/config.h blib $(wildcard t/*.o) $(wildcard t/*.t) 2>/dev/null
 
 testclean:
 	-rm t/*.t 2>/dev/null
@@ -109,6 +109,6 @@ wordsh:
 todo:
 	@for i in FIX''ME XX''X TO''DO; do echo -n "$$i: "; $(ACK) $$i | wc -l; done;
 
-apicount: libperl++.so
+apicount: blib/libperl++.so
 	@echo -n "Number of entries: "
-	@nm libperl++.so -C --defined-only | egrep -i " [TW] perl::" | wc -l
+	@nm blib/libperl++.so -C --defined-only | egrep -i " [TW] perl::" | wc -l

@@ -1,5 +1,6 @@
 .*.swp
 t/*.t
+*/*.o
 blib/
 headers/config.h
 source/evaluate.C
