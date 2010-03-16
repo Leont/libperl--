@@ -1,6 +1,6 @@
 =head1 NAME
 
-libperl++ - 
+libperl++ - Scalar values
 
 =head1 VERSION
 

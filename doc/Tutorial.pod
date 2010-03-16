@@ -20,56 +20,6 @@ libperl++ is a library for embedding perl. In this tutorial I'm taking simple im
 
 Using the interpreter we can access perl variables and functions.
 
-=head1 EVALUATING
-
-One method to get things don't quickly is to use evaluations. You can evaluate string using the C<eval> and C<eval_list> methods of Interpreter. These functions return a scalar and an array respectively. They 
-
-	bool success = universe.eval("print qq{Hello World\n}");
-
-=head1 USING VARIABLES
-
-You can access package variables using the scalar, array and hash functions of Interpreter. These functions return an lvalue that can be assigned to.
-
-    Array data = universe.array("Module::data");
-	universe.scalar("status") = 404;
-
-=head1 EXPORTING
-
-=head2 EXPORTING FUNCTIONS
-
-Functions can be exported using the add method of Interpreter.
-
-	int some_function(const char*);
-    //...
-	universe.add("some_function", some_function);
-	universe.eval("some_function('hello world'");
-
-libperl++ will automatically convert scalars from and to native numbers and std::strings. If needed you can define your own conversion operators as explained in L<Functions>.
-
-=head2 EXPORTING METHODS
-
-Let's take this class
-
-	struct player {
-		string get_name() const;
-		pair<int, int> get_position() const;
-		void set_position(pair<int, int>);
-
-		double get_strength() const;
-		void set_strength(double);
-		void die(string);
-	};
-
-The class can be exported like this.
-
-	Class<player> player_class = universe.add_class("Player");
-    player_class.add("get_name", &player::get_name);
-    player_class.add("get_position", &player::get_position);
-    player_class.add("set_position", &player::set_position);
-    player_class.add("get_strength", &player::get_strength);
-    player_class.add("set_strength", &player::set_strength);
-    player_class.add("die", &player::die);
-
 =head1 AUTHOR
 
 Leon Timmermans (fawaka@gmail.com)

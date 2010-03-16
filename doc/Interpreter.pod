@@ -1,0 +1,100 @@
+=pod
+
+=head1 NAME
+
+libperl++ - 
+
+=head1 VERSION
+
+This documentation refers to libperl++ version 0.0.48
+
+=head1 SYNOPSIS
+
+	#Something
+
+=head1 DESCRIPTION
+
+The Interpreter class is the central point of this library. From it you can derive all other values you need.
+
+=head1 ACCESSING PERL FROM C++
+
+=head2 EVALUATING
+
+One method to get things quickly is to use evaluations. You can evaluate string using the C<eval> and C<eval_list> methods. These functions return a scalar and an array respectively. They 
+
+	bool success = universe.eval("print qq{Hello World\n}");
+
+=head2 LOADING MODULES
+
+You can use modules using the use method. The first argument is the module name, the second and optional command is the minimal version of the module.
+
+	universe.use("Carp", 1.000);
+
+=head2 USING VARIABLES
+
+You can access package variables using the C<scalar>, C<array> and C<hash> methods. These functions return an lvalue that can be assigned to.
+
+	Array data = universe.array("Module::data");
+	universe.scalar("status") = 404;
+	universe.hash("table").exists("hello");
+
+=head2 CALLING FUNCTIONS
+
+You call call functions using the call function. Call will accept all primitive types libperl++ can convert into a scalar, but also user defined types with a suitable conversion function as specified in L<Functions>.
+
+	universe.call(method_name, arguments);
+
+=head2 CONVERTING INTO SCALARS
+
+Interpreter has a series of value_of methods that can convert many native types (such as integers and doubles) and strings into Perl scalars.
+
+	String foo = universe.value_of("foo ");
+
+=head1 ACCESSING C++ FROM PERL
+
+=head2 EXPORTING FUNCTIONS
+
+Functions can be exported using the add method of Interpreter.
+
+	int some_function(const char*);
+	//...
+	universe.add("some_function", some_function);
+	universe.call("some_function", "hello world");
+
+libperl++ will automatically convert scalars from and to native numbers and std::strings. If needed you can define your own conversion operators as explained in L<Functions>.
+
+=head2 EXPORTING METHODS
+
+Let's take this class
+
+	struct player {
+		string get_name() const;
+		pair<int, int> get_position() const;
+		void set_position(pair<int, int>);
+
+		double get_strength() const;
+		void set_strength(double);
+		void die(string);
+	};
+
+The class can be exported like this.
+
+	Class<player> player_class = universe.add_class("Player");
+	player_class.add("get_name", &player::get_name);
+	player_class.add("get_position", &player::get_position);
+	player_class.add("set_position", &player::set_position);
+	player_class.add("get_strength", &player::get_strength);
+	player_class.add("set_strength", &player::set_strength);
+	player_class.add("die", &player::die);
+
+=head1 ADVANCED
+
+=head2 BINDS
+
+Binds are a two way link between a Perl and a C++ variable. Changes to the one will affect the other and vice-versa.
+
+=head1 AUTHOR
+
+Leon Timmermans (fawaka@gmail.com)
+
+=cut
