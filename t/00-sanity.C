@@ -63,7 +63,7 @@ int main() {
 
 	TRY_DECL(Scalar value = universe.value_of(1), "value = value_of(1)");
 
-	TRY_DECL(Package dbi = universe.use("DBI"), "use DBI");
+	TRY_DECL(Package dbi = universe.use("Carp"), "use Carp");
 
 	TEST_END;
 }
