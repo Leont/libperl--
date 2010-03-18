@@ -3,5 +3,6 @@ t/*.t
 */*.o
 blib/
 headers/config.h
+headers/extend.h
 source/evaluate.C
 test.out

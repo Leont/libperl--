@@ -27,7 +27,7 @@ TEST_SRCS := $(wildcard t/*.C)
 TEST_OBJS := $(patsubst %.C,%.t,$(TEST_SRCS))
 TEST_GOALS = $(TEST_OBJS)
 
-all: blib $(LIB) $(LIBTAP) blib/combined blib/game
+all: blib $(LIB) $(LIBTAP) blib/combined blib/game blib/extend.so
 
 source/ppport.h:
 	perl -MDevel::PPPort -eDevel::PPPort::WriteFile\(\'$@\'\)
@@ -40,6 +40,8 @@ ppport: source/ppport.h
 
 blib:
 	mkdir blib
+
+headers:   
 
 $(LIB): headers/config.h $(OBJS)
 	gcc -shared -o $@ -Wl,-soname,$(LIBNAME) $(OBJS) $(LIBLDFLAGS)
@@ -56,7 +58,7 @@ t/%.t: t/%.C $(LIB) $(LIBTAP)
 source/evaluate.C: source/evaluate.C.PL
 	perl $< > $@
 
-headers/config.h: source/config.pre
+headers/%.h: source/%.pre
 	cpp $(PERLCXX) $< > $@
 
 blib/combined: examples/combined.C $(LIB)
@@ -64,6 +66,11 @@ blib/combined: examples/combined.C $(LIB)
 
 blib/game: examples/game.C $(LIB)
 	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
+
+blib/extend.so: examples/extend.C $(LIB) headers/extend.h
+	$(CXX) -o $@ -shared -fPIC $(ACXXFLAGS) $< $(LDFLAGS)
+
+blib/interpreter.o: headers/extend.h
 
 testbuild: $(TEST_GOALS)
 
@@ -76,7 +83,7 @@ prove: $(TEST_GOALS)
 	@$(LIBRARY_VAR)=blib prove -e"sh -c" $(TEST_GOALS)
 
 clean:
-	-rm -r tap_tester examples/combined source/ppport.h source/evaluate.C headers/config.h blib $(wildcard t/*.o) $(wildcard t/*.t) 2>/dev/null
+	-rm -r tap_tester examples/combined source/ppport.h source/evaluate.C headers/config.h headers/extend.h blib $(wildcard examples/*.o) $(wildcard t/*.o) $(wildcard t/*.t) 2>/dev/null
 
 testclean:
 	-rm t/*.t 2>/dev/null

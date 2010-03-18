@@ -2,6 +2,7 @@
 #include "perl++.h"
 #include "XSUB.h"
 #include "regex_impl.h"
+#include "extend.h"
 
 extern "C" {
 	void boot_DynaLoader(pTHX_ CV* cv);
@@ -272,5 +273,24 @@ namespace perl {
 	Hash::Temp Package::hash(const char* name) const {
 		HV* const ret = get_hv((package_name + "::" + name).c_str(), true);
 		return Hash::Temp(interp, ret, false);
+	}
+
+	namespace implementation {
+		void exporter_helper(PerlInterpreter* interp, CV* cv, exporter_type exporter) {
+#			ifdef dVAR
+			dVAR;
+#			endif
+			dXSARGS;
+
+			perl::Interpreter universe(aTHX, override());
+			perl::Ref<perl::Code> code = perl::Code::Value(aTHX, cv).take_ref();
+
+			exporter(universe, code);
+			
+		    if (PL_unitcheckav)
+				 Perl_call_list(aTHX_ PL_scopestack_ix, PL_unitcheckav);
+
+			XSRETURN_YES;
+		}
 	}
 }

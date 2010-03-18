@@ -730,6 +730,11 @@ namespace perl {
 		void add_parent(const char* parent_name); //TODO
 	};
 
+	typedef void exporter_type(Interpreter&, const Ref<Code>&);
+
+	namespace implementation {
+		void exporter_helper(interpreter*, CV*, exporter_type);
+	}
 
 	/*
 	 * TODO:

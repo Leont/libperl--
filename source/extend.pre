@@ -1,0 +1,12 @@
+#define PERL_NO_GET_CONTEXT
+#define __cplusplus
+#include "XSUB.h"
+
+#define hash #
+
+hash ifndef pTHX_
+hash define pTHX_ interpreter* aTHX, 
+hash define CV perl::CV
+hash endif
+
+hash define EXPORTER(exporter) XS(perlpp_exporter) { perl::implementation::exporter_helper(aTHX, cv, exporter); }
