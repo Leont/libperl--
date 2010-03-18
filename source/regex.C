@@ -23,7 +23,7 @@ namespace perl {
 #else 
 	namespace {
 		UV get_flags(const char* flag_string) {
-			int flags;
+			int flags = 0;
 			for (char current_flag = *flag_string; *flag_string; flag_string++) {
 				switch(current_flag) {
 					case IGNORE_PAT_MOD:    flags |= RXf_PMf_FOLD;       break;
