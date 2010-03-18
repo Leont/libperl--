@@ -43,6 +43,9 @@ namespace perl {
 		}
 	}
 
+	void noop(interpreter* interp) {
+	}
+
 	void destructor(interpreter* interp) {
 		perl_destruct(interp);
 		perl_free(interp);
@@ -60,11 +63,11 @@ namespace perl {
 	Interpreter::Interpreter(int argc, const char* argv[]) : raw_interp(initialize_interpreter(argc, argv), destructor) {
 		eval(implementation::to_eval);
 	}
-	Interpreter::Interpreter(interpreter* other) : raw_interp(other, destructor) {
+	Interpreter::Interpreter(interpreter* other, const override&) : raw_interp(other, noop) {
 		eval(implementation::to_eval);
 	}
 	Interpreter Interpreter::clone() const {
-		return Interpreter(perl_clone(interp, CLONEf_KEEP_PTR_TABLE));
+		return Interpreter(perl_clone(interp, CLONEf_KEEP_PTR_TABLE), override()); // FIXME reference counting
 	}
 	bool operator==(const Interpreter& first, const Interpreter& second) {
 		return first.raw_interp == second.raw_interp;

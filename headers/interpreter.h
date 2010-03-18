@@ -739,10 +739,9 @@ namespace perl {
 	 */
 	class Interpreter {
 		const boost::shared_ptr<interpreter> raw_interp;
-		public:
 		Interpreter& operator=(const Interpreter&);
-		explicit Interpreter(interpreter*);
 		public:
+		Interpreter(interpreter*, const override&);
 		Interpreter();
 		Interpreter(int, const char*[]);
 
@@ -861,7 +860,7 @@ namespace perl {
 		return typecast::typemap<T>::cast_from(interp, t);
 	}
 	template<typename T> const typename implementation::typemap_from_info<T>::result_type typecast_from(interpreter* pre_interp, const T& t) {
-		Interpreter interp(pre_interp);
+		Interpreter interp(pre_interp, override());
 		return typecast_from<T>(interp, t);
 	}
 
