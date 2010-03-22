@@ -718,7 +718,7 @@ namespace perl {
 		void add_parent(const Class<T>& parent) {
 			const std::set<const std::type_info*>& parents = parent.get_class_data().family;
 			get_class_data().family.insert(parents.begin(), parents.end());
-			package.array("ISA").push(parent.get_name());
+			array("ISA").push(get_name());
 		}
 		void add_parent(const char* parent_name); //TODO
 	};
