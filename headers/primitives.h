@@ -136,6 +136,7 @@ namespace perl {
 			const std::string to_string() const;
 
 			size_t length() const;
+			void grow(size_t);
 
 			void replace(size_t offset, size_t length, Raw_string other);
 			void replace(size_t offset, size_t length, const char*, size_t);

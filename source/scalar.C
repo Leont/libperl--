@@ -295,6 +295,12 @@ namespace perl {
 	const char* Scalar::Value::get_classname() const {
 		return HvNAME(SvSTASH(SvRV(get_SV(true))));
 	}
+	void Scalar::Value::grow(size_t new_length) {
+		SV* sv = get_SV(false);
+		if (SvTYPE(sv) < SVt_PV)
+			sv_upgrade(sv, SVt_PV);
+		SvGROW(sv, new_length);
+	}
 
 	compared cmp(const Scalar::Base& left, const Scalar::Base& right) {
 		interpreter* interp = left.interp;

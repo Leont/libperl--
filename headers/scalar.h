@@ -594,6 +594,7 @@ namespace perl {
 
 				bool defined() const;
 				size_t length() const;
+				void grow(size_t);
 				const array::Temp unpack(const Raw_string) const;
 			
 				scalar::Temp operator[](int) const;

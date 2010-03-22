@@ -244,6 +244,13 @@ namespace perl {
 
 	void String::Value::no_such_comparator() const {
 	}
+
+	void String::Value::grow(size_t new_length) {
+		SV* sv = get_SV(false);
+		if (SvTYPE(sv) < SVt_PV)
+			sv_upgrade(sv, SVt_PV);
+		SvGROW(sv, new_length);
+	}
 	String::Value::operator const Raw_string() const {
 		return string_value();
 	}
