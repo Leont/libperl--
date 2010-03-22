@@ -27,7 +27,7 @@ TEST_SRCS := $(wildcard t/*.C)
 TEST_OBJS := $(patsubst %.C,%.t,$(TEST_SRCS))
 TEST_GOALS = $(TEST_OBJS)
 
-all: blib $(LIB) $(LIBTAP) blib/combined blib/game blib/extend.so
+all: blib $(LIB) $(LIBTAP) blib/combined blib/game blib/Extend.so
 
 source/ppport.h:
 	perl -MDevel::PPPort -eDevel::PPPort::WriteFile\(\'$@\'\)
@@ -67,7 +67,7 @@ blib/combined: examples/combined.C $(LIB)
 blib/game: examples/game.C $(LIB)
 	$(CXX) -o $@ $(ACXXFLAGS) $< $(LDFLAGS)
 
-blib/extend.so: examples/extend.C $(LIB) headers/extend.h
+blib/Extend.so: examples/Extend.C $(LIB) headers/extend.h
 	$(CXX) -o $@ -shared -fPIC $(ACXXFLAGS) $< $(LDFLAGS)
 
 blib/interpreter.o: headers/extend.h
