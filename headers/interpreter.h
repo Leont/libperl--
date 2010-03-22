@@ -603,6 +603,7 @@ namespace perl {
 		interpreter* const interp;
 		const std::string package_name;
 		HV* const stash;
+		private:
 		Package& operator=(const Package&);
 		friend class implementation::method_calling<Package>;
 		friend class implementation::reference::Reference_base;
@@ -626,12 +627,6 @@ namespace perl {
 		}
 
 		private:
-		template<typename T, typename U> typename boost::enable_if<typename boost::is_member_function_pointer<U T::*>::type, void>::type add(const char* name, U T::* const method) {
-			implementation::export_method(interp, (package_name + "::" + name).c_str(), method);
-		}
-		template<typename T, typename U> typename boost::enable_if<typename boost::is_member_object_pointer<U T::*>::type, void>::type add(const char * name, U T::* const member) {
-			implementation::export_member(interp, (package_name + "::" + name).c_str(), member);
-		}
 		template<typename T, typename U> void export_constructor(const char* name, const U& constructor, const implementation::Class_state& state) {
 			implementation::constructor_exporter<T>::export_cons(interp, (package_name + "::" + name).c_str(), constructor, state);
 		}
@@ -680,37 +675,35 @@ namespace perl {
 	template<typename A1 = implementation::null_type, typename A2 = implementation::null_type, typename A3 = implementation::null_type, typename A4 = implementation::null_type, typename A5 = implementation::null_type> struct init {
 	};
 
-	template<typename T> class Class {
-		Package package;
+	template<typename T> class Class : public Package {
 		bool hash;
 		typedef implementation::Class_state State;
 		State& get_class_data() {
-			return *static_cast<State*>(implementation::get_magic_ptr(package.interp, reinterpret_cast<SV*>(package.stash), sizeof(State)));
+			return *static_cast<State*>(implementation::get_magic_ptr(interp, reinterpret_cast<SV*>(stash), sizeof(State)));
 		}
 		public:
 		void initialize(bool _is_persistent, bool _use_hash) {
-			SV* stash = reinterpret_cast<SV*>(package.stash);
-			if (! implementation::has_magic_string(package.interp, stash)) {
-				const State& info = implementation::register_type(package.interp, package.get_name().c_str(), typeid(T), implementation::get_object_vtbl(typeid(T), implementation::destructor<T>), _is_persistent, _use_hash);
-				implementation::set_magic_string(package.interp, stash, &info, 0);
+			if (! implementation::has_magic_string(interp, reinterpret_cast<SV*>(stash))) {
+				const State& info = implementation::register_type(interp, get_name().c_str(), typeid(T), implementation::get_object_vtbl(typeid(T), implementation::destructor<T>), _is_persistent, _use_hash);
+				implementation::set_magic_string(interp, reinterpret_cast<SV*>(stash), &info, 0);
 			}
 		}
-		Class(const implementation::Class_temp& other) : package(other.package) {
+		Class(const implementation::Class_temp& other) : Package(other.package) {
 			initialize(other.persistence, other.use_hash);
 		}
-		explicit Class(const Package& _package) : package(_package) {
+		Class(const Package& other, const override&) : Package(other) {
 			initialize(false, false);
 		}
-		template<typename U> typename boost::enable_if<typename boost::is_function<typename boost::remove_pointer<U>::type >::type, void>::type add(const char * name, const U& function) {
-			package.add(name, function);
+		template<typename U> typename boost::enable_if<typename boost::is_member_function_pointer<U T::*>::type, void>::type add(const char* name, U T::* const method) {
+			implementation::export_method(interp, (package_name + "::" + name).c_str(), method);
 		}
-		template<typename U> void add(const char * name, U T::* const member) {
-			package.add(name, member);
+		template<typename U> typename boost::enable_if<typename boost::is_member_object_pointer<U T::*>::type, void>::type add(const char * name, U T::* const member) {
+			implementation::export_member(interp, (package_name + "::" + name).c_str(), member);
 		}
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const char* name, const init<A1, A2, A3, A4, A5>&) {
 			typedef typename implementation::constructor<T, A1, A2, A3, A4, A5> constructor;
 			State& state = get_class_data();
-			package.export_constructor<T>(name, constructor::construct, state);
+			export_constructor<T>(name, constructor::construct, state);
 		}
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const init<A1, A2, A3, A4, A5>& foo) {
 			add("new", foo);
