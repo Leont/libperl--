@@ -44,10 +44,10 @@ namespace perl {
 		}
 	}
 
-	void noop(interpreter* interp) {
+	void noop(PerlInterpreter* ) {
 	}
 
-	void destructor(interpreter* interp) {
+	void destructor(PerlInterpreter* interp) {
 		perl_destruct(interp);
 		perl_free(interp);
 	}
