@@ -61,7 +61,7 @@ my %tests = map { (my $foo = $_) =~ s/\.C$/.t/; $_ => $foo } glob 't/*.C';
 
 my %examples = (
 	executables => [ qw/combined game/ ],
-	libraries   => [ qw/extend/ ]
+	libraries   => [ qw/Extend/ ]
 );
 
 sub build_examples {
@@ -78,7 +78,8 @@ sub build_examples {
 			input_dir            => 'examples',
 			include_dirs         => [ 'headers' ],
 			cc_flags             => \@cc_flags,
-			extra_linker_flags   => [ qw/-lstdc++ -Lblib -lperl++/ ],
+			linker_flags         => [ qw/-lstdc++ -Lblib -lperl++/ ],
+			libfile              => "blib/$example_name.$Config{dlext}",
 		});
 	}
 }

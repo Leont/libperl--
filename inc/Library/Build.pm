@@ -87,7 +87,7 @@ sub build_library {
 			extra_compiler_flags => $library{cc_flags} || [],
 		);
 	}
-	my $library_file = 'blib/lib'.$builder->lib_file($library_name);
+	my $library_file = $library{libfile} || 'blib/lib'.$builder->lib_file($library_name);
 	$builder->link(
 		lib_file           => $library_file,
 		objects            => [ values %object_for ],
