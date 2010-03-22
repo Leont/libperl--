@@ -9,4 +9,4 @@ hash define pTHX_ interpreter* aTHX,
 hash define CV perl::CV
 hash endif
 
-hash define EXPORTER(exporter) XS(perlpp_exporter) { perl::implementation::exporter_helper(aTHX, cv, exporter); }
+hash define EXPORTER(exporter) XS(perlpp_exporter) { perl::implementation::Exporter_helper helper(aTHX); helper(exporter); }

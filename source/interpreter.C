@@ -276,17 +276,21 @@ namespace perl {
 	}
 
 	namespace implementation {
-		void exporter_helper(PerlInterpreter* interp, CV* cv, exporter_type exporter) {
+		Exporter_helper::Exporter_helper(PerlInterpreter* _interp) : interp(_interp), axp(0), package_name(NULL) {
 #			ifdef dVAR
 			dVAR;
 #			endif
 			dXSARGS;
-
-			perl::Interpreter universe(aTHX, override());
-			perl::Ref<perl::Code> code = perl::Code::Value(aTHX, cv).take_ref();
-
-			exporter(universe, code);
-			
+			axp = ax;
+			if (items != 1)
+				Perl_die(aTHX, "Need module as argument for loading\n");
+			package_name = SvPV_nolen(ST(0));
+		}
+		Package Exporter_helper::get_package() {
+			return Package(aTHX, package_name, true);
+		}
+		Exporter_helper::~Exporter_helper() {
+			int ax = axp;
 		    if (PL_unitcheckav)
 				 Perl_call_list(aTHX_ PL_scopestack_ix, PL_unitcheckav);
 

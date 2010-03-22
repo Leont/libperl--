@@ -723,10 +723,24 @@ namespace perl {
 		void add_parent(const char* parent_name); //TODO
 	};
 
-	typedef void exporter_type(Interpreter&, const Ref<Code>&);
-
 	namespace implementation {
-		void exporter_helper(interpreter*, CV*, exporter_type);
+		class Exporter_helper {
+			interpreter* interp;
+			int axp;
+			const char* package_name;
+			Package get_package();
+			public:
+			Exporter_helper(interpreter*);
+			void operator()(void function(Package&)) {
+				Package package(get_package());
+				function(package);
+			}
+			template<typename T> void operator()(void function(Class<T>&)) {
+				Class<T> classr(get_package(), override());
+				function(classr);
+			}
+			~Exporter_helper();
+		};
 	}
 
 	/*
