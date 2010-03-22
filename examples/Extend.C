@@ -7,8 +7,8 @@ static void world() {
 	printf("Hello World!\n");
 }
 
-static void exporter(Package& interp) {
-	interp.add("hello", world);
+static void exporter(Package& extend) {
+	extend.add("hello", world);
 }
 
 EXPORTER(exporter);
