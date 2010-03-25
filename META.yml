@@ -1,0 +1,28 @@
+---
+name: libperl++
+version: 0.002
+author:
+  - 'Leon Timmermans <leont@cpan.org>'
+abstract: 'Embedding and extending perl with C++ made simple'
+license: perl
+resources:
+  bugtracker: http://github.com/Leont/libperl--/issues
+  license: http://dev.perl.org/licenses/
+  repository: http://github.com/Leont/libperl--/tree
+requires:
+  Readonly: 1.03
+  perl: 5.008
+build_requires:
+  ExtUtils::CBuilder: 0
+provides:
+  File::Map:
+    file: lib/Perlpp/Extend.pm
+    version: 0.002
+generated_by: Hand
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+keywords:
+  - embedding
+  - extending
+  - 'C++'
