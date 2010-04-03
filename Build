@@ -105,7 +105,7 @@ for my $argument (@ARGV) {
 	}
 }
 
-make_silent if $options{silent};
+make_silent($options{silent}) if $options{silent};
 my @test_goals = $options{test_files} ? split / /, $options{test_files} : sort values %tests;
 
 my %action_map = (

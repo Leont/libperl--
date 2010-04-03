@@ -7,6 +7,7 @@ use warnings;
 our $VERSION = 0.01;
 
 use autodie;
+use Config;
 use ExtUtils::CBuilder;
 use List::MoreUtils 'any';
 use POSIX qw/strftime/;
@@ -21,14 +22,14 @@ my $builder = ExtUtils::CBuilder->new;
 
 sub make_silent {
 	my $value = shift;
-	$builder->{quiet} = !$value;
+	$builder->{quiet} = $value;
 	return;
 }
 
 sub create_by(&@) {
 	my ($sub, @names) = @_;
 	for (@names) {
-		$sub->() if ! -e $_;
+		$sub->() if not -e $_;
 	}
 	return;
 }
@@ -117,7 +118,7 @@ sub build_executable {
 
 sub run_tests {
 	my ($options, @test_goals) = @_;
-	my $library_var = $options->{library_var} || 'LD_LIBRARY_PATH';
+	my $library_var = $options->{library_var} || $Config{ldlibpthname};
 	local $ENV{$library_var} = 'blib';
 	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $options < 2;
 	my $harness = TAP::Harness->new({
