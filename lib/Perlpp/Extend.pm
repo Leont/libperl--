@@ -12,8 +12,6 @@ use Carp qw/croak/;
 use Readonly;
 use Scalar::Util qw/tainted/;
 
-Readonly my $DL_LOAD_LAZY => 0x01;
-
 sub to_filename {
 	my $module = shift;
 	$module =~ s{ :: | ' }{/}gx;
@@ -37,13 +35,21 @@ sub load_module {
 
 	my $file = DynaLoader->dl_findfile($file_rel) or croak "Can't find '$file_rel': " . DynaLoader::dl_error;
 
-	my $handle = DynaLoader::dl_load_file($file, $DL_LOAD_LAZY) or croak "Can't load '$file': " . DynaLoader::dl_error();
+	local @DynaLoader::dl_require_symbols = qw/perlpp_exporter/;
+	my $handle = DynaLoader::dl_load_file($file, 0) or croak "Can't load '$file': " . DynaLoader::dl_error();
+	push @DynaLoader::dl_librefs, $handle;    # record loaded object
+
+	if (my @unresolved = DynaLoader::dl_undef_symbols()) {
+		croak "Unresolved symbols after loading $file: @unresolved";
+	}
+
 	my $perlpp_exporter = DynaLoader::dl_find_symbol($handle, 'perlpp_exporter') or croak "Can't find exporter in '$file': " . DynaLoader::dl_error;
-	my $sub = DynaLoader::dl_install_xsub('Perl++::exporter', $perlpp_exporter, $file) or croak "Can't install_xsub on '$file': " . DynaLoader::dl_error;
+	my $sub = DynaLoader::dl_install_xsub('', $perlpp_exporter, $file) or croak "Can't install_xsub on '$file': " . DynaLoader::dl_error;
 
-	$sub->($module) or croak "Something went horribly wrong during loading of $module";
+	push @DynaLoader::dl_shared_objects, $file;    # record files loaded
+	push @DynaLoader::dl_modules, $module;         # record loaded module
 
-	return;
+	return $sub->($module) or croak "Something went horribly wrong during loading of $module";
 }
 
 1;
