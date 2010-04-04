@@ -854,6 +854,54 @@ namespace perl {
 			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).sub_scalar(name);
 		}
 
+		const Scalar::Temp call(const Scalar::Value& name) const {
+			return implementation::Call_stack(get_interpreter()).sub_scalar(name);
+		}
+		template<typename T1> const Scalar::Temp call(const Scalar::Value& name, const T1& t1) const {
+			return implementation::Call_stack(get_interpreter()).push(t1).sub_scalar(name);
+		}
+		template<typename T1, typename T2> const Scalar::Temp call(const Scalar::Value& name, const T1& t1, const T2& t2) const {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2).sub_scalar(name);
+		}
+		template<typename T1, typename T2, typename T3> const Scalar::Temp call(const Scalar::Value& name, const T1& t1, const T2& t2, const T3& t3) const {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3).sub_scalar(name);
+		}
+		template<typename T1, typename T2, typename T3, typename T4> const Scalar::Temp call(const Scalar::Value& name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).sub_scalar(name);
+		}
+
+		const Array::Temp call_list(const char* name) const {
+			return implementation::Call_stack(get_interpreter()).sub_list(name);
+		}
+		template<typename T1> const Array::Temp call_list(const char* name, const T1& t1) const {
+			return implementation::Call_stack(get_interpreter()).push(t1).sub_list(name);
+		}
+		template<typename T1, typename T2> const Array::Temp call_list(const char* name, const T1& t1, const T2& t2) const {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2).sub_list(name);
+		}
+		template<typename T1, typename T2, typename T3> const Array::Temp call_list(const char* name, const T1& t1, const T2& t2, const T3& t3) const {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3).sub_list(name);
+		}
+		template<typename T1, typename T2, typename T3, typename T4> const Array::Temp call_list(const char* name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).sub_list(name);
+		}
+
+		const Array::Temp call_list(const Scalar::Value& name) const {
+			return implementation::Call_stack(get_interpreter()).sub_list(name);
+		}
+		template<typename T1> const Array::Temp call_list(const Scalar::Value& name, const T1& t1) const {
+			return implementation::Call_stack(get_interpreter()).push(t1).sub_list(name);
+		}
+		template<typename T1, typename T2> const Array::Temp call_list(const Scalar::Value& name, const T1& t1, const T2& t2) const {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2).sub_list(name);
+		}
+		template<typename T1, typename T2, typename T3> const Array::Temp call_list(const Scalar::Value& name, const T1& t1, const T2& t2, const T3& t3) const {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3).sub_list(name);
+		}
+		template<typename T1, typename T2, typename T3, typename T4> const Array::Temp call_list(const Scalar::Value& name, const T1& t1, const T2& t2, const T3& t3, const T4& t4) const {
+			return implementation::Call_stack(get_interpreter()).push(t1, t2, t3, t4).sub_list(name);
+		}
+
 		template<typename T1> String::Temp pack(const Raw_string pattern, const T1& t1) const {
 			return implementation::Call_stack(get_interpreter()).push(t1).pack(pattern);
 		}
