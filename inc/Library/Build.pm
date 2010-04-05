@@ -48,7 +48,7 @@ sub create_by_system(&@) {
 
 sub create_dir {
 	my ($options, @dirs) = @_;
-	mkpath($_, !$options->{silent}, oct 744) for @dirs;
+	mkpath(\@dirs, !$options->{silent}, oct 744);
 	return;
 }
 
@@ -120,7 +120,7 @@ sub run_tests {
 	my ($options, @test_goals) = @_;
 	my $library_var = $options->{library_var} || $Config{ldlibpthname};
 	local $ENV{$library_var} = 'blib';
-	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $options < 2;
+	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $options->{silent} < 2;
 	my $harness = TAP::Harness->new({
 		verbosity => -$options->{silent},
 		exec => sub {
