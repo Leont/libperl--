@@ -26,7 +26,7 @@ One method to get things quickly is to use evaluations. You can evaluate string 
 
 =head2 LOADING MODULES
 
-You can use modules using the use method. The first argument is the module name, the second and optional command is the minimal version of the module.
+You can use modules using the use method. The first argument is the module name, the second and optional argument is the minimal version of the module.
 
 	universe.use("Carp", 1.000);
 
@@ -91,7 +91,21 @@ The class can be exported like this.
 
 =head2 BINDS
 
-Binds are a two way link between a Perl and a C++ variable. Changes to the one will affect the other and vice-versa.
+Binds are a two way link between a Perl and a C++ variable. Changes to the one will be reflected in the other. You can do this using three functions in the magical namespace.
+
+=over 4
+
+=item readonly
+
+=item writeonly
+
+=item readwrite
+
+Each of them accepts a scalar as first argument and a C++ variable as second argument. You can bind a package variable using the add method of Interpreter.
+
+	universe.add("Module::Variable", my_var);
+
+=back
 
 =head1 AUTHOR
 

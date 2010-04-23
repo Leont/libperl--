@@ -1,5 +1,7 @@
 =pod
 
+=encoding utf8
+
 =head1 NAME
 
 libperl++ - Function and method calling
@@ -14,25 +16,109 @@ This documentation refers to libperl++ version 0.0.48
 
 =head1 DESCRIPTION
 
-A full description of the module and its features.
-May include numerous subsections (i.e., =head2, =head3, etc.).
+This document described how to call and define functions.
 
-=head1 SUBROUTINES/METHODS
+=head1 CALLING NAMED FUNCTIONS
 
-A separate section listing the public components of the module's interface.
-These normally consist of either subroutines that may be exported, or methods
-that may be called on objects belonging to the classes that the module provides.
-Name the section accordingly.
+You can call functions simply by using the C<call> method on L<Interpreter>.
 
-In an object-oriented module, this section should begin with a sentence of the
-form "An object of this class represents...", to give the reader a high-level
-context to help them understand the methods that are subsequently described.
+ universe.call("do_something", 1, "foobar");
+
+You can call a function in list context using C<call_list>
+
+ universe.call_list("do_something", 1, "foobar");
+
+=head1 CALLING SUBREFS
+
+You can call any subref using the C<() operator>.
+
+ subref(1, "foobar");
+
+You can call it in list context using the C<list> method
+
+ subref.list(1, "foobar");
+
+=head1 CALLING METHODS
+
+You can call a method on any object using the C<call> and C<call_list> methods.
+
+ object.call("method", 1, "foobar");
+
+=head1 ACCEPTABLE ARGUMENTS
+
+libperl++ knows how to deal with arguments and return values of its own data types (scalars, arrays, hashes) as wel as numeric types (integral and floating point) and most string types (C<const char*>, C<std::string>). You can use user defined types but this requires that you define the conversions.
+
+=head2 CUSTOM CONVERSIONS
+
+You can define some custom conversion by specializing C<< perl::typecasts::typename<T> >> for your type. You can define two methods:
+
+=head3 Casting to your type
+
+For this you need to define one class method:
+
+=over 2
+
+=item * T cast_to(const& Scalar::Temp) should be defined.
+
+This class method casts a L<Scalar> to your type T. How you implement this is entirely up yo you, but it must satisfy the following demands:
+
+=over 2
+
+=item * It must either return value of type T, or something that coerces to a value of type T
+
+=item * It must accept a Scalar::Temp rvalue. It may accept a Scalar::Base references too.
+
+=item * It must NOT be overloaded.
+
+=back
+
+=back
+
+=head3 Casting from your type to a Scalar
+
+For this you need to define two things:
+
+=over 2
+
+=item * from_type should be typedefed to boost::true_type.
+
+=item * const U cast_from(Interpreter&, T&)
+
+=over 2
+
+=item * It may return a value of any type it wants, as long it satisfies one of these ...
+
+=over 2
+
+=item * A libperl++ value type (Scalar, Array, etc…)
+
+=item * A type libperl++ natively knows to convert into a libperl++ type (int, std::string)
+
+=item * A type other than T for which you've defined a typemap to convert it into a libperl++ type.
+
+=back
+
+=item * It must accept a value of T
+
+=item * It must not be overloaded.
+
+=back
+
+=back
+
+ namespace perl {
+     namespace typecast {
+         template<> struct typemap {
+             
+         }
+     }
+ }
+
+Note that you can use partial template specialization and SFINAE. For SFINAE there is the helper meta-function is_pushable<>. This is done by default for std::vector and std::pair, so both can be used as an argument or return for any T that libperl++ knows about.
 
 =head1 DIAGNOSTICS
 
-A list of every error and warning message that the module can generate
-(even the ones that will "never happen"), with a full explanation of each
-problem, one or more likely causes, and any suggested remedies.
+Typecasting tries to do as much as possible during compiletime. These compiletime errors are compiler specific though.
 
 =head1 AUTHOR
 

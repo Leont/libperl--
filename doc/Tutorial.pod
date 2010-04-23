@@ -18,7 +18,23 @@ libperl++ is a library for embedding perl. In this tutorial I'm taking simple im
 
 	static Interpreter universe;
 
-Using the interpreter we can access perl variables and functions.
+Using the interpreter we can access perl variables and functions. This is the starting point for all uses of this library.
+
+=head1 ACCESSING PERL
+
+Accessing Perl is L<Interpreter/"ACCESSING PERL FROM C++">.
+
+=head1 USING PERL VALUES
+
+libperl++ defines a number of value type corresponding to Perl values. Use of these values is described in L<Scalar>, L<Array> and L<Hash>. They are best read in that order.
+
+=head1 EXPORTING C++
+
+Exporting C++ to Perl is L<Interpreter/"ACCESSING C++ FROM PERL">.
+
+=head1 EXTENDING PERL
+
+XXX
 
 =head1 AUTHOR
 
