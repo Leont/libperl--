@@ -37,21 +37,18 @@ namespace perl {
 			static const Array::Temp cast_from(Interpreter& interp, const std::vector<T>& array) {
 				Array::Temp ret = interp.list();
 				for (int i = 0; i < array.length(); ++i) {
-					ret.push(array[i]);
+					ret.push(typecast_from(interp, array[i]));
 				}
 				return ret;
 			}
 
-			static const std::vector<T> cast_to(const Array::Value& array) {
+			static const std::vector<T> cast_to(Ref<Array> array_ref) {
+				Array array = *array_ref;
 				std::vector<T> ret;
-				for (int i = 0; i < array.length(); ++i) {
-					ret.push_back(array[i]);
+				for (unsigned i = 0u; i < array.length(); ++i) {
+					ret.push_back(typecast_to<T>(array[i]));
 				}
 				return ret;
-			}
-			static const std::vector<T> cast_to(const Scalar::Value& scalar) {
-				Ref<Array> array = scalar;
-				return cast_to(*array);
 			}
 		};
 	}
