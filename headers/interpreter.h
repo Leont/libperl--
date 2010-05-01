@@ -5,22 +5,8 @@ namespace perl {
 		};
 	}
 
-	namespace implementation {
-		template<typename T> struct typemap_from_info {
-			typedef typeof(typecast::typemap<T>::cast_from) from_type;
-			typedef typename boost::function_traits<from_type>::result_type result_type;
-			typedef typename boost::function_traits<from_type>::arg2_type arg_type;
-		};
-
-		template<typename T> struct typemap_to_info {
-			typedef typeof(typecast::typemap<T>::cast_to) to_type;
-			typedef typename boost::function_traits<to_type>::result_type result_type;
-			typedef typename boost::function_traits<to_type>::arg1_type arg_type;
-		};
-	}
-
-	template<typename T> const typename implementation::typemap_to_info<T>::result_type typecast_to(const typename implementation::typemap_to_info<T>::arg_type& t) {
-		return typecast::typemap<T>::cast_to(t);
+	template<typename T, typename U> auto typecast_to(U&& u) -> decltype(typecast::typemap<T>::cast_to(u)) {
+		return typecast::typemap<T>::cast_to(u);
 	}
 
 	class lock {
@@ -791,7 +777,7 @@ namespace perl {
 		const String::Temp value_of(Raw_string) const;
 		const String::Temp value_of(const char*) const;
 		const String::Temp value_of(const std::string&) const;
-		template<typename T, typename U> const typename implementation::typemap_from_info<T>::result_type value_of(const T& t, const U* = static_cast<Any*>(0)) const {
+		template<typename T, typename U> auto value_of(const T& t, const U* = static_cast<Any*>(0)) const -> decltype(typecast::typemap<T>::cast_from(raw_interp.get(), t)) {
 			return typecast::typemap<T>::cast_from(raw_interp.get(), t);
 		}
 
@@ -916,10 +902,10 @@ namespace perl {
 		}
 	};
 
-	template<typename T> const typename implementation::typemap_from_info<T>::result_type typecast_from(Interpreter& interp, const T& t) {
+	template<typename T> auto typecast_from(Interpreter& interp, const T& t) -> decltype(typecast::typemap<T>::cast_from(interp, t)) {
 		return typecast::typemap<T>::cast_from(interp, t);
 	}
-	template<typename T> const typename implementation::typemap_from_info<T>::result_type typecast_from(interpreter* pre_interp, const T& t) {
+	template<typename T> auto typecast_from(interpreter* pre_interp, const T& t) -> decltype(typecast_from<T>(Interpreter(pre_interp, override()), t)) {
 		Interpreter interp(pre_interp, override());
 		return typecast_from<T>(interp, t);
 	}

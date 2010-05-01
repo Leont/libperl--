@@ -42,13 +42,15 @@ namespace perl {
 				return ret;
 			}
 
-			static const std::vector<T> cast_to(Ref<Array> array_ref) {
-				Array array = *array_ref;
+			static const std::vector<T> cast_to(const Array& array) {
 				std::vector<T> ret;
 				for (unsigned i = 0u; i < array.length(); ++i) {
 					ret.push_back(typecast_to<T>(array[i]));
 				}
 				return ret;
+			}
+			static const std::vector<T> cast_to(const Ref<Array>& array_ref) {
+				return cast_to(*array_ref);
 			}
 		};
 	}

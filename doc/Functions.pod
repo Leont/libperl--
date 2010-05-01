@@ -68,8 +68,6 @@ This class method casts a L<Scalar> to your type T. How you implement this is en
 
 =item * It must accept a Scalar::Temp rvalue. It may accept a Scalar::Base references too.
 
-=item * It must NOT be overloaded.
-
 =back
 
 =back
@@ -99,8 +97,6 @@ For this you need to define two things:
 =back
 
 =item * It must accept a value of T
-
-=item * It must not be overloaded.
 
 =back
 

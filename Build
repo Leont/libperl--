@@ -17,7 +17,7 @@ my @warnings = qw/-Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra/;
 my @testcleanfiles = (<t/*.o>, <t/*.t>);
 my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C headers/config.h blib}, @testcleanfiles);
 
-my @cc_flags = (@debug, @warnings);
+my @cc_flags = (qw/--std=gnu++0x/, @debug, @warnings);
 
 my %libraries = (
 	'perl++' => {
