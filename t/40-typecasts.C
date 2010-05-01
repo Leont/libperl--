@@ -19,7 +19,7 @@ namespace perl {
 				return my_type(value.int_value());
 			}
 			typedef boost::true_type from_type;
-			static int cast_from(Interpreter& universe, const my_type& variable) {
+			static int cast_from(Interpreter&, const my_type& variable) {
 				return variable.value;
 			}
 		};
@@ -46,4 +46,6 @@ int main() {
 	Ref<Array> baz = universe.eval("[1, 2, 3]");
 
 	vector<my_type> buz = typecast_to<vector<my_type> >(baz);
+
+	return exit_status();
 }
