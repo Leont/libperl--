@@ -11,30 +11,26 @@ use Library::Build;
 use Config;
 use ExtUtils::Embed qw/ldopts/;
 
-my @debug = qw/-ggdb3 -DDEBUG/;
-my @warnings = qw/-Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra/;
-
 my @testcleanfiles = (<t/*.o>, <t/*.t>);
 my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C headers/config.h blib}, @testcleanfiles);
 
-my @cc_flags = (qw/--std=gnu++0x/, @debug, @warnings);
+my @cc_flags = get_cc_flags;
 
 my %libraries = (
 	'perl++' => {
 		input => [ qw/array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C regex_foreign.C scalar.C/ ],
 		input_dir => 'source',
-		linker_flags => ldopts . ' -lstdc++',
-		include_dirs => [qw/headers source/],
+		linker_append => ldopts,
+		include_dirs => [ qw/headers source/ ],
 		cc_flags => \@cc_flags,
-		'c++' => 1,
+		'C++' => 1,
 	},
 	'tap++' => {
 		input => 'tap++.C',
 		input_dir => 'source',
 		include_dirs => [ qw/headers/ ],
 		cc_flags => \@cc_flags,
-		linker_flags => '-lstdc++',
-		'c++' => 1,
+		'C++' => 1,
 	},
 );
 
@@ -69,7 +65,9 @@ sub build_examples {
 		build_executable("examples/$example_name.C", "blib/example_name",
 			include_dirs         => [ 'headers' ],
 			extra_compiler_flags => \@cc_flags,
-			extra_linker_flags   => [ qw/-lstdc++ -Lblib -lperl++/ ],
+			libs                 => [ 'perl++' ],
+			libdirs              => [ 'blib' ],
+			'C++'                => 1,
 		);
 	}
 	for my $example_name (@{$examples{libraries}}) {
@@ -78,8 +76,10 @@ sub build_examples {
 			input_dir            => 'examples',
 			include_dirs         => [ 'headers' ],
 			cc_flags             => \@cc_flags,
-			linker_flags         => [ qw/-lstdc++ -Lblib -lperl++/ ],
+			libs                 => [ 'perl++' ],
+			libdirs              => [ 'blib' ],
 			libfile              => "blib/$example_name.$Config{dlext}",
+			'C++'                => 1,
 		});
 	}
 }
@@ -89,12 +89,12 @@ sub build_tests {
 		build_executable($test_source, $tests{$test_source},
 			include_dirs         => [ 'headers' ],
 			extra_compiler_flags => \@cc_flags,
-			extra_linker_flags   => [ qw/-lstdc++ -Lblib -lperl++ -ltap++/ ],
+			libs                 => [ qw/perl++ tap++/ ],
+			libdirs              => [ 'blib' ],
+			'C++'                => 1,
 		);
 	}
 }
-
-#my %examples = map { (my $foo = $_) =~ s{ ^ examples/ (.*) \.C $ } {blib/$1}x; $_ => $foo } glob 'examples/*.C';
 
 for my $argument (@ARGV) {
 	if ($argument =~ / ^ (\w+) = (.*) $ /xms) {
