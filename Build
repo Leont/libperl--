@@ -18,7 +18,7 @@ my @cc_flags = get_cc_flags;
 
 my %libraries = (
 	'perl++' => {
-		input => [ qw/array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C regex_foreign.C scalar.C/ ],
+		input => [ qw/array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C scalar.C/ ],
 		input_dir => 'source',
 		linker_append => ldopts,
 		include_dirs => [ qw/headers source/ ],

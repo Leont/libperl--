@@ -30,7 +30,8 @@ sub regexp {
 
 sub match {
 	my ($string, $regex) = @_;
-	return $string =~ /$regex/;
+	my $ret = $string =~ /$regex/;
+	return $ret;
 }
 
 sub substitute {
