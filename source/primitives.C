@@ -345,14 +345,17 @@ namespace perl {
 		return Package(interp, get_SV(true), create);
 	}
 
-	bool String::Value::match(const perl::Regex& regex) const {
-		return regex.match(*this);
+	const Array::Temp String::Value::match(const perl::Regex& regex, const char* flags) const {
+		return regex.match(*this, flags);
 	}
-	bool String::Value::substitute(const perl::Regex& regex, const perl::String::Value& replacement) {
-		return regex.substitute(*this, replacement);
+	const Array::Temp String::Value::match(Raw_string regex, const char* flags) const {
+		match(perl::Regex(regex), flags);
 	}
-	bool String::Value::substitute(const perl::Regex& regex, Raw_string replacement) {
-		return regex.substitute(*this, replacement);
+	const Array::Temp String::Value::substitute(const perl::Regex& regex, const perl::String::Value& replacement, const char* flags) {
+		return regex.substitute(*this, replacement, flags);
+	}
+	const Array::Temp String::Value::substitute(const perl::Regex& regex, Raw_string replacement, const char* flags) {
+		return regex.substitute(*this, replacement, flags);
 	}
 
 	SV* String::Value::copy(const Scalar::Base& other) {

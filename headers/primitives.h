@@ -162,10 +162,10 @@ namespace perl {
 			const array::Temp unpack(const Raw_string) const;
 			Package get_package(bool) const;
 
-			bool match(const perl::Regex&) const;
-			bool match(Raw_string) const;
-			bool substitute(const perl::Regex&, const String&);
-			bool substitute(const perl::Regex&, Raw_string);
+			const array::Temp match(const perl::Regex&, const char*) const;
+			const array::Temp match(Raw_string, const char*) const;
+			const array::Temp substitute(const perl::Regex&, const String&, const char*);
+			const array::Temp substitute(const perl::Regex&, Raw_string, const char*);
 
 			static SV* copy(const Scalar::Base&);
 			static bool is_compatible_type(const Scalar::Base&);
