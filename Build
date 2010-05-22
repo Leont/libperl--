@@ -46,7 +46,7 @@ sub build {
 		"$Config{cpp} $Config{ccflags} -I$Config{archlibexp}/CORE $oldname > $_";
 	} \%options, qw{headers/config.h headers/extend.h};
 
-	create_by_system { "$^X $_.PL > $_" } \%options, 'source/evaluate.C';
+	create_by_system { "$^X -T $_.PL > $_" } \%options, 'source/evaluate.C';
 
 	for my $library_name (keys %libraries) {
 		build_library($library_name => $libraries{$library_name});

@@ -56,7 +56,7 @@ t/%.t: t/%.C $(LIB) $(LIBTAP)
 	$(CXX) $(ACXXFLAGS) -Lblib -lperl++ -ltap++ -o $@ $< 
 
 source/evaluate.C: source/evaluate.C.PL
-	perl $< > $@
+	perl -T $< > $@
 
 headers/%.h: source/%.pre
 	cpp $(PERLCXX) $< > $@

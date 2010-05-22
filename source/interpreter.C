@@ -141,12 +141,12 @@ namespace perl {
 		return Hash::Temp(raw_interp.get(), ret, false);
 	}
 
-	const Regex Interpreter::regex(const char* regexp) const {
-		return regex(value_of(regexp));
+	const Regex Interpreter::regex(Raw_string regexp, Raw_string flags) const {
+		return regex(value_of(regexp), flags);
 	}
 
-	const Regex Interpreter::regex(const String::Value& regexp) const {
-		Scalar::Temp temp = implementation::Call_stack(raw_interp.get()).push(regexp).sub_scalar("Embed::Perlpp::regexp");
+	const Regex Interpreter::regex(const String::Value& regexp, Raw_string flags) const {
+		Scalar::Temp temp = implementation::Call_stack(raw_interp.get()).push(regexp, flags).sub_scalar("Embed::Perlpp::regexp");
 		return Regex(std::auto_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), temp.release())));
 	}
 

@@ -767,8 +767,8 @@ namespace perl {
 
 		Glob glob(const char*) const;
 
-		const Regex regex(const String::Value&) const;
-		const Regex regex(const char*) const;
+		const Regex regex(const String::Value&, Raw_string = "") const;
+		const Regex regex(Raw_string, Raw_string = "") const;
 
 		const Scalar::Temp undef() const;
 		const Integer::Temp value_of(int) const;
