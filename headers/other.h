@@ -74,6 +74,7 @@ namespace perl {
 		typedef implementation::Regex Implementation;
 		boost::shared_ptr<Implementation> pattern;
 		friend class Interpreter;
+		friend class implementation::String;
 		Regex(std::auto_ptr<Implementation>);
 		public:
 		const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Regex> > take_ref() const;

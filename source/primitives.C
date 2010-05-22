@@ -1,5 +1,6 @@
 #include "internal.h"
 #include "perl++.h"
+#include "regex_impl.h"
 
 namespace perl {
 	/*
@@ -348,8 +349,10 @@ namespace perl {
 	const Array::Temp String::Value::match(const perl::Regex& regex, const char* flags) const {
 		return regex.match(*this, flags);
 	}
-	const Array::Temp String::Value::match(Raw_string regex, const char* flags) const {
-		match(perl::Regex(regex), flags);
+	const Array::Temp String::Value::match(Raw_string regex_string, const char* flags) const {
+		Scalar::Temp temp = implementation::Call_stack(interp).push(regex_string, flags).sub_scalar("Embed::Perlpp::regexp");
+		perl::Regex regex(std::auto_ptr<implementation::Regex>(new implementation::Regex(interp, temp.release())));
+		return regex.match(*this, flags);
 	}
 	const Array::Temp String::Value::substitute(const perl::Regex& regex, const perl::String::Value& replacement, const char* flags) {
 		return regex.substitute(*this, replacement, flags);
