@@ -77,14 +77,11 @@ namespace perl {
 		Regex(std::auto_ptr<Implementation>);
 		public:
 		const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Regex> > take_ref() const;
-		int match(const String::Value&, const char* = "") const;
-		int match(const Scalar::Value&, const char* = "") const;
-		int match(const char*, const char* = "") const;
-		const Array::Temp comb(const String::Value&, const char* = "") const;
-		const Array::Temp comb(const Scalar::Value&, const char* = "") const;
-		const Array::Temp comb(const char*, const char* = "") const;
-		int substitute(String::Value&, const String::Value&) const;
-		int substitute(String::Value&, Raw_string) const;
+		const Array::Temp match(const String::Value&, const char* = "") const;
+		const Array::Temp match(const Scalar::Value&, const char* = "") const;
+		const Array::Temp match(const char*, const char* = "") const;
+		const Array::Temp substitute(String::Value&, const String::Value&, const char* = "") const;
+		const Array::Temp substitute(String::Value&, Raw_string, const char* = "") const;
 	};
 
 	namespace implementation {
