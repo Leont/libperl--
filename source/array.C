@@ -218,6 +218,10 @@ namespace perl {
 		return Scalar::Temp(interp, newSV(0), true);
 	}
 
+	Array::Value::operator unsigned() const {
+		return length();
+	}
+
 	Array::Iterator Array::Value::begin() {
 		return Iterator(*this, 0);
 	}

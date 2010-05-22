@@ -304,6 +304,8 @@ namespace perl {
 
 				static const std::string& cast_error();
 
+				operator unsigned() const;
+
 				friend class perl::Array;
 				friend class Length;
 				friend class perl::Glob;

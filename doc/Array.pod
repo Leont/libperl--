@@ -56,6 +56,10 @@ Returns true if the element indexed by C<key> exists.
 
 Returns the length of the array. It is similar to C<scalar @array> in perl. It can be assigned to to change the length of the array.
 
+=item operator unsigned() const
+
+Converts to the length of the array.
+
 =item void clear()
 
 Clears an array, making it empty. Does not free the memory used by the array itself.
