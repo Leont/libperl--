@@ -288,6 +288,7 @@ namespace TAP {
 		TAP::skip(TAP::details::stop_block() - TAP::encountered(), skipper.reason);\
 	}\
 	catch(TAP::details::Todo_exception& todoer) {\
+		note("Can't handle todo properly yet");\
 		/*TODO*/\
 	}\
 	catch(const std::exception& e) {\
