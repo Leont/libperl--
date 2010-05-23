@@ -1,0 +1,83 @@
+=pod
+
+=head1 NAME
+
+libperl++ - Packages and classes
+
+=head1 VERSION
+
+This documentation refers to libperl++ version 0.0.48
+
+=head1 SYNOPSIS
+
+ int bar(const char*);
+ Package foo = universe.package("Foo");
+ foo.add("bar", bar);
+
+=head1 DESCRIPTION
+
+The class C<Package> and its subclass C<<< Class<T> >>> are abstractions around perl's packages. They provide easy to use and type-safe exportion mechanisms.
+
+=head1 SUBROUTINES/METHODS
+
+=head2 Package
+
+=over 4
+
+=item * const std::string& get_name() const;
+
+=item * operator const std::string&() const;
+
+Get the name of the package.
+
+=item * Scalar::Temp scalar(const char* name) const;
+
+=item * Array::Temp array(const char* name) const;
+
+=item * Hash::Temp hash(const char* name) const;
+
+These functions return package variables associated with this package.
+
+=item * Ref<Code>::Temp add(const char* name, func_ptr function)
+
+Export a C++ function to perl. It's exported as C<$package_name::$name>.
+
+Arguments are mapped 1-on-1 between perl and C++ unless the function accepts a single array value as argument, in which case the argument list is flattened.
+
+=item * Scalar::Temp add(const char* name, T variable)
+
+Export a C++ variable to perl. It's exported as C<$package_name::$name>. The variable is required to be convertable from/to a Perl scalar.
+
+=back
+
+=head2 Class<T>
+
+Class<T> is a Liskov-complete subclass of Package. Unlike Package, it has a template parameter that enables it to export member functions and variables.
+
+=over 4
+
+=item * void add(const char* name, const init<U...>)
+
+=item * void add(const init<U...>)
+
+Export a constructor. The types of the arguments are given ar parameters to C<<< init<> >>>. If no name is given, it defaults to C<new>.
+
+=item * Ref<Code> add(const char* name, T U::*member_function)
+
+Export a member function as a Perl method. Other than exporting a member function instead of a normal one, it works the same as add(name, function).
+
+=item * Ref<Code> add(const char* name, T U::*member_variable)
+
+Add an accessor for the member variable. The method will return the value of the member variable when called without arguments, and set it if it is called with an argument.
+
+=back
+
+=head1 DIAGNOSTICS
+
+Exporting functions, variables and methods relies on compile-time features of your C++ compiler. It tries to do as much as possible during compiletime. These compiletime errors are compiler specific though.
+
+=head1 AUTHOR
+
+Leon Timmermans (fawaka@gmail.com)
+
+=cut
