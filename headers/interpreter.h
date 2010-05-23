@@ -611,10 +611,10 @@ namespace perl {
 		template<typename T> Code::Value add_stacksub(const char* name, const T& func) {
 			return implementation::export_stacksub(interp, (package_name + "::" + name).c_str(), func);
 		}
-
-		private:
-		template<typename T, typename U> void export_constructor(const char* name, const U& constructor, const implementation::Class_state& state) {
-			implementation::constructor_exporter<T>::export_cons(interp, (package_name + "::" + name).c_str(), constructor, state);
+		template<typename T> typename boost::disable_if<typename boost::is_pointer<T>::type, Scalar::Temp>::type add(const char* name, T& variable) {
+			Scalar::Temp ret = scalar(name);
+			magical::readwrite(ret, variable);
+			return ret;
 		}
 	};
 
@@ -662,7 +662,6 @@ namespace perl {
 	};
 
 	template<typename T> class Class : public Package {
-		bool hash;
 		typedef implementation::Class_state State;
 		State& get_class_data() {
 			return *static_cast<State*>(implementation::get_magic_ptr(interp, reinterpret_cast<SV*>(stash), sizeof(State)));
@@ -689,7 +688,7 @@ namespace perl {
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const char* name, const init<A1, A2, A3, A4, A5>&) {
 			typedef typename implementation::constructor<T, A1, A2, A3, A4, A5> constructor;
 			State& state = get_class_data();
-			export_constructor<T>(name, constructor::construct, state);
+			implementation::constructor_exporter<T>::export_cons(interp, (package_name + "::" + name).c_str(), constructor::construct, state);
 		}
 		template<typename A1, typename A2, typename A3, typename A4, typename A5> void add(const init<A1, A2, A3, A4, A5>& foo) {
 			add("new", foo);
