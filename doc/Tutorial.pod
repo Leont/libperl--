@@ -10,13 +10,17 @@ XXX
 
 =head1 INSTALLATION
 
-Currently the recommended way to get libperl++ is to checkout the latest version from git at L<git://github.com/Leont/libperl--.git>. Releases are currently uncommon. It can be installed using plain old make: a more portable solution is being planned.
+Currently the recommended way to get libperl++ is to checkout the latest version from git at L<git://github.com/Leont/libperl--.git>. Releases are currently not made but will be made in the future. It can be installed using by issuing:
+
+ ./Build
+ ./Build test
+ ./Build install
 
 =head1 GETTING STARTED
 
 libperl++ is a library for embedding perl. In this tutorial I'm taking simple imaginary game and expose the C++ and perl sides to each other. First of all, we need an interpreter object. For this simple game, we'll use a global interpreter:
 
-	static Interpreter universe;
+ static Interpreter universe;
 
 Using the interpreter we can access perl variables and functions. This is the starting point for all uses of this library.
 
@@ -30,7 +34,7 @@ libperl++ defines a number of value type corresponding to Perl values. Use of th
 
 =head1 EXPORTING C++
 
-Exporting C++ to Perl is L<Interpreter/"ACCESSING C++ FROM PERL">.
+Exporting C++ to Perl is described in L<Interpreter/"ACCESSING C++ FROM PERL"> and L<Package>.
 
 =head1 EXTENDING PERL
 

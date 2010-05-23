@@ -10,7 +10,7 @@ This documentation refers to libperl++ version 0.0.48
 
     Scalar foo = universe.eval("1 + 1");
 
-	int double = 2 * foo;
+	int triple = 3 * foo;
 
 =head1 DESCRIPTION
 

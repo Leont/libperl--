@@ -58,7 +58,7 @@ For this you need to define one class method:
 
 =over 2
 
-=item * T cast_to(const& Scalar::Temp) should be defined.
+=item * T cast_to(scalar) should be defined.
 
 This class method casts a L<Scalar> to your type T. How you implement this is entirely up yo you, but it must satisfy the following demands:
 

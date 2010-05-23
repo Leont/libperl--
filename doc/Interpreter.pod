@@ -61,6 +61,9 @@ Functions can be exported using the add method of Interpreter.
 	universe.add("some_function", some_function);
 	universe.call("some_function", "hello world");
 
+	Package somewhere = universe.package("foo");
+	universe.add("other_name", some_function);
+
 libperl++ will automatically convert scalars from and to native numbers and std::strings. If needed you can define your own conversion operators as explained in L<Functions>.
 
 =head2 EXPORTING METHODS
