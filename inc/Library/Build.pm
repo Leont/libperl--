@@ -96,7 +96,7 @@ sub build_library {
 			object_file          => $object_file,
 			'C++'                => $library{'C++'},
 			include_dirs         => $library{include_dirs},
-			extra_compiler_flags => $library{cc_flags} || [],
+			extra_compiler_flags => $library{cc_flags} || [ get_cc_flags ],
 		);
 	}
 	my $library_file = $library{libfile} || 'blib/lib'.$builder->lib_file($library_name);
@@ -117,6 +117,7 @@ sub build_executable {
 	$builder->compile(
 		source      => $prog_source,
 		object_file => $prog_object,
+		extra_compiler_flags => [ get_cc_flags ],
 		%args
 	) if not -e $prog_object or -M $prog_source < -M $prog_object;
 
