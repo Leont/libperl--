@@ -1,174 +1,154 @@
 package Library::Build;
 
-use 5.006;
+use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = 0.01;
-
-use autodie;
+use Library::Build::Util qw/:all/;
 use Config;
-use ExtUtils::CBuilder;
-use List::MoreUtils 'any';
-use POSIX qw/strftime/;
-use TAP::Harness;
-use File::Path qw/mkpath rmtree/;
+use ExtUtils::Embed qw/ldopts/;
 
 use Exporter 5.57 qw/import/;
 
-our @EXPORT = qw/make_silent create_by create_by_system create_dir build_library test_files_from build_executable run_tests remove_tree get_cc_flags/;
+our @EXPORT = qw/dispatch/;
 
-my $builder = ExtUtils::CBuilder->new;
+my @testcleanfiles = glob 't/*.[ot]';
+my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C headers/config.h blib}, @testcleanfiles);
 
-my $compiler = $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
+my %libraries = (
+	'perl++' => {
+		input => [ qw/array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C scalar.C/ ],
+		input_dir => 'source',
+		linker_append => ldopts,
+		include_dirs => [ qw/headers source/ ],
+		'C++' => 1,
+	},
+	'tap++' => {
+		input => 'tap++.C',
+		input_dir => 'source',
+		include_dirs => [ qw/headers/ ],
+		'C++' => 1,
+	},
+);
 
-sub get_cc_flags {
-	if ($compiler eq 'gcc') {
-		return qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra/;
+my %options = (
+	silent => 0,
+);
+
+sub build {
+	create_dir(\%options, 'blib');
+
+	create_by_system { 
+		(my $oldname = $_ ) =~ s{ headers / (\w+) \.h  }{source/$1.pre}x;
+		"$Config{cpp} $Config{ccflags} -I$Config{archlibexp}/CORE $oldname > $_";
+	} \%options, qw{headers/config.h headers/extend.h};
+
+	create_by_system { "$^X -T $_.PL > $_" } \%options, 'source/evaluate.C';
+
+	for my $library_name (keys %libraries) {
+		build_library($library_name => $libraries{$library_name});
 	}
-	elsif ($compiler eq 'msvc') {
-		return qw{/Wall};
-	}
-}
-
-sub make_silent {
-	my $value = shift;
-	$builder->{quiet} = $value;
 	return;
 }
 
-sub create_by(&@) {
-	my ($sub, @names) = @_;
-	for (@names) {
-		$sub->() if not -e $_;
-	}
-	return;
-}
+my %tests = map { (my $foo = $_) =~ s/\.C$/.t/; $_ => $foo } glob 't/*.C';
 
-sub create_by_system(&@) {
-	my ($sub, $options, @names) = @_;
-	for (@names) {
-		if (not -e $_) {
-			my @call = $sub->();
-			print "@call\n" if $options->{silent} <= 0;
-			system @call;
-		}
-	}
-	return;
-}
+my %examples = (
+	executables => [ qw/combined game/ ],
+	libraries   => [ qw/Extend/ ]
+);
 
-sub create_dir {
-	my ($options, @dirs) = @_;
-	mkpath(\@dirs, $options->{silent} <= 0, oct 744);
-	return;
-}
-
-sub _get_input_files {
-	my $library = shift;
-	if ($library->{input}) {
-		if (ref $library->{input}) {
-			return @{ $library->{input} };
-		}
-		else {
-			return $library->{input}
-		}
-	}
-	elsif ($library->{input_dir}){
-		opendir my($dh), $library->{input_dir};
-		my @ret = readdir $dh;
-		closedir $dh;
-		return @ret;
-	}
-}
-
-sub build_library {
-	my ($library_name, $library_ref) = @_;
-	my %library    = %{ $library_ref };
-	my @raw_files  = _get_input_files($library_ref);
-	my $input_dir  = $library{input_dir} || '.';
-	my $output_dir = $library{output_dir} || 'blib';
-	my %object_for = map { ( "$input_dir/$_" => "$output_dir/".$builder->object_file($_) ) } @raw_files;
-	for my $source_file (sort keys %object_for) {
-		my $object_file = $object_for{$source_file};
-		next if -e $object_file and -M $source_file > -M $object_file;
-		$builder->compile(
-			source               => $source_file,
-			object_file          => $object_file,
-			'C++'                => $library{'C++'},
-			include_dirs         => $library{include_dirs},
-			extra_compiler_flags => $library{cc_flags} || [ get_cc_flags ],
+sub build_examples {
+	for my $example_name (@{$examples{executables}}) {
+		build_executable("examples/$example_name.C", 'blib/example_name',
+			include_dirs         => [ 'headers' ],
+			libs                 => [ 'perl++' ],
+			libdirs              => [ 'blib' ],
+			'C++'                => 1,
 		);
 	}
-	my $library_file = $library{libfile} || 'blib/lib'.$builder->lib_file($library_name);
-	my $linker_flags = linker_flags($library{libs}, $library{libdirs}, append => $library{linker_append}, 'C++' => $library{'C++'});
-	$builder->link(
-		lib_file           => $library_file,
-		objects            => [ values %object_for ],
-		extra_linker_flags => $linker_flags,
-		module_name        => 'libperl++',
-	) if not -e $library_file or any { (-M $_ < -M $library_file ) } values %object_for;
+	for my $example_name (@{$examples{libraries}}) {
+		build_library($example_name, {
+			input                =>  [ "$example_name.C" ],
+			input_dir            => 'examples',
+			include_dirs         => [ 'headers' ],
+			libs                 => [ 'perl++' ],
+			libdirs              => [ 'blib' ],
+			libfile              => "blib/$example_name.$Config{dlext}",
+			'C++'                => 1,
+		});
+	}
 	return;
 }
 
-sub build_executable {
-	my ($prog_source, $prog_exec, %args) = @_;
-	my $prog_object = $args{object_file} || $builder->object_file($prog_source);
-	my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
-	$builder->compile(
-		source      => $prog_source,
-		object_file => $prog_object,
-		extra_compiler_flags => [ get_cc_flags ],
-		%args
-	) if not -e $prog_object or -M $prog_source < -M $prog_object;
-
-	$builder->link_executable(
-		objects  => $prog_object,
-		exe_file => $prog_exec,
-		extra_linker_flags => $linker_flags,
-		%args,
-	) if not -e $prog_exec or -M $prog_object < -M $prog_exec;
+sub build_tests {
+	for my $test_source (sort keys %tests) {
+		build_executable($test_source, $tests{$test_source},
+			include_dirs         => [ 'headers' ],
+			libs                 => [ qw/perl++ tap++/ ],
+			libdirs              => [ 'blib' ],
+			'C++'                => 1,
+		);
+	}
 	return;
 }
 
-sub run_tests {
-	my ($options, @test_goals) = @_;
-	my $library_var = $options->{library_var} || $Config{ldlibpthname};
-	local $ENV{$library_var} = 'blib';
-	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $options->{silent} < 2;
-	my $harness = TAP::Harness->new({
-		verbosity => -$options->{silent},
-		exec => sub {
-			my (undef, $file) = @_;
-			return [ $file ];
-		},
-		merge => 1,
-	});
 
-	return $harness->runtests(@test_goals);
-}
+sub dispatch {
+	my @arguments = @_;
+	my $action_name = shift @arguments|| 'build';
 
-sub remove_tree {
-	my ($options, @files) = @_;
-	rmtree(\@files, $options->{silent} <= 0, 0);
-	return;
-}
 
-sub linker_flags {
-	my ($libs, $libdirs, %options) = @_;
-	my @elements;
-	if ($compiler eq 'gcc') {
-		push @elements, map { "-l$_" } @{$libs};
-		push @elements, map { "-L$_" } @{$libdirs};
-		if ($options{'C++'}) {
-			push @elements, '-lstdc++';
+
+	for my $argument (@arguments) {
+		if ($argument =~ / ^ (\w+) = (.*) $ /xms) {
+			$options{$1} = $2;
+		}
+		else {
+			$options{$argument} = 1;
 		}
 	}
-	elsif ($compiler eq 'msvc') {
-		push @elements, map { "$_.dll" } @{$libs};
-		push @elements, map { qq{-libpath:"$_"} } @{$libdirs};
-	}
-	push @elements, $options{append} if defined $options{append};
-	return join ' ', @elements;
+
+	make_silent($options{silent}) if $options{silent};
+	my @test_goals = $options{test_files} ? split / /, $options{test_files} : sort values %tests;
+
+	my %action_map = (
+		build     => \&build,
+		test      => sub {
+			build;
+			build_tests;
+
+			run_tests(\%options, @test_goals)
+		},
+		testbuild => sub {
+			build;
+			build_tests;
+		},
+		examples  => sub {
+			build;
+			build_examples;
+		},
+		install   => sub {
+			build;
+
+			die "install not implemented yet\n";
+		},
+		clean     => sub {
+			remove_tree(\%options, @cleanfiles);
+		},
+		realclean => sub {
+			remove_tree(\%options, @cleanfiles, 'Build');
+		},
+		testclean => sub {
+			remove_tree(\%options, @testcleanfiles);
+		},
+		help      => sub {
+			print "No help available yet\n";
+		},
+	);
+
+	my $action = $action_map{ $action_name } or die "No such action defined\n";
+	return $action->();
 }
 
 1;
