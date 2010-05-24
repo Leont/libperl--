@@ -13,7 +13,11 @@ requires:
   Readonly: 1.03
   perl: 5.008
 build_requires:
+  autodie: 0
+  Exporter: 5.57
   ExtUtils::CBuilder: 0
+  List::MoreUtils: 0
+  TAP::Harness: 3
 provides:
   File::Map:
     file: lib/Perlpp/Extend.pm

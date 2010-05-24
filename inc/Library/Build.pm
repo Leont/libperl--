@@ -95,10 +95,7 @@ sub build_tests {
 
 
 sub dispatch {
-	my @arguments = @_;
-	my $action_name = shift @arguments|| 'build';
-
-
+	my ($action_name, @arguments) = @_;
 
 	for my $argument (@arguments) {
 		if ($argument =~ / ^ (\w+) = (.*) $ /xms) {
