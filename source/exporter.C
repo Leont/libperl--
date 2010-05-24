@@ -73,7 +73,7 @@ namespace perl {
 			return Code::Value(interp, tmp);
 		}
 		void die(interpreter* interp, const char* message) {
-			Perl_croak(interp, "%s\n", message);
+			Perl_croak(aTHX_ "%s\n", message);
 		}
 
 		static boost::ptr_map<const std::type_info*, Class_state> typemap; //FIXME should be interpreter specific

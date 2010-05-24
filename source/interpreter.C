@@ -279,7 +279,7 @@ namespace perl {
 			dXSARGS;
 			axp = ax;
 			if (items != 1)
-				Perl_die(aTHX, "Need module as argument for loading\n");
+				Perl_die(aTHX_ "Need module as argument for loading\n");
 			package_name = SvPV_nolen(ST(0));
 		}
 		Package Exporter_helper::get_package() {
