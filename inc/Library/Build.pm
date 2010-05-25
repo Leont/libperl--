@@ -4,30 +4,31 @@ use 5.008;
 use strict;
 use warnings;
 
+our $VERSION = 0.002;
+
 use Library::Build::Util qw/:all/;
 use Config;
 use ExtUtils::Embed qw/ldopts/;
+use ExtUtils::Install qw/install/;
 
 use Exporter 5.57 qw/import/;
 
 our @EXPORT = qw/dispatch/;
 
 my @testcleanfiles = glob 't/*.[ot]';
-my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C headers/config.h blib}, @testcleanfiles);
+my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C perl++/headers/config.h perl++/headers/extend.h blib}, @testcleanfiles);
 
 my %libraries = (
 	'perl++' => {
-		input => [ qw/array.C call.C evaluate.C exporter.C glob.C hash.C handle.C helpers.C interpreter.C primitives.C reference.C regex.C scalar.C/ ],
-		input_dir => 'source',
+		input_dir     => 'perl++/source',
 		linker_append => ldopts,
-		include_dirs => [ qw/headers source/ ],
-		'C++' => 1,
+		include_dirs  => [ qw(perl++/headers source) ],
+		'C++'         => 1,
 	},
 	'tap++' => {
-		input => 'tap++.C',
-		input_dir => 'source',
-		include_dirs => [ qw/headers/ ],
-		'C++' => 1,
+		input_dir    => 'tap++/source',
+		include_dirs => [ qw(tap++/headers) ],
+		'C++'        => 1,
 	},
 );
 
@@ -36,14 +37,14 @@ my %options = (
 );
 
 sub build {
-	create_dir(\%options, 'blib');
+	create_dir(\%options, 'blib/lib', 'blib/build');
 
 	create_by_system { 
-		(my $oldname = $_ ) =~ s{ headers / (\w+) \.h  }{source/$1.pre}x;
+		(my $oldname = $_ ) =~ s{ perl\+\+ / headers / (\w+) \.h  }{perl++/source/$1.pre}x;
 		"$Config{cpp} $Config{ccflags} -I$Config{archlibexp}/CORE $oldname > $_";
-	} \%options, qw{headers/config.h headers/extend.h};
+	} \%options, qw{perl++/headers/config.h perl++/headers/extend.h};
 
-	create_by_system { "$^X -T $_.PL > $_" } \%options, 'source/evaluate.C';
+	create_by_system { "$^X -T $_.PL > $_" } \%options, 'perl++/source/evaluate.C';
 
 	for my $library_name (keys %libraries) {
 		build_library($library_name => $libraries{$library_name});
@@ -61,7 +62,7 @@ my %examples = (
 sub build_examples {
 	for my $example_name (@{$examples{executables}}) {
 		build_executable("examples/$example_name.C", 'blib/example_name',
-			include_dirs         => [ 'headers' ],
+			include_dirs         => [ 'perl++/headers' ],
 			libs                 => [ 'perl++' ],
 			libdirs              => [ 'blib' ],
 			'C++'                => 1,
@@ -71,7 +72,7 @@ sub build_examples {
 		build_library($example_name, {
 			input                =>  [ "$example_name.C" ],
 			input_dir            => 'examples',
-			include_dirs         => [ 'headers' ],
+			include_dirs         => [ 'perl++/headers' ],
 			libs                 => [ 'perl++' ],
 			libdirs              => [ 'blib' ],
 			libfile              => "blib/$example_name.$Config{dlext}",
@@ -84,15 +85,14 @@ sub build_examples {
 sub build_tests {
 	for my $test_source (sort keys %tests) {
 		build_executable($test_source, $tests{$test_source},
-			include_dirs         => [ 'headers' ],
+			include_dirs         => [ qw(perl++/headers tap++/headers) ],
 			libs                 => [ qw/perl++ tap++/ ],
-			libdirs              => [ 'blib' ],
+			libdirs              => [ 'blib/lib' ],
 			'C++'                => 1,
 		);
 	}
 	return;
 }
-
 
 sub dispatch {
 	my ($action_name, @arguments) = @_;
@@ -128,7 +128,18 @@ sub dispatch {
 		install   => sub {
 			build;
 
-			die "install not implemented yet\n";
+			my $libdir = $options{libdir}  || (split ' ', $Config{libpth})[0];
+			my $incdir = $options{incdir}  || $Config{usrinc};
+			my $moddir = $options{moddir} || $Config{installprivlib};
+			install([
+				from_to => {
+					'blib/lib'       => $libdir,
+					'perl++/headers' => "$incdir/perl++",
+					'lib'            => $moddir,
+				},
+				verbose => $options{silent} <= 0,
+				dry_run => $options{dry_run},
+			]);
 		},
 		clean     => sub {
 			remove_tree(\%options, @cleanfiles);

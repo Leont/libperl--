@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = 0.01;
+our $VERSION = 0.002;
 
 use autodie;
 use Config;
@@ -16,16 +16,16 @@ use File::Path qw/mkpath rmtree/;
 
 use Exporter 5.57 qw/import/;
 
-our @EXPORT_OK = qw/make_silent create_by create_by_system create_dir build_library test_files_from build_executable run_tests remove_tree get_cc_flags/;
+our @EXPORT_OK = qw/make_silent create_by create_by_system create_dir build_library test_files_from build_executable run_tests remove_tree/;
 our %EXPORT_TAGS = ( all => \@EXPORT_OK );
 
 my $builder = ExtUtils::CBuilder->new;
 
 my $compiler = $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
 
-sub get_cc_flags {
+sub cc_flags {
 	if ($compiler eq 'gcc') {
-		return qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra/;
+		return qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra -Winvalid-pch/;
 	}
 	elsif ($compiler eq 'msvc') {
 		return qw{/Wall};
@@ -66,17 +66,17 @@ sub create_dir {
 
 sub _get_input_files {
 	my $library = shift;
-	if ($library->{input}) {
-		if (ref $library->{input}) {
-			return @{ $library->{input} };
+	if ($library->{input_files}) {
+		if (ref $library->{input_files}) {
+			return @{ $library->{input_files} };
 		}
 		else {
-			return $library->{input}
+			return $library->{input_files}
 		}
 	}
 	elsif ($library->{input_dir}){
 		opendir my($dh), $library->{input_dir};
-		my @ret = readdir $dh;
+		my @ret = grep { /^ .+ \. C $/xsm } readdir $dh;
 		closedir $dh;
 		return @ret;
 	}
@@ -88,7 +88,7 @@ sub build_library {
 	my @raw_files  = _get_input_files($library_ref);
 	my $input_dir  = $library{input_dir} || '.';
 	my $output_dir = $library{output_dir} || 'blib';
-	my %object_for = map { ( "$input_dir/$_" => "$output_dir/".$builder->object_file($_) ) } @raw_files;
+	my %object_for = map { ( "$input_dir/$_" => "$output_dir/build/".$builder->object_file($_) ) } @raw_files;
 	for my $source_file (sort keys %object_for) {
 		my $object_file = $object_for{$source_file};
 		next if -e $object_file and -M $source_file > -M $object_file;
@@ -97,10 +97,10 @@ sub build_library {
 			object_file          => $object_file,
 			'C++'                => $library{'C++'},
 			include_dirs         => $library{include_dirs},
-			extra_compiler_flags => $library{cc_flags} || [ get_cc_flags ],
+			extra_compiler_flags => $library{cc_flags} || [ cc_flags ],
 		);
 	}
-	my $library_file = $library{libfile} || 'blib/lib'.$builder->lib_file($library_name);
+	my $library_file = $library{libfile} || "$output_dir/lib/lib".$builder->lib_file($library_name);
 	my $linker_flags = linker_flags($library{libs}, $library{libdirs}, append => $library{linker_append}, 'C++' => $library{'C++'});
 	$builder->link(
 		lib_file           => $library_file,
@@ -118,7 +118,7 @@ sub build_executable {
 	$builder->compile(
 		source      => $prog_source,
 		object_file => $prog_object,
-		extra_compiler_flags => [ get_cc_flags ],
+		extra_compiler_flags => [ cc_flags ],
 		%args
 	) if not -e $prog_object or -M $prog_source < -M $prog_object;
 
@@ -134,7 +134,7 @@ sub build_executable {
 sub run_tests {
 	my ($options, @test_goals) = @_;
 	my $library_var = $options->{library_var} || $Config{ldlibpthname};
-	local $ENV{$library_var} = 'blib';
+	local $ENV{$library_var} = 'blib/lib';
 	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $options->{silent} < 2;
 	my $harness = TAP::Harness->new({
 		verbosity => -$options->{silent},

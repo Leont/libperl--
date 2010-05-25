@@ -37,13 +37,13 @@
 #endif
 
 // I split the header, to ease working with it.
-#include "config.h"
-#include "helpers.h"
-#include "scalar.h"
-#include "primitives.h"
-#include "reference.h"
-#include "array.h"
-#include "hash.h"
-#include "other.h"
-#include "interpreter.h"
-#include "typecasts.h"
+#include <config.h>
+#include <helpers.h>
+#include <scalar.h>
+#include <primitives.h>
+#include <reference.h>
+#include <array.h>
+#include <hash.h>
+#include <other.h>
+#include <interpreter.h>
+#include <typecasts.h>
