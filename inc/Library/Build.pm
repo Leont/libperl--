@@ -1,5 +1,7 @@
 package Library::Build;
 
+# This code needs some serious refactoring, but it works…
+
 use 5.008;
 use strict;
 use warnings;
@@ -134,14 +136,12 @@ sub dispatch {
 			build_perl;
 			build_tap;
 
-			my $libdir = $options{libdir}  || (split ' ', $Config{libpth})[0];
 			my $incdir = $options{incdir}  || $Config{usrinc};
-			my $moddir = $options{moddir} || $Config{installprivlib};
 			install([
 				from_to => {
-					'blib/lib'       => $libdir,
+					'blib/lib'       => $options{libdir}  || (split ' ', $Config{libpth})[0],
 					'perl++/headers' => "$incdir/perl++",
-					'lib'            => $moddir,
+					'lib'            => $options{moddir} || $Config{installprivlib},
 				},
 				verbose => $options{silent} <= 0,
 				dry_run => $options{dry_run},
