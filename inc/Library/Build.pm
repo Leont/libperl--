@@ -19,24 +19,13 @@ my @testcleanfiles = glob 't/*.[ot]';
 my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C perl++/headers/config.h perl++/headers/extend.h blib}, @testcleanfiles);
 
 my %libraries = (
-	'perl++' => {
-		input_dir     => 'perl++/source',
-		linker_append => ldopts,
-		include_dirs  => [ qw(perl++/headers source) ],
-		'C++'         => 1,
-	},
-	'tap++' => {
-		input_dir    => 'tap++/source',
-		include_dirs => [ qw(tap++/headers) ],
-		'C++'        => 1,
-	},
 );
 
 my %options = (
 	silent => 0,
 );
 
-sub build {
+sub build_perl {
 	create_dir(\%options, 'blib/lib', 'blib/build');
 
 	create_by_system { 
@@ -46,9 +35,22 @@ sub build {
 
 	create_by_system { "$^X -T $_.PL > $_" } \%options, 'perl++/source/evaluate.C';
 
-	for my $library_name (keys %libraries) {
-		build_library($library_name => $libraries{$library_name});
-	}
+	build_library('perl++' => {
+		input_dir     => 'perl++/source',
+		linker_append => ldopts,
+		include_dirs  => [ qw(perl++/headers source) ],
+		'C++'         => 1,
+	});
+	return;
+}
+
+sub build_tap {
+	create_dir(\%options, 'blib/lib', 'blib/build');
+	build_library('tap++' => {
+		input_dir    => 'tap++/source',
+		include_dirs => [ qw(tap++/headers) ],
+		'C++'        => 1,
+	});
 	return;
 }
 
@@ -110,23 +112,27 @@ sub dispatch {
 	my @test_goals = $options{test_files} ? split / /, $options{test_files} : sort values %tests;
 
 	my %action_map = (
-		build     => \&build,
+		build     => \&build_perl,
+		build_tap => \&build_tap,
 		test      => sub {
-			build;
+			build_perl;
+			build_tap;
 			build_tests;
 
 			run_tests(\%options, @test_goals)
 		},
 		testbuild => sub {
-			build;
+			build_perl;
+			build_tap;
 			build_tests;
 		},
 		examples  => sub {
-			build;
+			build_perl;
 			build_examples;
 		},
 		install   => sub {
-			build;
+			build_perl;
+			build_tap;
 
 			my $libdir = $options{libdir}  || (split ' ', $Config{libpth})[0];
 			my $incdir = $options{incdir}  || $Config{usrinc};
