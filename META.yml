@@ -15,15 +15,24 @@ requires:
 build_requires:
   autodie: 0
   Exporter: 5.57
-  ExtUtils::CBuilder: 0
+  ExtUtils::CBuilder: 0.27
   ExtUtils::Install:  1.47
-  List::MoreUtils: 0
+  namespace::clean: 0
+  List::MoreUtils: 0.12
   TAP::Harness: 3
+configure_requires:
+  ExtUtils::CBuilder: 0.27
 provides:
-  File::Map:
+  Perlpp::Extend:
     file: lib/Perlpp/Extend.pm
     version: 0.002
-generated_by: Hand
+no_index:
+  directory:
+  - t
+  - inc
+  - examples
+generated_by: Leon Timmermans
+dynamic_config: 1
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4

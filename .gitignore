@@ -1,5 +1,6 @@
 .*.swp
 t/*.t
+t/*.t.exe
 */*.o
 blib/
 perl++/headers/config.h
@@ -7,3 +8,4 @@ perl++/headers/extend.h
 perl++/source/evaluate.C
 test.out
 Build
+MYMETA.yml
