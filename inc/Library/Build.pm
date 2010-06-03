@@ -12,7 +12,7 @@ use Carp qw/croak/;
 use Config;
 
 use Exporter 5.57 qw/import/;
-our @EXPORT = qw/dispatch/;
+our @EXPORT_OK = qw/dispatch/;
 
 use ExtUtils::Embed qw/ldopts/;
 use ExtUtils::Install qw/install/;
@@ -20,11 +20,10 @@ use ExtUtils::Install qw/install/;
 use Library::Build::Util;
 
 my @testcleanfiles = glob 't/*.[ot]';
-my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C perl++/headers/config.h perl++/headers/extend.h blib}, @testcleanfiles);
+my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C perl++/headers/config.h perl++/headers/extend.h blib _build}, @testcleanfiles);
 
 sub build_perl {
 	my $builder = shift;
-	$builder->create_dir(qw{blib/lib blib/arch blib/build});
 
 	$builder->create_by_system(sub { 
 		(my $oldname = $_ ) =~ s{ perl\+\+ / headers / (\w+) \.h  }{perl++/source/$1.pre}x;
@@ -33,23 +32,29 @@ sub build_perl {
 
 	$builder->create_by_system( sub { "$^X -T $_.PL > $_" }, 'perl++/source/evaluate.C');
 
+	$builder->create_dir(qw{blib/arch _build});
 	$builder->build_library('perl++' => {
 		input_dir     => 'perl++/source',
 		linker_append => ldopts,
 		include_dirs  => [ qw(perl++/headers source) ],
 		'C++'         => 1,
 	});
+
+	$builder->copy_files('lib', 'blib/lib');
+	$builder->copy_files('perl++/headers', 'blib/headers/perl++');
+
 	return;
 }
 
 sub build_tap {
 	my $builder = shift;
-	$builder->create_dir('blib/lib', 'blib/build');
+	$builder->create_dir('_build');
 	$builder->build_library('tap++' => {
 		input_dir    => 'tap++/source',
 		include_dirs => [ qw(tap++/headers) ],
 		'C++'        => 1,
 	});
+	$builder->copy_files('tap++/headers', 'blib/headers/tap++');
 	return;
 }
 
@@ -136,9 +141,9 @@ sub dispatch {
 			my $incdir = $builder->{incdir}  || $Config{usrinc};
 			install([
 				from_to => {
-					'blib/arch'       => $builder->{libdir}  || (split ' ', $Config{libpth})[0],
-					'perl++/headers' => "$incdir/perl++",
-					'lib'            => $builder->{moddir} || $Config{installprivlib},
+					'blib/arch'    => $builder->{libdir}  || (split ' ', $Config{libpth})[0],
+					'blib/headers' => "$incdir/perl++",
+					'blib/lib'     => $builder->{moddir} || $Config{installsitelib},
 				},
 				verbose => $builder->{silent} <= 0,
 				dry_run => $builder->{dry_run},

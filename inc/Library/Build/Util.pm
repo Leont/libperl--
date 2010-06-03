@@ -13,7 +13,9 @@ use ExtUtils::CBuilder;
 use List::MoreUtils qw/any first_index/;
 use POSIX qw/strftime/;
 use TAP::Harness;
+use File::Copy qw/copy/;
 use File::Path qw/mkpath rmtree/;
+use File::Basename qw/dirname/;
 
 my $compiler = $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
 
@@ -156,13 +158,34 @@ sub create_dir {
 	return;
 }
 
+sub copy_files {
+	my ($self, $source, $destination) = @_;
+	if (-d $source) {
+		mkpath($destination, $self->{silent} <= 0, oct 744) if not -e $destination;
+		opendir my $dh, $source or croak "Can't open dir $source: $!";
+		for my $filename (readdir $dh) {
+			next if $filename =~ / \A \. \.? \z /xms;
+			$self->copy_files("$source/$filename", "$destination/$filename");
+		}
+	}
+	elsif (-f $source) {
+		mkpath(dirname($destination), $self->{silent} <= 0, oct 744) if not -e dirname($destination);
+		if (not -e $destination) {
+			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
+			print "cp $source $destination\n" if $self->{silent} <= 0;
+		}
+	}
+	return;
+}
+
 sub build_library {
 	my ($self, $library_name, $library_ref) = @_;
 	my %library    = %{ $library_ref };
 	my @raw_files  = get_input_files($library_ref);
 	my $input_dir  = $library{input_dir} || '.';
 	my $output_dir = $library{output_dir} || 'blib';
-	my %object_for = map { ( "$input_dir/$_" => "$output_dir/build/".$self->{builder}->object_file($_) ) } @raw_files;
+	my $tempdir    = $library{temp_dir} || '_build';
+	my %object_for = map { ( "$input_dir/$_" => "$tempdir/".$self->{builder}->object_file($_) ) } @raw_files;
 	for my $source_file (sort keys %object_for) {
 		my $object_file = $object_for{$source_file};
 		next if -e $object_file and -M $source_file > -M $object_file;

@@ -3,6 +3,7 @@ t/*.t
 t/*.t.exe
 */*.o
 blib/
+_build/
 perl++/headers/config.h
 perl++/headers/extend.h
 perl++/source/evaluate.C

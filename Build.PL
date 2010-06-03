@@ -26,7 +26,7 @@ use strict;
 use warnings;
 
 use lib 'inc';
-use Library::Build;
+use Library::Build 'dispatch';
 
 dispatch(\\\@ARGV, $arguments);
 EOF
