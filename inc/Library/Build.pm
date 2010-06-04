@@ -145,7 +145,7 @@ sub dispatch {
 					'blib/headers' => "$incdir/perl++",
 					'blib/lib'     => $builder->{moddir} || $Config{installsitelib},
 				},
-				verbose => $builder->{silent} <= 0,
+				verbose => $builder->{quiet} <= 0,
 				dry_run => $builder->{dry_run},
 			]);
 		},

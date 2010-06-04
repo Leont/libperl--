@@ -67,7 +67,7 @@ sub parse_options {
 	@{ $meta_arguments{envs} } = split / /, $ENV{PERL_MB_OPT} if $ENV{PERL_MB_OPT};
 
 	my %options = (
-		silent => 0,
+		quiet => 0,
 		action => 'build',
 	);
 
@@ -89,7 +89,7 @@ sub parse_options {
 			}
 		}
 	}
-	$options{silent} = -$options{verbose} if not $options{silent} and $options{verbose};
+	$options{quiet} = -$options{verbose} if not $options{quiet} and $options{verbose};
 	return %options;
 }
 
@@ -136,7 +136,7 @@ sub new {
 	my %options = parse_options(%meta);
 	return bless {
 		%options,
-		builder => ExtUtils::CBuilder->new(quiet => $options{silent}),
+		builder => ExtUtils::CBuilder->new(quiet => $options{quiet}),
 	}, $class;
 }
 
@@ -145,7 +145,7 @@ sub create_by_system {
 	for (@names) {
 		if (not -e $_) {
 			my @call = $sub->();
-			print "@call\n" if $self->{silent} <= 0;
+			print "@call\n" if $self->{quiet} <= 0;
 			system @call;
 		}
 	}
@@ -154,14 +154,14 @@ sub create_by_system {
 
 sub create_dir {
 	my ($self, @dirs) = @_;
-	mkpath(\@dirs, $self->{silent} <= 0, oct 744);
+	mkpath(\@dirs, $self->{quiet} <= 0, oct 744);
 	return;
 }
 
 sub copy_files {
 	my ($self, $source, $destination) = @_;
 	if (-d $source) {
-		mkpath($destination, $self->{silent} <= 0, oct 744) if not -e $destination;
+		mkpath($destination, $self->{quiet} <= 0, oct 744) if not -e $destination;
 		opendir my $dh, $source or croak "Can't open dir $source: $!";
 		for my $filename (readdir $dh) {
 			next if $filename =~ / \A \. \.? \z /xms;
@@ -169,10 +169,10 @@ sub copy_files {
 		}
 	}
 	elsif (-f $source) {
-		mkpath(dirname($destination), $self->{silent} <= 0, oct 744) if not -e dirname($destination);
+		mkpath(dirname($destination), $self->{quiet} <= 0, oct 744) if not -e dirname($destination);
 		if (not -e $destination) {
 			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
-			print "cp $source $destination\n" if $self->{silent} <= 0;
+			print "cp $source $destination\n" if $self->{quiet} <= 0;
 		}
 	}
 	return;
@@ -232,9 +232,9 @@ sub run_tests {
 	my ($self, @test_goals) = @_;
 	my $library_var = $self->{library_var} || $Config{ldlibpthname};
 	local $ENV{$library_var} = 'blib/arch';
-	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->{silent} < 2;
+	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->{quiet} < 2;
 	my $harness = TAP::Harness->new({
-		verbosity => -$self->{silent},
+		verbosity => -$self->{quiet},
 		exec => sub {
 			my (undef, $file) = @_;
 			return [ $file ];
@@ -247,7 +247,7 @@ sub run_tests {
 
 sub remove_tree {
 	my ($self, @files) = @_;
-	rmtree(\@files, $self->{silent} <= 0, 0);
+	rmtree(\@files, $self->{quiet} <= 0, 0);
 	return;
 }
 
