@@ -1,23 +1,23 @@
 Libperl++
 
-This is the beginning of libperl++. Almost all functions for accessing perl from
-C++ are finished, and should be beta quality. However, the functionality to export C++
-functions, methods and variables to perl are alpha quality. 
+This is libperl++. A library for embedding and extending perl in C++.
 
 DEPENDENCIES
-The library should work on perl 5.8.1 or higher. Also, some Boost headers are
-required to build it, but there are no dependencies on Boost runtime libraries.
-
-BUILDING
-It can be build using a simple `make`. This build the shared library
-(libperl++.so).
-
-TESTING
-You can run tests by typing `make test`. If you want the full output, you can run `VERBOSE=1 make test`
+The library should work on perl 5.8.1 or higher, though 5.10 is recommended. A
+recent C++ compiler is required (I recommend the most recent version you can
+get). Also, some Boost headers are required to build it, but there are no
+dependencies on Boost runtime libraries.
 
 INSTALLATION
-I don't really recommend doing that in this stage, but `make install` is
-available.
+
+To install this module, run the following commands:
+
+	perl Build.PL
+	./Build
+	./Build test
+	./Build install
+
+For more information, see doc/Install.pod
 
 COPYRIGHT AND LICENCE
 
