@@ -1,5 +1,5 @@
 #include "internal.h"
-#include "perl++.h"
+#include <perl++/perl++.h>
 #include "regex_impl.h"
 
 #ifndef FLAG_UNPACK_DO_UTF8

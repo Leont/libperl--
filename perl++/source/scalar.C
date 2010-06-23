@@ -1,5 +1,5 @@
 #include "internal.h"
-#include "perl++.h"
+#include <perl++/perl++.h>
 
 namespace perl {
 	Scalar::Base::Base(interpreter* _interp, SV* _handle) : interp(_interp), handle(_handle) {

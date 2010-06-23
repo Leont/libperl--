@@ -1,5 +1,5 @@
 #include "internal.h"
-#include "perl++.h"
+#include <perl++/perl++.h>
 
 namespace perl {
 	Glob::Glob(interpreter* _interp, GV* _handle) : interp(_interp), handle(_handle) {

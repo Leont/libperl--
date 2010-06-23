@@ -1,5 +1,5 @@
 #define WANT_TEST_EXTRAS
-#include "tap++.h"
+#include <tap++/tap++.h>
 #include <stack>
 #include <boost/lexical_cast.hpp>
 

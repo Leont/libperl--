@@ -1,8 +1,8 @@
 #include "internal.h"
-#include "perl++.h"
-#include "XSUB.h"
+#include <perl++/perl++.h>
+#include <perl++/extend.h>
+#include <XSUB.h>
 #include "regex_impl.h"
-#include "extend.h"
 
 extern "C" {
 	void boot_DynaLoader(pTHX_ CV* cv);

@@ -1,6 +1,6 @@
 #include <vector>
-#include "perl++.h"
-#include "tap++.h"
+#include <perl++/perl++.h>
+#include <tap++/tap++.h>
 
 using namespace perl;
 using namespace TAP;

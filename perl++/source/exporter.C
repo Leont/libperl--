@@ -1,6 +1,6 @@
 #include "internal.h"
 #include <XSUB.h>
-#include "perl++.h"
+#include <perl++/perl++.h>
 
 namespace perl {
 	namespace implementation {

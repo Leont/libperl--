@@ -1,5 +1,5 @@
 #include "internal.h"
-#include "perl++.h"
+#include <perl++/perl++.h>
 
 #ifndef do_print
 #define do_print(sv, handle) Perl_do_print(aTHX_ sv, handle)

@@ -33,28 +33,28 @@ sub build_perl {
 	$builder->create_by_system( sub { "$^X -T $_.PL > $_" }, 'perl++/source/evaluate.C');
 
 	$builder->create_dir(qw{blib/arch _build});
+	$builder->copy_files('perl++/headers', 'blib/headers/perl++');
+
 	$builder->build_library('perl++' => {
 		input_dir     => 'perl++/source',
 		linker_append => ldopts,
-		include_dirs  => [ qw(perl++/headers source) ],
+		include_dirs  => [ qw(blib/headers source) ],
 		'C++'         => 1,
 	});
 
 	$builder->copy_files('lib', 'blib/lib');
-	$builder->copy_files('perl++/headers', 'blib/headers/perl++');
-
 	return;
 }
 
 sub build_tap {
 	my $builder = shift;
 	$builder->create_dir('_build');
+	$builder->copy_files('tap++/headers', 'blib/headers/tap++');
 	$builder->build_library('tap++' => {
 		input_dir    => 'tap++/source',
-		include_dirs => [ qw(tap++/headers) ],
+		include_dirs => [ qw(blib/headers) ],
 		'C++'        => 1,
 	});
-	$builder->copy_files('tap++/headers', 'blib/headers/tap++');
 	return;
 }
 
@@ -67,7 +67,7 @@ sub build_examples {
 	my $builder = shift;
 	for my $example_name (@{$examples{executables}}) {
 		$builder->build_executable("examples/$example_name.C", 'blib/example_name',
-			include_dirs         => [ 'perl++/headers' ],
+			include_dirs         => [ 'blib/headers' ],
 			libs                 => [ 'perl++' ],
 			libdirs              => [ 'blib/arch' ],
 			'C++'                => 1,
@@ -77,7 +77,7 @@ sub build_examples {
 		$builder->build_library($example_name, {
 			input                =>  [ "$example_name.C" ],
 			input_dir            => 'examples',
-			include_dirs         => [ 'perl++/headers' ],
+			include_dirs         => [ 'blib/headers' ],
 			libs                 => [ 'perl++' ],
 			libdirs              => [ 'blib/arch' ],
 			libfile              => "blib/$example_name.$Config{dlext}",
@@ -91,7 +91,7 @@ sub build_tests {
 	my ($builder, %test_executable_for) = @_;
 	for my $test_source (sort keys %test_executable_for) {
 		$builder->build_executable($test_source, $test_executable_for{$test_source},
-			include_dirs         => [ qw(perl++/headers tap++/headers) ],
+			include_dirs         => [ qw(blib/headers) ],
 			libs                 => [ qw/perl++ tap++/ ],
 			libdirs              => [ 'blib/arch' ],
 			'C++'                => 1,
@@ -138,11 +138,10 @@ sub dispatch {
 			build_perl($builder);
 			build_tap($builder);
 
-			my $incdir = $builder->{incdir}  || $Config{usrinc};
 			install([
 				from_to => {
-					'blib/arch'    => $builder->{libdir}  || (split ' ', $Config{libpth})[0],
-					'blib/headers' => "$incdir/perl++",
+					'blib/arch'    => $builder->{libdir} || (split ' ', $Config{libpth})[0],
+					'blib/headers' => $builder->{incdir} || $Config{usrinc},
 					'blib/lib'     => $builder->{moddir} || $Config{installsitelib},
 				},
 				verbose => $builder->{quiet} <= 0,

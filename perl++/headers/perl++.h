@@ -37,13 +37,13 @@
 #endif
 
 // I split the header, to ease working with it.
-#include <config.h>
-#include <helpers.h>
-#include <scalar.h>
-#include <primitives.h>
-#include <reference.h>
-#include <array.h>
-#include <hash.h>
-#include <other.h>
-#include <interpreter.h>
-#include <typecasts.h>
+#include <perl++/config.h>
+#include <perl++/helpers.h>
+#include <perl++/scalar.h>
+#include <perl++/primitives.h>
+#include <perl++/reference.h>
+#include <perl++/array.h>
+#include <perl++/hash.h>
+#include <perl++/other.h>
+#include <perl++/interpreter.h>
+#include <perl++/typecasts.h>

@@ -1,6 +1,6 @@
-#include "perl++.h"
-#include "tap++.h"
-#include "lambda.h"
+#include <perl++/perl++.h>
+#include <perl++/lambda.h>
+#include <tap++/tap++.h>
 #include <algorithm>
 #include <map>
 #include <iostream>

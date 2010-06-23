@@ -1,6 +1,6 @@
-#include "perl++.h"
+#include <perl++/perl++.h>
 #define WANT_TEST_EXTRAS
-#include "tap++.h"
+#include <tap++/tap++.h>
 
 using namespace perl;
 using namespace TAP;
