@@ -108,7 +108,7 @@ namespace perl {
 			}
 			SV* take_ref(const Scalar::Base& var) {
 				interpreter* const interp = var.interp;
-				return newRV(var.get_SV(false));
+				return newRV_inc(var.get_SV(false));
 			}
 			bool is_scalar_type(const Any::Temp& ref) {
 				return SvOK(reinterpret_cast<SV*>(ref.handle)) || implementation::is_this_type(ref, SVt_NULL);
