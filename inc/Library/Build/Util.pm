@@ -24,7 +24,7 @@ sub cc_flags {
 		return qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra -Winvalid-pch/;
 	}
 	elsif ($compiler eq 'msvc') {
-		return qw{/Wall};
+		return qw{/TP /EHsc /Wall};
 	}
 }
 
@@ -124,6 +124,7 @@ sub linker_flags {
 	elsif ($compiler eq 'msvc') {
 		push @elements, map { "$_.dll" } @{$libs};
 		push @elements, map { qq{-libpath:"$_"} } @{$libdirs};
+		push @elements, 'msvcprt.lib';
 	}
 	push @elements, $options{append} if defined $options{append};
 	return join ' ', @elements;
