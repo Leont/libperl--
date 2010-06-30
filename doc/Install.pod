@@ -7,6 +7,7 @@ libperl++ - Install
 =head1 VERSION
 
 XXX
+
 =head1 SYNOPSIS
 
  perl Build.PL
@@ -16,7 +17,7 @@ XXX
 
 =head1 BEFORE YOU START
 
-libperl++ requires a number of things to build it
+Compiling libperl++ requires a number of dependencies to be fullfilled
 
 =over 4
 
@@ -36,6 +37,24 @@ Recent version of the Intel and Codeweavers compilers may work, but have not bee
 
 =item * The Boost libraries. Note that this only includes headers, not runtime libraries.
 
+=item * Some Perl libraries
+
+=over 4
+
+=item * autodie (included in perl 5.10.1)
+
+=item * Exporter 5.57 (included in perl 5.8.3)
+
+=item * ExtUtils::CBuilder (included in perl 5.10.0)
+
+=item * List::MoreUtils
+
+=item * namespace::clean
+
+=item * TAP::Harness 3
+
+=back
+
 =back
 
 =head1 BUILDING
@@ -54,7 +73,7 @@ Any options given to it will be saved and passed on to all subsequent calls of B
 
  ./Build
 
-it does not take any specific options.
+It does not take any specific options.
 
 =head2 Running tests
 
