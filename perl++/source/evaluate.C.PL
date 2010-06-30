@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 local $\ = "\n";
-print q(#include "perl++.h");
+print q(#include "perl++/perl++.h");
 print q(namespace perl {);
 print qq(\tnamespace implementation{);
 print qq(\t\tconst char to_eval[] = );
@@ -31,24 +31,17 @@ sub regexp {
 
 sub match {
 	my ($string, $regex, $flags) = @_;
-	for ($string) {
-		return $flags eq ''   ? m/$regex/ 
-			:  $flags eq 'g'  ? m/$regex/g
-			:  $flags eq 'gc' ? m/$regex/gc
-			:  die "Unknown flag or flag combination '$flags'"
-	}
+	die "invalid flag" if $flags =~ /[^msixpogc]/;
+	my @ret = eval "\$string =~ m/\$regex/$flags";
+	die $@ if $@;
+	return @ret;
 }
 
 sub substitute {
 	my (undef, $regex, $replacement, $flags) = @_;
-	for ($_[0]) {
-		return $flags eq ''   ? s/$regex/$replacement/
-			:  $flags eq 'g'  ? s/$regex/$replacement/g
-			:  $flags eq 'gc' ? s/$regex/$replacement/gc
-			: die "Unknown flag or flag combination '$flags'"
-	}
-#	$replacement =~ s{/}{\/}g;
-#	my $ret = eval "\$_[0] =~ s/\$regex/$replacement/$flags";
-#	die $@ if $@;
-#	return $ret;
+	die "invalid flag" if $flags =~ /[^msixpogce]/;
+	$replacement =~ s{([/])}{\\$1}g;
+	my @ret = eval "\$_[0] =~ s/\$regex/$replacement/$flags";
+	die $@ if $@;
+	return @ret;
 }
