@@ -10,14 +10,17 @@ use autodie;
 use Carp 'croak';
 use Config;
 use ExtUtils::CBuilder;
-use List::MoreUtils qw/any first_index/;
-use POSIX qw/strftime/;
-use TAP::Harness;
 use File::Copy qw/copy/;
 use File::Path qw/mkpath rmtree/;
 use File::Basename qw/dirname/;
+use List::MoreUtils qw/any first_index/;
+use POSIX qw/strftime/;
+use Readonly;
+use TAP::Harness;
 
-my $compiler = $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
+Readonly my $compiler => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
+Readonly my $NOTFOUND => -1;
+Readonly my $SECURE   => oct 744;
 
 sub cc_flags {
 	if ($compiler eq 'gcc') {
@@ -26,6 +29,26 @@ sub cc_flags {
 	elsif ($compiler eq 'msvc') {
 		return qw{/TP /EHsc /Wall};
 	}
+}
+
+sub parse_line {
+	my ($action, $line) = @_;
+
+	for ($line) {
+		next if / ^ \# /xms;
+		s{ \n \s+ }{ }x;
+		next if / ^ \s* $ /xms;
+
+
+		if (my ($name, $args) = m/ \A \s* (\* | \w+ ) \s+ (.*?) \s* \z /xms) {
+			my @args = split /\s+/, $args;
+			return @args if $name eq $action or $name eq '*';
+		}
+		else {
+			croak "Can't parse line '$_'";
+		}
+	}
+	return;
 }
 
 sub read_config {
@@ -40,26 +63,37 @@ sub read_config {
 	);
 	FILE:
 	for my $file (@files) {
-		next FILE if not -f $file;
+		next FILE if not -e $file;
 
 		open my $fh, '<', $file or croak "Couldn't open configuration file '$file': $!";
-		my @lines = split / \n (?! \s) /xms, join '', <$fh>;
-		for (@lines) {
-			next if / ^ \# /xms;
-			s{ \n \s+ }{ };
-			next if / ^ \s* $ /xms;
-
-
-		   	if (/ \A \s* (\* | \w+ ) \s+ (.*?) \s* \z /xms) {
-				my @args = split /\s+/, $2;
-				push @ret, @args if $1 eq $action or $1 eq '*';
-			}
-			else {
-				croak "Can't parse line '$_'";
-			}
+		my @lines = split / \n (?! \s) /xms, do { local $/ = undef, <$fh> };
+		close $fh;
+		for my $line (@lines) {
+			push @ret, parse_line($action, $line);
 		}
 	}
 	return @ret;
+}
+
+sub parse_action {
+	my $meta_arguments = shift;
+	for my $meta_argument ( map { $meta_arguments->{$_} } qw/argv envs/ ) {
+		my $position = first_index { not m/ ^ -- /xms and not m/=/xms } @{$meta_argument};
+		return splice @{$meta_argument}, $position, 1 if $position != $NOTFOUND;
+	}
+	return;
+}
+
+sub parse_option {
+	my ($options, $argument) = @_;
+	$argument =~ s/ ^ -- //xms;
+	if ($argument =~ / \A (\w+) = (.*) \z /xms) {
+		$options->{$1} = $2;
+	}
+	else {
+		$options->{$argument} = 1;
+	}
+	return;
 }
 
 sub parse_options {
@@ -71,22 +105,13 @@ sub parse_options {
 		action => 'build',
 	);
 
-	for my $meta_argument ( map { $meta_arguments{$_} } qw/argv envs/ ) {
-		my $position = first_index { ! m/ ^ -- /xms and !m/=/xms } @{$meta_argument};
-		$options{action} = splice @{$meta_argument}, $position, 1 and last if $position != -1;
-	}
+	$options{action} = parse_action(\%meta_arguments);
 
 	@{ $meta_arguments{config} } = read_config($options{action});
 
 	for my $argument_list (map { $meta_arguments{$_} } qw/config cached envs argv/) {
 		for my $argument (@{ $argument_list }) {
-			$argument =~ s/ ^ -- //xms;
-			if ($argument =~ / ^ (\w+) = (.*) $ /xms) {
-				$options{$1} = $2;
-			}
-			else {
-				$options{$argument} = 1;
-			}
+			parse_option(\%options, $argument);
 		}
 	}
 	$options{quiet} = -$options{verbose} if not $options{quiet} and $options{verbose};
@@ -104,7 +129,7 @@ sub get_input_files {
 		}
 	}
 	elsif ($library->{input_dir}){
-		opendir my($dh), $library->{input_dir};
+		opendir my $dh, $library->{input_dir};
 		my @ret = grep { /^ .+ \. C $/xsm } readdir $dh;
 		closedir $dh;
 		return @ret;
@@ -155,14 +180,14 @@ sub create_by_system {
 
 sub create_dir {
 	my ($self, @dirs) = @_;
-	mkpath(\@dirs, $self->{quiet} <= 0, oct 744);
+	mkpath(\@dirs, $self->{quiet} <= 0, $SECURE);
 	return;
 }
 
 sub copy_files {
 	my ($self, $source, $destination) = @_;
 	if (-d $source) {
-		mkpath($destination, $self->{quiet} <= 0, oct 744) if not -e $destination;
+		$self->create_dir($destination);
 		opendir my $dh, $source or croak "Can't open dir $source: $!";
 		for my $filename (readdir $dh) {
 			next if $filename =~ / \A \. \.? \z /xms;
@@ -170,7 +195,7 @@ sub copy_files {
 		}
 	}
 	elsif (-f $source) {
-		mkpath(dirname($destination), $self->{quiet} <= 0, oct 744) if not -e dirname($destination);
+		$self->create_dir(dirname($destination));
 		if (not -e $destination) {
 			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
 			print "cp $source $destination\n" if $self->{quiet} <= 0;
@@ -183,9 +208,9 @@ sub build_library {
 	my ($self, $library_name, $library_ref) = @_;
 	my %library    = %{ $library_ref };
 	my @raw_files  = get_input_files($library_ref);
-	my $input_dir  = $library{input_dir} || '.';
+	my $input_dir  = $library{input_dir}  || '.';
 	my $output_dir = $library{output_dir} || 'blib';
-	my $tempdir    = $library{temp_dir} || '_build';
+	my $tempdir    = $library{temp_dir}   || '_build';
 	my %object_for = map { ( "$input_dir/$_" => "$tempdir/".$self->{builder}->object_file($_) ) } @raw_files;
 	for my $source_file (sort keys %object_for) {
 		my $object_file = $object_for{$source_file};
@@ -214,15 +239,15 @@ sub build_executable {
 	my $prog_object = $args{object_file} || $self->{builder}->object_file($prog_source);
 	my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
 	$self->{builder}->compile(
-		source      => $prog_source,
-		object_file => $prog_object,
+		source               => $prog_source,
+		object_file          => $prog_object,
 		extra_compiler_flags => [ cc_flags ],
 		%args
 	) if not -e $prog_object or -M $prog_source < -M $prog_object;
 
 	$self->{builder}->link_executable(
-		objects  => $prog_object,
-		exe_file => $prog_exec,
+		objects            => $prog_object,
+		exe_file           => $prog_exec,
 		extra_linker_flags => $linker_flags,
 		%args,
 	) if not -e $prog_exec or -M $prog_object < -M $prog_exec;
@@ -234,7 +259,7 @@ sub run_tests {
 	my $library_var = $self->{library_var} || $Config{ldlibpthname};
 	local $ENV{$library_var} = 'blib/arch';
 	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->{quiet} < 2;
-	my $harness = TAP::Harness->new({
+	my $harness = TAP::Harness->new({ 
 		verbosity => -$self->{quiet},
 		exec => sub {
 			my (undef, $file) = @_;

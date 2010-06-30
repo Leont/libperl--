@@ -162,7 +162,7 @@ sub dispatch {
 		},
 	);
 
-	my $action = $action_map{ $builder->{action} } or croak "No such action defined";
+	my $action = $action_map{ $builder->{action} } or croak 'No such action defined';
 	return $action->();
 }
 
