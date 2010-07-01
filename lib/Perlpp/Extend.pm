@@ -97,7 +97,7 @@ Perlpp::Extend will try to give helpful diagnostics when module loading fails, b
 
 =head1 DEPENDENCIES
 
-This module depends on perl 5.8 and Readonly 1.03.
+This module depends on perl 5.8.
 
 =head1 BUGS AND LIMITATIONS
 

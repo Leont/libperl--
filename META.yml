@@ -10,7 +10,6 @@ resources:
   license: http://dev.perl.org/licenses/
   repository: http://github.com/Leont/libperl--/tree
 requires:
-  Readonly: 1.03
   perl: 5.008
 build_requires:
   autodie: 0
@@ -20,6 +19,7 @@ build_requires:
   ExtUtils::Install:  1.47
   namespace::clean: 0
   List::MoreUtils: 0.12
+  Readonly: 1.03
   TAP::Harness: 3
 configure_requires:
   ExtUtils::CBuilder: 0.27
@@ -41,4 +41,3 @@ keywords:
   - embedding
   - extending
   - 'C++'
-
