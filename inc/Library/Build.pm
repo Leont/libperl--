@@ -20,7 +20,7 @@ use ExtUtils::Install qw/install/;
 use Library::Build::Util;
 
 my @testcleanfiles = glob 't/*.[ot]';
-my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C perl++/headers/config.h perl++/headers/extend.h blib _build}, @testcleanfiles);
+my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C perl++/headers/config.h perl++/headers/extend.h blib _build MYMETA.yml}, @testcleanfiles);
 
 sub build_perl {
 	my $builder = shift;
@@ -108,7 +108,7 @@ sub name_for_test {
 }
 
 sub dispatch {
-	my ($arguments, $cached) = @_;
+	my ($arguments, $cached, $version) = @_;
 
 	my $builder = Library::Build::Util->new(argv => $arguments, cached => $cached);
 
@@ -147,6 +147,13 @@ sub dispatch {
 				verbose => $builder->{quiet} <= 0,
 				dry_run => $builder->{dry_run},
 			]);
+		},
+		dist      => sub {
+			require Archive::Tar;
+			my $arch = Archive::Tar->new;
+			my @files = map { chomp; $_ } do { open my $file, '<', 'MANIFEST'; <$file> };
+			$arch->add_files(@files);
+			$arch->write("libperl++-$version.tar.gz", 9, "libperl++-$version");
 		},
 		clean     => sub {
 			$builder->remove_tree(@cleanfiles);

@@ -14,6 +14,7 @@ requires:
   perl: 5.008
 build_requires:
   autodie: 0
+  Archive::Tar: 0
   Exporter: 5.57
   ExtUtils::CBuilder: 0.27
   ExtUtils::Install:  1.47
@@ -28,9 +29,9 @@ provides:
     version: 0.002
 no_index:
   directory:
-  - t
-  - inc
-  - examples
+    - t
+    - inc
+    - examples
 generated_by: Leon Timmermans
 dynamic_config: 1
 meta-spec:
@@ -40,3 +41,4 @@ keywords:
   - embedding
   - extending
   - 'C++'
+

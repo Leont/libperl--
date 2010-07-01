@@ -7,12 +7,13 @@ use FindBin;
 use Data::Dumper;
 $Data::Dumper::Terse = 1;
 $Data::Dumper::Indent = 0;
+my $VERSION = '0.002';
 
 use ExtUtils::CBuilder;
 my $builder = ExtUtils::CBuilder->new;
 die "You don't seem to have a working C++ compiler" if not $builder->have_cplusplus;
 
-my $name = $0;
+my $name = $FindBin::Script;
 
 $name =~ s/\.PL$// or die "Can't parse filename '$name'\n";
 
@@ -27,8 +28,9 @@ use warnings;
 
 use lib 'inc';
 use Library::Build 'dispatch';
+my \$VERSION = '$VERSION';
 
-dispatch(\\\@ARGV, $arguments);
+dispatch(\\\@ARGV, $arguments, \$VERSION);
 EOF
 
 my $current_mode = (stat $name)[2] or die "Can't stat '$name': $!\n";
