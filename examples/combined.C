@@ -78,7 +78,7 @@ int main() {
 		universe.scalar("non_existent") = "Not anymore";
 		cout << "Should not be empty '" << universe.scalar("non_existent") << "'" << endl;
 
-		Ref<Hash> foo = dbi.call("connect", "dbi:SQLite:dbname=dbfile", "", "");
+		Ref<Hash> foo = dbi.call("connect", "dbi:SQLite:dbname=examples/dbfile", "", "");
 
 		Array bar = foo.call_list("selectrow_array", "SELECT * FROM test WHERE name = ?", universe.undef(), "a");
 //		Array bar = universe.list("a", "b");		
