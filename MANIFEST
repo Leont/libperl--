@@ -74,5 +74,7 @@ t/10-string.C
 t/10-integer.C
 t/30-array.C
 t/40-typecasts.C
+t/pod.t
+t/pod-coverage.t
 tap++/source/tap++.C
 tap++/headers/tap++.h

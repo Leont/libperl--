@@ -85,7 +85,7 @@ This module defines two functions. Under normal circumstances, you shouldn't nee
 
 Converts a module name to a filename of the dynamically loadable library.
 
-=item * load_modules($module, $filename)
+=item * load_module($module, $filename)
 
 This loads $filename into $module.
 

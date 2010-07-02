@@ -1,5 +1,5 @@
 .*.swp
-t/*.t
+t/*-*.t
 t/*.t.exe
 */*.o
 blib/

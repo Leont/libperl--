@@ -19,7 +19,7 @@ use ExtUtils::Install qw/install/;
 
 use Library::Build::Util;
 
-my @testcleanfiles = glob 't/*.[ot]';
+my @testcleanfiles = glob 't/\d{2}-*.[ot]';
 my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C perl++/headers/config.h perl++/headers/extend.h blib _build MYMETA.yml}, @testcleanfiles);
 
 sub build_perl {
