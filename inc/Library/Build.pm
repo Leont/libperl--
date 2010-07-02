@@ -19,18 +19,21 @@ use ExtUtils::Install qw/install/;
 
 use Library::Build::Util;
 
-my @testcleanfiles = glob 't/\d{2}-*.[ot]';
+my @testcleanfiles = glob 't/*0-*.[ot]';
 my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C perl++/headers/config.h perl++/headers/extend.h blib _build MYMETA.yml}, @testcleanfiles);
 
 sub build_perl {
 	my $builder = shift;
 
-	$builder->create_by_system(sub { 
-		(my $oldname = $_ ) =~ s{ perl\+\+ / headers / (\w+) \.h  }{perl++/source/$1.pre}x;
-		"$Config{cpp} $Config{ccflags} -I$Config{archlibexp}/CORE $oldname > $_";
-	}, qw{perl++/headers/config.h perl++/headers/extend.h});
+	my %hash = (
+		'perl++/source/config.pre' => 'perl++/headers/config.h',
+		'perl++/source/extend.pre' => 'perl++/headers/extend.h',
+	);
+	while (my ($input, $output) = each %hash) {
+		$builder->create_by_system( [ $Config{cpp}, split(/ /, $Config{ccflags}), "-I$Config{archlibexp}/CORE" ], $input, $output);
+	}
 
-	$builder->create_by_system( sub { "$^X -T $_.PL > $_" }, 'perl++/source/evaluate.C');
+	$builder->create_by_system( [ $^X, '-T' ], 'perl++/source/evaluate.C.PL', 'perl++/source/evaluate.C');
 
 	$builder->create_dir(qw{blib/arch _build});
 	$builder->copy_files('perl++/headers', 'blib/headers/perl++');

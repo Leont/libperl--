@@ -73,7 +73,13 @@ Any options given to it will be saved and passed on to all subsequent calls of B
 
  ./Build
 
-It does not take any specific options.
+=over 4
+
+=item * include_dirs
+
+This is a colon separated list of directories to add to the include path. In particular, you need this on some platforms to indicate the location of boost.
+
+=back
 
 =head2 Running tests
 

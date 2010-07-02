@@ -102,10 +102,9 @@ sub parse_options {
 
 	my %options = (
 		quiet => 0,
-		action => 'build',
 	);
 
-	$options{action} = parse_action(\%meta_arguments);
+	$options{action} = parse_action(\%meta_arguments) || 'build';
 
 	@{ $meta_arguments{config} } = read_config($options{action});
 
@@ -149,13 +148,20 @@ sub linker_flags {
 	elsif ($compiler eq 'msvc') {
 		push @elements, map { "$_.dll" } @{$libs};
 		push @elements, map { qq{-libpath:"$_"} } @{$libdirs};
-		push @elements, 'msvcprt.lib';
+		if ($options{'C++'}) {
+			push @elements, 'msvcprt.lib';
+		}
 	}
 	push @elements, $options{append} if defined $options{append};
 	return join ' ', @elements;
 }
 
 use namespace::clean;
+
+sub include_dirs {
+	my ($self, $extra) = @_;
+	return [ ( defined $self->{include_dirs} ? split(/:/, $self->{include_dirs}) : () ), (defined $extra ? @{$extra} : () ) ];
+}
 
 sub new {
 	my ($class, %meta) = @_;
@@ -167,12 +173,17 @@ sub new {
 }
 
 sub create_by_system {
-	my ($self, $sub, @names) = @_;
-	for (@names) {
-		if (not -e $_) {
-			my @call = $sub->();
-			print "@call\n" if $self->{quiet} <= 0;
-			system @call;
+	my ($self, $exec, $input, $output) = @_;
+	if (not -e $output or -M $input < -M $output) {
+		my @call = (@{$exec}, $input);
+		print "@call\n" if $self->{quiet} <= 0;
+		my $pid = fork;
+		if ($pid) {
+			waitpid $pid, 0;
+		}
+		else {
+			open STDOUT, '>', $output;
+			exec @call;
 		}
 	}
 	return;
@@ -219,7 +230,7 @@ sub build_library {
 			source               => $source_file,
 			object_file          => $object_file,
 			'C++'                => $library{'C++'},
-			include_dirs         => $library{include_dirs},
+			include_dirs         => $self->include_dirs($library{include_dirs}),
 			extra_compiler_flags => $library{cc_flags} || [ cc_flags ],
 		);
 	}
@@ -242,7 +253,8 @@ sub build_executable {
 		source               => $prog_source,
 		object_file          => $prog_object,
 		extra_compiler_flags => [ cc_flags ],
-		%args
+		%args,
+		include_dirs         => $self->include_dirs($args{include_dirs}),
 	) if not -e $prog_object or -M $prog_source < -M $prog_object;
 
 	$self->{builder}->link_executable(
