@@ -780,11 +780,6 @@ namespace perl {
 			return typecast::typemap<T>::cast_from(raw_interp.get(), t);
 		}
 
-		Handle open(Raw_string) const;
-		Handle in() const;
-		Handle out() const;
-		Handle err() const;
-
 		template<typename U> typename boost::enable_if<typename boost::is_function<typename boost::remove_pointer<U>::type >::type, const Ref<Code>::Temp>::type add(const char * name, const U& function) {
 			return implementation::export_sub(raw_interp.get(), name, function).take_ref();
 		}

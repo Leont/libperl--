@@ -34,14 +34,6 @@ namespace perl {
 		GvHV(handle) = other.handle;
 		return *this;
 	}
-	Glob& Glob::operator=(const Handle& other) {
-		if (GvIOp(handle) != NULL) {
-			SvREFCNT_dec(reinterpret_cast<SV*>(GvIOp(handle)));
-		}
-		SvREFCNT_inc(reinterpret_cast<SV*>(other.handle));
-		GvIOp(handle) = other.handle;
-		return *this;
-	}
 	Glob& Glob::operator=(const Code::Value& other) {
 		if (GvCV(handle) != NULL) {
 			SvREFCNT_dec(reinterpret_cast<SV*>(GvCV(handle)));
@@ -61,9 +53,6 @@ namespace perl {
 	}
 	Hash::Temp Glob::hash_value() const {
 		return Hash::Temp(interp, GvHVn(handle), false);
-	}
-	Handle Glob::handle_value() const {
-		return Handle(interp, GvIOn(handle));
 	}
 	Code::Value Glob::code_value() const {
 		// Handle Nullcv
