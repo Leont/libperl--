@@ -99,7 +99,13 @@ namespace perl {
 			template<typename T> int var_write(interpreter* interp, SV* var, MAGIC* magic_ptr) {
 				T& tmp = *implementation::get_magic_ptr<T>(magic_ptr);
 				Scalar::Temp val(interp, var, false);
-				tmp = (T)val;
+				tmp = static_cast<T>(val);
+				return 0;
+			}
+			template<> inline int var_write<std::string>(interpreter* interp, SV* var, MAGIC* magic_ptr) {
+				std::string & tmp = *implementation::get_magic_ptr<std::string>(magic_ptr);
+				Scalar::Temp val(interp, var, false);
+				tmp = val.operator const std::string();
 				return 0;
 			}
 		}
