@@ -7,6 +7,7 @@
 
 #undef do_open
 #undef do_close
+#undef set_context
 //#include <perlio.h>
 //#ifdef INCLUDE_XSUB
 //#include <XSUB.h>

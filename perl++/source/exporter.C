@@ -1,4 +1,5 @@
 #include "internal.h"
+#define NO_XSLOCKS
 #include <XSUB.h>
 #include <perl++/perl++.h>
 

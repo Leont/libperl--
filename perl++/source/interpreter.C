@@ -1,6 +1,7 @@
 #include "internal.h"
 #include <perl++/perl++.h>
 #include <perl++/extend.h>
+#define NO_XSLOCKS
 #include <XSUB.h>
 #include "regex_impl.h"
 
@@ -35,6 +36,7 @@ namespace perl {
 			interpreter* interp = perl_alloc();
 			perl_construct(interp);
 			PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
+			PL_perl_destruct_level = 2;
 
 			perl_parse(interp, xs_init, argc, const_cast<char**>(argv), NULL);
 			return interp;

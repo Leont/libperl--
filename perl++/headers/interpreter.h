@@ -220,7 +220,7 @@ namespace perl {
 			die(me_perl, e.what());\
 		}\
 		catch(...) {\
-			std::cerr << "Cought unknown exception, terminating" << std::endl;\
+			std::printf("Cought unknown exception, terminating\n");\
 			std::terminate();\
 		}
 

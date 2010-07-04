@@ -41,7 +41,7 @@ namespace perl {
 	};
 	class Glob {
 		interpreter* const interp;
-		GV* const handle;
+		GV* handle;
 		Glob(interpreter*, GV*);
 		Glob(const Glob&);
 		public:

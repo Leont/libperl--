@@ -6,7 +6,7 @@
 #include <map>
 #include <set>
 #include <exception>
-#include <iostream>
+#include <cstdio>
 #include <stdint.h>
 
 #include <boost/shared_ptr.hpp>
