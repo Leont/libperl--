@@ -603,8 +603,8 @@ namespace perl {
 		template<typename T> friend class Class;
 		public:
 		Package(const Package&);
-		Package(interpreter*, const char*, bool = false);
-		Package(interpreter*, SV*, bool = false);
+		Package(interpreter*, const char*);
+		Package(interpreter*, SV*);
 		const std::string& get_name() const;
 		operator const std::string&() const;
 		Scalar::Temp scalar(const char*) const;

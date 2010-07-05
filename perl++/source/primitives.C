@@ -342,8 +342,8 @@ namespace perl {
 	const Array::Temp String::Value::unpack(const Raw_string pattern) const {
 		return implementation::Call_stack(interp).unpack(pattern, *this);
 	}
-	Package String::Value::get_package(bool create) const {
-		return Package(interp, get_SV(true), create);
+	Package String::Value::get_package() const {
+		return Package(interp, get_SV(true));
 	}
 
 	const Array::Temp String::Value::match(const perl::Regex& regex, const char* flags) const {

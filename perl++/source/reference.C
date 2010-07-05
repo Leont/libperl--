@@ -28,7 +28,7 @@ namespace perl {
 				sv_bless(get_SV(false), type.stash);
 			}
 			void Reference_base::bless(const char* classname) {
-				bless(Package(interp, classname, false));
+				bless(Package(interp, classname));
 			}
 			const char* Reference_base::get_classname() const {
 				return HvNAME(SvSTASH(SvRV(get_SV(true))));

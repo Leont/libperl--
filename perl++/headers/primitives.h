@@ -160,7 +160,7 @@ namespace perl {
 			bool operator<(const std::string&) const;
 
 			const array::Temp unpack(const Raw_string) const;
-			Package get_package(bool) const;
+			Package get_package() const;
 
 			const array::Temp match(const perl::Regex&, const char* = "") const;
 			const array::Temp match(Raw_string, const char* = "") const;

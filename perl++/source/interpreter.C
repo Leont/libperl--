@@ -180,7 +180,7 @@ namespace perl {
 		/*
 		 * Class implementation::Class_temp
 		 */
-		Class_temp::Class_temp(interpreter* interp, const char* name) : package(interp, name, true), persistence(false), use_hash(false) {
+		Class_temp::Class_temp(interpreter* interp, const char* name) : package(interp, name), persistence(false), use_hash(false) {
 		}
 		Class_temp& Class_temp::is_persistent(bool _persistence) {
 			persistence = _persistence;
@@ -208,27 +208,11 @@ namespace perl {
 	/*
 	 * Class Package
 	 */
-	namespace {
-		HV* get_stash(interpreter* interp, const char* name, bool create) {
-			HV* const ret = gv_stashpv(name, create ? GV_ADD : 0);
-			if (ret == NULL) {
-				throw Runtime_exception("Package does not exist");
-			}
-			return ret;
-		}
-		HV* get_stash(interpreter* interp, SV* name, bool create) {
-			HV* const ret = gv_stashsv(name, create ? GV_ADD : 0);
-			if (ret == NULL) {
-				throw Runtime_exception("Package does not exist");
-			}
-			return ret;
-		}
-	}
 	Package::Package(const Package& other) : interp(other.interp), package_name(other.package_name), stash(other.stash) {
 	}
-	Package::Package(interpreter* _interp, const char* _name, bool create) : interp(_interp), package_name(_name), stash(get_stash(interp, _name, create)) {
+	Package::Package(interpreter* _interp, const char* _name) : interp(_interp), package_name(_name), stash(gv_stashpv(_name, GV_ADD)) {
 	}
-	Package::Package(interpreter* _interp, SV* _name, bool create) : interp(_interp), package_name(SvPV_nolen(_name)), stash(get_stash(interp, _name, create)) {
+	Package::Package(interpreter* _interp, SV* _name) : interp(_interp), package_name(SvPV_nolen(_name)), stash(gv_stashsv(_name, GV_ADD)) {
 	}
 	
 	const std::string& Package::get_name() const {
@@ -265,7 +249,7 @@ namespace perl {
 			package_name = SvPV_nolen(ST(0));
 		}
 		Package Exporter_helper::get_package() {
-			return Package(aTHX, package_name, true);
+			return Package(aTHX, package_name);
 		}
 		Exporter_helper::~Exporter_helper() {
 			int ax = axp;
