@@ -201,13 +201,13 @@ sub copy_files {
 		$self->create_dir($destination);
 		opendir my $dh, $source or croak "Can't open dir $source: $!";
 		for my $filename (readdir $dh) {
-			next if $filename =~ / \A \. \.? \z /xms;
+			next if $filename =~ / \A \. /xms;
 			$self->copy_files("$source/$filename", "$destination/$filename");
 		}
 	}
 	elsif (-f $source) {
 		$self->create_dir(dirname($destination));
-		if (not -e $destination) {
+		if (not -e $destination or -M $source < -M $destination) {
 			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
 			print "cp $source $destination\n" if $self->{quiet} <= 0;
 		}
