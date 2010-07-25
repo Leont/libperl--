@@ -5,4 +5,4 @@ use warnings;
 
 use Extend qw/hello/;
 
-hello();
+hello('World!');

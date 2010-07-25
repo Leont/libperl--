@@ -1,14 +1,14 @@
-#include "perl++.h"
-#include "extend.h"
+#include <perl++/perl++.h>
+#include <perl++/extend.h>
 
 using namespace perl;
 
-static void world() {
-	printf("Hello World!\n");
+static void hello(const char* world) {
+	printf("Hello %s\n", world);
 }
 
 static void exporter(Package& extend) {
-	extend.add("hello", world);
+	extend.add("hello", hello);
 }
 
 EXPORTER(exporter);
