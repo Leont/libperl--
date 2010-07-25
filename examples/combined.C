@@ -1,6 +1,7 @@
-#include "perl++.h"
+#include <perl++/perl++.h>
 #include <utility>
 #include <algorithm>
+#include <iostream>
 
 using namespace perl;
 using std::cout;
@@ -138,7 +139,7 @@ int main() {
 		classr.add(init<int>());
 		classr.add("print", &tester::print);
 		classr.add("set", &tester::set);
-		classr.add("pair", &tester::pair);
+		//classr.add("pair", &tester::pair);
 
 		{
 		Ref<Any> testr = universe.package("Tester").call("new", 1);
@@ -159,9 +160,6 @@ int main() {
 		String packed = universe.pack("Nni", 1001, 32768, -4096);
 		Array unpacked = packed.unpack("Nni");
 		test1(unpacked);
-
-		Handle out = universe.open(">test.out");
-		out.print("Foo\n");
 
 		Regex regex = universe.regex("^\\w");
 		if ( zaab.match(regex)) {

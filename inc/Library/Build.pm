@@ -69,7 +69,7 @@ my %examples = (
 sub build_examples {
 	my $builder = shift;
 	for my $example_name (@{$examples{executables}}) {
-		$builder->build_executable("examples/$example_name.C", 'blib/example_name',
+		$builder->build_executable("examples/$example_name.C", "examples/$example_name",
 			include_dirs         => [ 'blib/headers' ],
 			libs                 => [ 'perl++' ],
 			libdirs              => [ 'blib/arch' ],
@@ -78,12 +78,12 @@ sub build_examples {
 	}
 	for my $example_name (@{$examples{libraries}}) {
 		$builder->build_library($example_name, {
-			input                =>  [ "$example_name.C" ],
+			input_files          => [ "$example_name.C" ],
 			input_dir            => 'examples',
 			include_dirs         => [ 'blib/headers' ],
 			libs                 => [ 'perl++' ],
 			libdirs              => [ 'blib/arch' ],
-			libfile              => "blib/$example_name.$Config{dlext}",
+			libfile              => "examples/$example_name\.$Config{dlext}",
 			'C++'                => 1,
 		});
 	}

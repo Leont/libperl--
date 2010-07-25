@@ -1,4 +1,4 @@
-#include "perl++.h"
+#include <perl++/perl++.h>
 #include <string>
 #include <list>
 #include <utility>
@@ -79,7 +79,7 @@ int main() {
 	Class<player> player_class = universe.add_class("Player");
 
 	player_class.add("get_name",     &player::get_name);
-	player_class.add("get_position", &player::get_position);
+//	player_class.add("get_position", &player::get_position);
 	player_class.add("set_position", &player::set_position);
 	player_class.add("get_strength", &player::get_strength);
 	player_class.add("set_strength", &player::set_strength);
@@ -87,7 +87,7 @@ int main() {
 	Class<game> gamer_class = universe.add_class("Game");
 
 	gamer_class.add("add_player", &game::add_player);
-	gamer_class.add("get_player", &game::get_player);
+//	gamer_class.add("get_player", &game::get_player);
 
 	return 0;
 }

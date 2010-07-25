@@ -11,3 +11,7 @@ test.out
 Build
 MYMETA.yml
 libperl++-*.tar.gz
+examples/combined
+examples/game
+examples/Extend.so
+examples/Extend.dll
