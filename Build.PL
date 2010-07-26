@@ -7,7 +7,7 @@ use FindBin;
 use Data::Dumper;
 $Data::Dumper::Terse = 1;
 $Data::Dumper::Indent = 0;
-my $VERSION = '0.002';
+my $VERSION = '0.003';
 
 use ExtUtils::CBuilder;
 my $builder = ExtUtils::CBuilder->new;
@@ -27,11 +27,11 @@ use strict;
 use warnings;
 
 use lib 'inc';
-use Library::Build::Libperlpp;
+use Library::Build::Libperlpp 'create_builder';
 my \$VERSION = '$VERSION';
 
-my \$builder = Library::Build::Libperlpp->new(\\\@ARGV, $arguments, \$VERSION);
-\$builder->dispatch;
+my \$builder = create_builder(\\\@ARGV, $arguments, \$VERSION);
+\$builder->dispatch(\$builder->{action});
 EOF
 
 my $current_mode = (stat $name)[2] or die "Can't stat '$name': $!\n";

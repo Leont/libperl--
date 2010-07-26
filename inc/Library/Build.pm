@@ -4,12 +4,14 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = 0.002;
+our $VERSION = 0.003;
 
+use Archive::Tar;
 use autodie;
 use Carp 'croak';
 use Config;
 use ExtUtils::CBuilder;
+use ExtUtils::Install qw/install/;
 use File::Copy qw/copy/;
 use File::Path qw/mkpath rmtree/;
 use File::Basename qw/dirname/;
@@ -97,12 +99,15 @@ sub parse_option {
 }
 
 sub parse_options {
-	my %meta_arguments = @_;
+	my @args = @_;
+	my (%meta_arguments, $name, $version);
+	(@meta_arguments{qw/argv cached/}, $name, $version) = @args;
 	@{ $meta_arguments{envs} } = split / /, $ENV{PERL_MB_OPT} if $ENV{PERL_MB_OPT};
 
 	my %options = (
 		quiet   => 0,
-		version => delete $meta_arguments{version},
+		name    => $name,
+		version => $version,
 	);
 
 	$options{action} = parse_action(\%meta_arguments) || 'build';
@@ -119,17 +124,17 @@ sub parse_options {
 }
 
 sub get_input_files {
-	my $library = shift;
-	if ($library->{input_files}) {
-		if (ref $library->{input_files}) {
-			return @{ $library->{input_files} };
+	my ($input_files, $input_dir) = @_;
+	if ($input_files) {
+		if (ref $input_files) {
+			return @{ $input_files };
 		}
 		else {
-			return $library->{input_files}
+			return $input_files
 		}
 	}
-	elsif ($library->{input_dir}){
-		opendir my $dh, $library->{input_dir};
+	elsif ($input_dir){
+		opendir my($dh), $input_dir;
 		my @ret = grep { /^ .+ \. C $/xsm } readdir $dh;
 		closedir $dh;
 		return @ret;
@@ -159,23 +164,84 @@ sub linker_flags {
 
 use namespace::clean;
 
-sub include_dirs {
-	my ($self, $extra) = @_;
-	return [ ( defined $self->{include_dirs} ? split(/:/, $self->{include_dirs}) : () ), (defined $extra ? @{$extra} : () ) ];
-}
-
 my %default_actions = (
+	'dirs'    => sub {
+		my $builder = shift;
+		$builder->create_dir(qw{blib/arch blib/lib blib/headers _build/t});
+	},
+	lib       => sub {
+		my $builder = shift;
+		$builder->copy_files('lib', 'blib/lib');
+	},
+	test      => sub {
+		my $builder = shift;
+
+		$builder->dispatch('testbuild');
+		$builder->run_tests($builder->tests)
+	},
+	install   => sub {
+		my $builder = shift;
+		$builder->dispatch('build');
+
+		install([
+			from_to => {
+				'blib/arch'    => $builder->{libdir} || (split ' ', $Config{libpth})[0],
+				'blib/headers' => $builder->{incdir} || $Config{usrinc},
+				'blib/lib'     => $builder->{moddir} || $Config{installsitelib},
+			},
+			verbose => $builder->{quiet} <= 0,
+			dry_run => $builder->{dry_run},
+		]);
+	},
+	dist      => sub {
+		my $builder = shift;
+		$builder->dispatch('build');
+		my $arch = Archive::Tar->new;
+		my @files = map { chomp; $_ } do { open my $file, '<', 'MANIFEST'; <$file> };
+		$arch->add_files(@files);
+		my $name = $builder->{name};
+		my $version = $builder->{version};
+		$arch->write("$name-$version.tar.bz2", COMPRESS_BZIP, "$name-$version");
+		print "tar xjf $name-$version.tar.bz2 @files\n" if $builder->{quiet} <= 0;
+	},
+	help      => sub {
+		my $builder = shift;
+		print "No help available yet\n";
+	},
+	clean     => sub {
+		my $builder = shift;
+		$builder->remove_tree($builder->get_dirty_files('all'));
+	},
+	realclean => sub {
+		my $builder = shift;
+		$builder->dispatch('clean');
+		$builder->remove_tree('Build');
+	},
+	testclean => sub {
+		my $builder = shift;
+		$builder->remove_tree($builder->get_dirty_files('test'));
+	},
 );
 
 sub new {
-	my ($class, %meta) = @_;
-	my %options = parse_options(%meta);
+	my ($class, @meta) = @_;
+	my %options = parse_options(@meta);
 	my $self = bless {
 		%options,
 		builder => ExtUtils::CBuilder->new(quiet => $options{quiet}),
 	}, $class;
 	$self->register_actions(%default_actions);
+	$self->register_dirty(
+		binary   => [ qw/blib _build/ ],
+		meta     => [ 'MYMETA.yml' ],
+		test     => [ '_build/t' ],
+	);
 	return $self;
+}
+
+sub include_dirs {
+	my ($self, $extra) = @_;
+	return [ ( defined $self->{include_dirs} ? split(/:/, $self->{include_dirs}) : () ), (defined $extra ? @{$extra} : () ) ];
 }
 
 sub create_by_system {
@@ -234,9 +300,8 @@ sub copy_files {
 }
 
 sub build_library {
-	my ($self, $library_name, $library_ref) = @_;
-	my %library    = %{ $library_ref };
-	my @raw_files  = get_input_files($library_ref);
+	my ($self, %library) = @_;
+	my @raw_files  = get_input_files(@library{qw/input_files input_dir/});
 	my $input_dir  = $library{input_dir}  || '.';
 	my $output_dir = $library{output_dir} || 'blib';
 	my $tempdir    = $library{temp_dir}   || '_build';
@@ -252,7 +317,7 @@ sub build_library {
 			extra_compiler_flags => $library{cc_flags} || [ cc_flags ],
 		);
 	}
-	my $library_file = $library{libfile} || "$output_dir/arch/lib".$self->{builder}->lib_file($library_name);
+	my $library_file = $library{libfile} || "$output_dir/arch/lib".$self->{builder}->lib_file($library{name});
 	my $linker_flags = linker_flags($library{libs}, $library{libdirs}, append => $library{linker_append}, 'C++' => $library{'C++'});
 	$self->{builder}->link(
 		lib_file           => $library_file,
@@ -265,13 +330,16 @@ sub build_library {
 
 sub build_executable {
 	my ($self, $prog_source, $prog_exec, %args) = @_;
-	my $prog_object = $args{object_file} || $self->{builder}->object_file($prog_source);
+
+	my $tempdir    = $args{temp_dir} || '_build';
+	my $prog_object = "$tempdir/".($args{object_file} || $self->{builder}->object_file($prog_source));
+
 	my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
 	$self->{builder}->compile(
 		source               => $prog_source,
 		object_file          => $prog_object,
 		extra_compiler_flags => [ cc_flags ],
-		%args,
+		'C++'                => $args{'C++'},
 		include_dirs         => $self->include_dirs($args{include_dirs}),
 	) if not -e $prog_object or -M $prog_source < -M $prog_object;
 
@@ -279,7 +347,7 @@ sub build_executable {
 		objects            => $prog_object,
 		exe_file           => $prog_exec,
 		extra_linker_flags => $linker_flags,
-		%args,
+		'C++'              => $args{'C++'},
 	) if not -e $prog_exec or -M $prog_object < -M $prog_exec;
 	return;
 }
@@ -287,23 +355,47 @@ sub build_executable {
 sub run_tests {
 	my ($self, @test_goals) = @_;
 	my $library_var = $self->{library_var} || $Config{ldlibpthname};
-	local $ENV{$library_var} = 'blib/arch';
 	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->{quiet} < 2;
 	my $harness = TAP::Harness->new({ 
 		verbosity => -$self->{quiet},
 		exec => sub {
 			my (undef, $file) = @_;
-			return [ $file ];
+			return -B $file ? [ $file ] : [ $^X, '-T', $file ];
 		},
 		merge => 1,
+		color => -t STDOUT,
 	});
 
+	local $ENV{$library_var} = 'blib/arch';
 	return $harness->runtests(@test_goals);
 }
 
 sub remove_tree {
 	my ($self, @files) = @_;
 	rmtree(\@files, $self->{quiet} <= 0, 0);
+	return;
+}
+
+sub tests {
+	my $self = shift;
+	return defined $self->{test_files} ? split / /, $self->{test_files} : glob 't/*.t';
+}
+
+sub get_dirty_files {
+	my ($self, $category) = @_;
+	if ($category eq 'all') {
+		return map { @{ $self->{dirty_files}{$_} } } sort keys %{$self->{dirty_files}};
+	}
+	else {
+		return @{$self->{dirty_files}{$category}};
+	}
+}
+
+sub register_dirty {
+	my ($self, %files_map) = @_;
+	while (my ($category, $files) = each %files_map) {
+		push @{ $self->{dirty_files}{$category} }, @{$files};
+	}
 	return;
 }
 
@@ -317,9 +409,10 @@ sub register_actions {
 
 sub dispatch {
 	my $self = shift;
-	my $action_name = shift || $self->{action} || croak 'No action defined';
+	my $action_name = shift || croak 'No action defined';
 	my $action_sub = $self->{action_map}{$action_name} or croak "No action '$action_name' defined";
-	return $action_sub->($self);
+	$action_sub->($self);
+	return;
 }
 
 1;
