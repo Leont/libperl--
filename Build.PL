@@ -27,10 +27,11 @@ use strict;
 use warnings;
 
 use lib 'inc';
-use Library::Build 'dispatch';
+use Library::Build::Libperlpp;
 my \$VERSION = '$VERSION';
 
-dispatch(\\\@ARGV, $arguments, \$VERSION);
+my \$builder = Library::Build::Libperlpp->new(\\\@ARGV, $arguments, \$VERSION);
+\$builder->dispatch;
 EOF
 
 my $current_mode = (stat $name)[2] or die "Can't stat '$name': $!\n";

@@ -1,179 +1,325 @@
 package Library::Build;
 
-# This code needs some serious refactoring, but it works…
-
-use 5.008;
+use 5.006;
 use strict;
 use warnings;
 
 our $VERSION = 0.002;
 
-use Carp qw/croak/;
+use autodie;
+use Carp 'croak';
 use Config;
+use ExtUtils::CBuilder;
+use File::Copy qw/copy/;
+use File::Path qw/mkpath rmtree/;
+use File::Basename qw/dirname/;
+use List::MoreUtils qw/any first_index/;
+use POSIX qw/strftime/;
+use Readonly;
+use TAP::Harness;
 
-use Exporter 5.57 qw/import/;
-our @EXPORT_OK = qw/dispatch/;
+Readonly my $compiler => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
+Readonly my $NOTFOUND => -1;
+Readonly my $SECURE   => oct 744;
 
-use ExtUtils::Embed qw/ldopts/;
-use ExtUtils::Install qw/install/;
-
-use Library::Build::Util;
-
-my @testcleanfiles = glob 't/*0-*.[ot]';
-my @cleanfiles = (qw{/examples/combined source/ppport.h source/evaluate.C perl++/headers/config.h perl++/headers/extend.h blib _build MYMETA.yml}, @testcleanfiles);
-
-sub build_perl {
-	my $builder = shift;
-
-	my %hash = (
-		'perl++/source/config.pre' => 'perl++/headers/config.h',
-		'perl++/source/extend.pre' => 'perl++/headers/extend.h',
-	);
-	while (my ($input, $output) = each %hash) {
-		$builder->create_by_system( [ $Config{cpp}, split(/ /, $Config{ccflags}), "-I$Config{archlibexp}/CORE" ], $input, $output);
+sub cc_flags {
+	if ($compiler eq 'gcc') {
+		return qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra -Winvalid-pch/;
 	}
+	elsif ($compiler eq 'msvc') {
+		return qw{/TP /EHsc /Wall};
+	}
+}
 
-	$builder->create_by_system( [ $^X, '-T' ], 'perl++/source/evaluate.C.PL', 'perl++/source/evaluate.C');
+sub parse_line {
+	my ($action, $line) = @_;
 
-	$builder->create_dir(qw{blib/arch _build});
-	$builder->copy_files('perl++/headers', 'blib/headers/perl++');
+	for ($line) {
+		next if / ^ \# /xms;
+		s{ \n \s+ }{ }x;
+		next if / ^ \s* $ /xms;
 
-	$builder->build_library('perl++' => {
-		input_dir     => 'perl++/source',
-		linker_append => ldopts,
-		include_dirs  => [ qw(blib/headers source) ],
-		'C++'         => 1,
-	});
 
-	$builder->copy_files('lib', 'blib/lib');
+		if (my ($name, $args) = m/ \A \s* (\* | \w+ ) \s+ (.*?) \s* \z /xms) {
+			my @args = split /\s+/, $args;
+			return @args if $name eq $action or $name eq '*';
+		}
+		else {
+			croak "Can't parse line '$_'";
+		}
+	}
 	return;
 }
 
-sub build_tap {
-	my $builder = shift;
-	$builder->create_dir('_build');
-	$builder->copy_files('tap++/headers', 'blib/headers/tap++');
-	$builder->build_library('tap++' => {
-		input_dir    => 'tap++/source',
-		include_dirs => [ qw(blib/headers) ],
-		'C++'        => 1,
-	});
+sub read_config {
+	my $action = shift;
+
+	my @ret;
+	
+	my @files = (
+		($ENV{MODULEBUILDRC} ? $ENV{MODULEBUILDRC}               : ()), 
+		($ENV{HOME} ?          "$ENV{HOME}/.modulebuildrc"       : ()), 
+		($ENV{USERPROFILE} ?   "$ENV{USERPROFILE}/.modulebuldrc" : ()),
+	);
+	FILE:
+	for my $file (@files) {
+		next FILE if not -e $file;
+
+		open my $fh, '<', $file or croak "Couldn't open configuration file '$file': $!";
+		my @lines = split / \n (?! \s) /xms, do { local $/ = undef, <$fh> };
+		close $fh;
+		for my $line (@lines) {
+			push @ret, parse_line($action, $line);
+		}
+	}
+	return @ret;
+}
+
+sub parse_action {
+	my $meta_arguments = shift;
+	for my $meta_argument ( map { $meta_arguments->{$_} } qw/argv envs/ ) {
+		my $position = first_index { not m/ ^ -- /xms and not m/=/xms } @{$meta_argument};
+		return splice @{$meta_argument}, $position, 1 if $position != $NOTFOUND;
+	}
 	return;
 }
 
-my %examples = (
-	executables => [ qw/combined game/ ],
-	libraries   => [ qw/Extend/ ]
+sub parse_option {
+	my ($options, $argument) = @_;
+	$argument =~ s/ ^ -- //xms;
+	if ($argument =~ / \A (\w+) = (.*) \z /xms) {
+		$options->{$1} = $2;
+	}
+	else {
+		$options->{$argument} = 1;
+	}
+	return;
+}
+
+sub parse_options {
+	my %meta_arguments = @_;
+	@{ $meta_arguments{envs} } = split / /, $ENV{PERL_MB_OPT} if $ENV{PERL_MB_OPT};
+
+	my %options = (
+		quiet   => 0,
+		version => delete $meta_arguments{version},
+	);
+
+	$options{action} = parse_action(\%meta_arguments) || 'build';
+
+	@{ $meta_arguments{config} } = read_config($options{action});
+
+	for my $argument_list (map { $meta_arguments{$_} } qw/config cached envs argv/) {
+		for my $argument (@{ $argument_list }) {
+			parse_option(\%options, $argument);
+		}
+	}
+	$options{quiet} = -$options{verbose} if not $options{quiet} and $options{verbose};
+	return %options;
+}
+
+sub get_input_files {
+	my $library = shift;
+	if ($library->{input_files}) {
+		if (ref $library->{input_files}) {
+			return @{ $library->{input_files} };
+		}
+		else {
+			return $library->{input_files}
+		}
+	}
+	elsif ($library->{input_dir}){
+		opendir my $dh, $library->{input_dir};
+		my @ret = grep { /^ .+ \. C $/xsm } readdir $dh;
+		closedir $dh;
+		return @ret;
+	}
+}
+
+sub linker_flags {
+	my ($libs, $libdirs, %options) = @_;
+	my @elements;
+	if ($compiler eq 'gcc') {
+		push @elements, map { "-l$_" } @{$libs};
+		push @elements, map { "-L$_" } @{$libdirs};
+		if ($options{'C++'}) {
+			push @elements, '-lstdc++';
+		}
+	}
+	elsif ($compiler eq 'msvc') {
+		push @elements, map { "$_.dll" } @{$libs};
+		push @elements, map { qq{-libpath:"$_"} } @{$libdirs};
+		if ($options{'C++'}) {
+			push @elements, 'msvcprt.lib';
+		}
+	}
+	push @elements, $options{append} if defined $options{append};
+	return join ' ', @elements;
+}
+
+use namespace::clean;
+
+sub include_dirs {
+	my ($self, $extra) = @_;
+	return [ ( defined $self->{include_dirs} ? split(/:/, $self->{include_dirs}) : () ), (defined $extra ? @{$extra} : () ) ];
+}
+
+my %default_actions = (
 );
 
-sub build_examples {
-	my $builder = shift;
-	for my $example_name (@{$examples{executables}}) {
-		$builder->build_executable("examples/$example_name.C", "examples/$example_name",
-			include_dirs         => [ 'blib/headers' ],
-			libs                 => [ 'perl++' ],
-			libdirs              => [ 'blib/arch' ],
-			'C++'                => 1,
-		);
-	}
-	for my $example_name (@{$examples{libraries}}) {
-		$builder->build_library($example_name, {
-			input_files          => [ "$example_name.C" ],
-			input_dir            => 'examples',
-			include_dirs         => [ 'blib/headers' ],
-			libs                 => [ 'perl++' ],
-			libdirs              => [ 'blib/arch' ],
-			libfile              => "examples/$example_name\.$Config{dlext}",
-			'C++'                => 1,
-		});
+sub new {
+	my ($class, %meta) = @_;
+	my %options = parse_options(%meta);
+	my $self = bless {
+		%options,
+		builder => ExtUtils::CBuilder->new(quiet => $options{quiet}),
+	}, $class;
+	$self->register_actions(%default_actions);
+	return $self;
+}
+
+sub create_by_system {
+	my ($self, $exec, $input, $output) = @_;
+	if (not -e $output or -M $input < -M $output) {
+		my @call = (@{$exec}, $input);
+		print "@call\n" if $self->{quiet} <= 0;
+		my $pid = fork;
+		if ($pid) {
+			waitpid $pid, 0;
+		}
+		else {
+			open STDOUT, '>', $output;
+			exec @call;
+		}
 	}
 	return;
 }
 
-sub build_tests {
-	my ($builder, %test_executable_for) = @_;
-	for my $test_source (sort keys %test_executable_for) {
-		$builder->build_executable($test_source, $test_executable_for{$test_source},
-			include_dirs         => [ qw(blib/headers) ],
-			libs                 => [ qw/perl++ tap++/ ],
-			libdirs              => [ 'blib/arch' ],
-			'C++'                => 1,
-		);
+sub process_cpp {
+	my ($self, $input, $output) = @_;
+	$self->create_by_system( [ $Config{cpp}, split(/ /, $Config{ccflags}), "-I$Config{archlibexp}/CORE" ], $input, $output);
+	return;
+}
+
+sub process_perl {
+	my ($self, $input, $output) = @_;
+	$self->create_by_system( [ $^X, '-T' ], $input, $output);
+	return;
+}
+
+sub create_dir {
+	my ($self, @dirs) = @_;
+	mkpath(\@dirs, $self->{quiet} <= 0, $SECURE);
+	return;
+}
+
+sub copy_files {
+	my ($self, $source, $destination) = @_;
+	if (-d $source) {
+		$self->create_dir($destination);
+		opendir my $dh, $source or croak "Can't open dir $source: $!";
+		for my $filename (readdir $dh) {
+			next if $filename =~ / \A \. /xms;
+			$self->copy_files("$source/$filename", "$destination/$filename");
+		}
+	}
+	elsif (-f $source) {
+		$self->create_dir(dirname($destination));
+		if (not -e $destination or -M $source < -M $destination) {
+			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
+			print "cp $source $destination\n" if $self->{quiet} <= 0;
+		}
 	}
 	return;
 }
 
-sub name_for_test {
-	my $name = shift;
-	my $ext = ".t$Config{_exe}";
-	$name =~ s{ \.C $ }{$ext}x;
-	return $name;
+sub build_library {
+	my ($self, $library_name, $library_ref) = @_;
+	my %library    = %{ $library_ref };
+	my @raw_files  = get_input_files($library_ref);
+	my $input_dir  = $library{input_dir}  || '.';
+	my $output_dir = $library{output_dir} || 'blib';
+	my $tempdir    = $library{temp_dir}   || '_build';
+	my %object_for = map { ( "$input_dir/$_" => "$tempdir/".$self->{builder}->object_file($_) ) } @raw_files;
+	for my $source_file (sort keys %object_for) {
+		my $object_file = $object_for{$source_file};
+		next if -e $object_file and -M $source_file > -M $object_file;
+		$self->{builder}->compile(
+			source               => $source_file,
+			object_file          => $object_file,
+			'C++'                => $library{'C++'},
+			include_dirs         => $self->include_dirs($library{include_dirs}),
+			extra_compiler_flags => $library{cc_flags} || [ cc_flags ],
+		);
+	}
+	my $library_file = $library{libfile} || "$output_dir/arch/lib".$self->{builder}->lib_file($library_name);
+	my $linker_flags = linker_flags($library{libs}, $library{libdirs}, append => $library{linker_append}, 'C++' => $library{'C++'});
+	$self->{builder}->link(
+		lib_file           => $library_file,
+		objects            => [ values %object_for ],
+		extra_linker_flags => $linker_flags,
+		module_name        => 'libperl++',
+	) if not -e $library_file or any { (-M $_ < -M $library_file ) } values %object_for;
+	return;
+}
+
+sub build_executable {
+	my ($self, $prog_source, $prog_exec, %args) = @_;
+	my $prog_object = $args{object_file} || $self->{builder}->object_file($prog_source);
+	my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
+	$self->{builder}->compile(
+		source               => $prog_source,
+		object_file          => $prog_object,
+		extra_compiler_flags => [ cc_flags ],
+		%args,
+		include_dirs         => $self->include_dirs($args{include_dirs}),
+	) if not -e $prog_object or -M $prog_source < -M $prog_object;
+
+	$self->{builder}->link_executable(
+		objects            => $prog_object,
+		exe_file           => $prog_exec,
+		extra_linker_flags => $linker_flags,
+		%args,
+	) if not -e $prog_exec or -M $prog_object < -M $prog_exec;
+	return;
+}
+
+sub run_tests {
+	my ($self, @test_goals) = @_;
+	my $library_var = $self->{library_var} || $Config{ldlibpthname};
+	local $ENV{$library_var} = 'blib/arch';
+	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->{quiet} < 2;
+	my $harness = TAP::Harness->new({ 
+		verbosity => -$self->{quiet},
+		exec => sub {
+			my (undef, $file) = @_;
+			return [ $file ];
+		},
+		merge => 1,
+	});
+
+	return $harness->runtests(@test_goals);
+}
+
+sub remove_tree {
+	my ($self, @files) = @_;
+	rmtree(\@files, $self->{quiet} <= 0, 0);
+	return;
+}
+
+sub register_actions {
+	my ($self, %action_map) = @_;
+	while (my ($name, $sub) = each %action_map) {
+		$self->{action_map}{$name} = $sub;
+	}
+	return;
 }
 
 sub dispatch {
-	my ($arguments, $cached, $version) = @_;
-
-	my $builder = Library::Build::Util->new(argv => $arguments, cached => $cached);
-
-	my @test_goals = $builder->{test_files} ? split / /, $builder->{test_files} : glob 't/*.C';
-	my %test_map = map { ( $_ => name_for_test($_) ) } @test_goals;
-
-	my %action_map = (
-		build     => sub { build_perl($builder) },
-		build_tap => sub { build_tap($builder) },
-		test      => sub {
-			build_perl($builder);
-			build_tap($builder);
-			build_tests($builder, %test_map);
-
-			$builder->run_tests(sort values %test_map)
-		},
-		testbuild => sub {
-			build_perl($builder);
-			build_tap($builder);
-			build_tests($builder, %test_map);
-		},
-		examples  => sub {
-			build_perl($builder);
-			build_examples($builder);
-		},
-		install   => sub {
-			build_perl($builder);
-			build_tap($builder);
-
-			install([
-				from_to => {
-					'blib/arch'    => $builder->{libdir} || (split ' ', $Config{libpth})[0],
-					'blib/headers' => $builder->{incdir} || $Config{usrinc},
-					'blib/lib'     => $builder->{moddir} || $Config{installsitelib},
-				},
-				verbose => $builder->{quiet} <= 0,
-				dry_run => $builder->{dry_run},
-			]);
-		},
-		dist      => sub {
-			require Archive::Tar;
-			my $arch = Archive::Tar->new;
-			my @files = map { chomp; $_ } do { open my $file, '<', 'MANIFEST'; <$file> };
-			$arch->add_files(@files);
-			$arch->write("libperl++-$version.tar.gz", 9, "libperl++-$version");
-		},
-		clean     => sub {
-			$builder->remove_tree(@cleanfiles);
-		},
-		realclean => sub {
-			$builder->remove_tree(@cleanfiles, 'Build');
-		},
-		testclean => sub {
-			$builder->remove_tree(@testcleanfiles);
-		},
-		help      => sub {
-			print "No help available yet\n";
-		},
-	);
-
-	my $action = $action_map{ $builder->{action} } or croak 'No such action defined';
-	return $action->();
+	my $self = shift;
+	my $action_name = shift || $self->{action} || croak 'No action defined';
+	my $action_sub = $self->{action_map}{$action_name} or croak "No action '$action_name' defined";
+	return $action_sub->($self);
 }
 
 1;

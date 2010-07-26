@@ -20,12 +20,11 @@ examples/Extend.C
 examples/extend.pl
 examples/Extend.pm
 inc/Library/Build.pm
-inc/Library/Build/Util.pm
+inc/Library/Build/Libperlpp.pm
 lib/Perlpp/Extend.pm
 MANIFEST
 META.yml
 perl++/source/interpreter.C
-perl++/source/handle.C
 perl++/source/call.C
 perl++/source/evaluate.C.PL
 perl++/source/reference.C
@@ -66,7 +65,6 @@ t/20-subrefs.C
 t/30-hash.C
 t/00-sanity.C
 t/40-objects.C
-t/30-handle.C
 t/40-pack.C
 t/50-method-exports.C
 t/50-function-exports.C
