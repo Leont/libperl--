@@ -209,7 +209,7 @@ my %default_actions = (
 
 		install([
 			from_to => {
-				'blib/arch'    => $builder->{libdir} || (split ' ', $Config{libpth})[0],
+				'blib/so'      => $builder->{libdir} || (split ' ', $Config{libpth})[0],
 				'blib/headers' => $builder->{incdir} || $Config{usrinc},
 				'blib/lib'     => $builder->{moddir} || $Config{installsitelib},
 			},
@@ -340,7 +340,7 @@ sub build_library {
 	my @objects      = $self->build_objects(%library);
 
 	my $output_dir   = $library{output_dir} || 'blib';
-	my $library_file = $library{libfile} || catfile($output_dir, 'arch', 'lib' . $self->{builder}->lib_file($library{name}));
+	my $library_file = $library{libfile} || catfile($output_dir, 'so', 'lib' . $self->{builder}->lib_file($library{name}));
 	my $linker_flags = linker_flags($library{libs}, $library{libdirs}, append => $library{linker_append}, 'C++' => $library{'C++'});
 	$self->create_dir(dirname($library_file));
 	$self->{builder}->link(
@@ -381,7 +381,7 @@ sub run_tests {
 		color => -t STDOUT,
 	});
 
-	local $ENV{$library_var} = catdir(qw/blib arch/);
+	local $ENV{$library_var} = catdir(qw/blib so/);
 	return $harness->runtests(@test_goals);
 }
 

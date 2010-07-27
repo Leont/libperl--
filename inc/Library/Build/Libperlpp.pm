@@ -93,7 +93,7 @@ my %action_map = (
 				input_files          => [ catfile('examples', "$example_name.C") ],
 				include_dirs         => [ portable('blib/headers') ],
 				libs                 => [ 'perl++' ],
-				libdirs              => [ portable('blib/arch') ],
+				libdirs              => [ portable('blib/so') ],
 				'C++'                => 1,
 			);
 		}
@@ -103,7 +103,7 @@ my %action_map = (
 				input_files          => [ catfile('examples', "$example_name.C") ],
 				include_dirs         => [ portable('blib/headers') ],
 				libs                 => [ 'perl++' ],
-				libdirs              => [ portable('blib/arch') ],
+				libdirs              => [ portable('blib/so') ],
 				libfile              => catfile('examples', "$example_name\.$Config{dlext}"),
 				'C++'                => 1,
 			);
@@ -120,7 +120,7 @@ my %action_map = (
 				input_files          => [ $test_source ] ,
 				include_dirs         => [ portable('blib/headers') ],
 				libs                 => [ qw/perl++ tap++/ ],
-				libdirs              => [ portable('blib/arch') ],
+				libdirs              => [ portable('blib/so') ],
 				'C++'                => 1,
 			);
 		}
