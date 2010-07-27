@@ -2,7 +2,7 @@ package Library::Build;
 
 use 5.006;
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 
 our $VERSION = 0.003;
 
@@ -12,10 +12,11 @@ use Carp 'croak';
 use Config;
 use ExtUtils::CBuilder;
 use ExtUtils::Install qw/install/;
+use File::Basename qw/dirname/;
 use File::Copy qw/copy/;
 use File::Path qw/mkpath rmtree/;
-use File::Basename qw/dirname/;
-use List::MoreUtils qw/any first_index/;
+use File::Spec::Functions qw/catfile catdir/;
+use List::MoreUtils qw/any first_index uniq/;
 use POSIX qw/strftime/;
 use Readonly;
 use TAP::Harness;
@@ -59,9 +60,9 @@ sub read_config {
 	my @ret;
 	
 	my @files = (
-		($ENV{MODULEBUILDRC} ? $ENV{MODULEBUILDRC}               : ()), 
-		($ENV{HOME} ?          "$ENV{HOME}/.modulebuildrc"       : ()), 
-		($ENV{USERPROFILE} ?   "$ENV{USERPROFILE}/.modulebuldrc" : ()),
+		($ENV{MODULEBUILDRC} ? $ENV{MODULEBUILDRC}                        : ()), 
+		($ENV{HOME} ?          catfile($ENV{HOME},".modulebuildrc")       : ()), 
+		($ENV{USERPROFILE} ?   catfile($ENV{USERPROFILE},".modulebuldrc") : ()),
 	);
 	FILE:
 	for my $file (@files) {
@@ -79,7 +80,7 @@ sub read_config {
 
 sub parse_action {
 	my $meta_arguments = shift;
-	for my $meta_argument ( map { $meta_arguments->{$_} } qw/argv envs/ ) {
+	for my $meta_argument (map { $meta_arguments->{$_} } qw/argv envs/) {
 		my $position = first_index { not m/ ^ -- /xms and not m/=/xms } @{$meta_argument};
 		return splice @{$meta_argument}, $position, 1 if $position != $NOTFOUND;
 	}
@@ -115,7 +116,7 @@ sub parse_options {
 	@{ $meta_arguments{config} } = read_config($options{action});
 
 	for my $argument_list (map { $meta_arguments{$_} } qw/config cached envs argv/) {
-		for my $argument (@{ $argument_list }) {
+		for my $argument (@{$argument_list}) {
 			parse_option(\%options, $argument);
 		}
 	}
@@ -127,14 +128,14 @@ sub get_input_files {
 	my ($input_files, $input_dir) = @_;
 	if ($input_files) {
 		if (ref $input_files) {
-			return @{ $input_files };
+			return @{$input_files};
 		}
 		else {
-			return $input_files
+			return $input_files;
 		}
 	}
-	elsif ($input_dir){
-		opendir my($dh), $input_dir;
+	elsif ($input_dir) {
+		opendir my ($dh), $input_dir;
 		my @ret = grep { /^ .+ \. C $/xsm } readdir $dh;
 		closedir $dh;
 		return @ret;
@@ -162,16 +163,39 @@ sub linker_flags {
 	return join ' ', @elements;
 }
 
+*my_system = $^O eq 'MSWin32'
+	? sub {
+		my ($self, $exec, $input, $output) = @_;
+		my $call = join ' ', @{$exec}, $input, '>', $output;
+		print "$call\n" if $self->{quiet} <= 0;
+		system $call;
+	}
+	: sub {
+		my ($self, $exec, $input, $output) = @_;
+		my @call = (@{$exec}, $input);
+		print "@call > $output\n" if $self->{quiet} <= 0;
+		my $pid = fork;
+		if ($pid) {
+			waitpid $pid, 0;
+		}
+		else {
+			open STDOUT, '>', $output;
+			exec @call;
+		}
+	};
+
 use namespace::clean;
 
 my %default_actions = (
-	'dirs'    => sub {
-		my $builder = shift;
-		$builder->create_dir(qw{blib/arch blib/lib blib/headers _build/t});
-	},
 	lib       => sub {
 		my $builder = shift;
-		$builder->copy_files('lib', 'blib/lib');
+		$builder->copy_files('lib', catdir(qw/blib lib/));
+	},
+	testbuild => sub {
+	},
+	build     => sub {
+		my $builder = shift;
+		$builder->dispatch('lib');
 	},
 	test      => sub {
 		my $builder = shift;
@@ -201,8 +225,8 @@ my %default_actions = (
 		$arch->add_files(@files);
 		my $name = $builder->{name};
 		my $version = $builder->{version};
-		$arch->write("$name-$version.tar.bz2", COMPRESS_BZIP, "$name-$version");
 		print "tar xjf $name-$version.tar.bz2 @files\n" if $builder->{quiet} <= 0;
+		$arch->write("$name-$version.tar.bz2", COMPRESS_BZIP, "$name-$version");
 	},
 	help      => sub {
 		my $builder = shift;
@@ -226,50 +250,38 @@ my %default_actions = (
 sub new {
 	my ($class, @meta) = @_;
 	my %options = parse_options(@meta);
-	my $self = bless {
-		%options,
-		builder => ExtUtils::CBuilder->new(quiet => $options{quiet}),
-	}, $class;
+	my $self = bless { %options, builder => ExtUtils::CBuilder->new(quiet => $options{quiet}) }, $class;
 	$self->register_actions(%default_actions);
 	$self->register_dirty(
-		binary   => [ qw/blib _build/ ],
-		meta     => [ 'MYMETA.yml' ],
-		test     => [ '_build/t' ],
+		binary => [ qw/blib _build/ ],
+		meta   => [ 'MYMETA.yml' ],
+		test   => [ '_build/t' ],
 	);
 	return $self;
 }
 
 sub include_dirs {
 	my ($self, $extra) = @_;
-	return [ ( defined $self->{include_dirs} ? split(/:/, $self->{include_dirs}) : () ), (defined $extra ? @{$extra} : () ) ];
+	return [ (defined $self->{include_dirs} ? split(/:/, $self->{include_dirs}) : ()), (defined $extra ? @{$extra} : ()) ];
 }
 
 sub create_by_system {
 	my ($self, $exec, $input, $output) = @_;
 	if (not -e $output or -M $input < -M $output) {
-		my @call = (@{$exec}, $input);
-		print "@call\n" if $self->{quiet} <= 0;
-		my $pid = fork;
-		if ($pid) {
-			waitpid $pid, 0;
-		}
-		else {
-			open STDOUT, '>', $output;
-			exec @call;
-		}
+		my_system($self, $exec, $input, $output);
 	}
 	return;
 }
 
 sub process_cpp {
 	my ($self, $input, $output) = @_;
-	$self->create_by_system( [ $Config{cpp}, split(/ /, $Config{ccflags}), "-I$Config{archlibexp}/CORE" ], $input, $output);
+	$self->create_by_system([ $Config{cpp}, split(/ /, $Config{ccflags}), "-I" . catdir($Config{archlibexp}, "CORE") ], $input, $output);
 	return;
 }
 
 sub process_perl {
 	my ($self, $input, $output) = @_;
-	$self->create_by_system( [ $^X, '-T' ], $input, $output);
+	$self->create_by_system([ $^X, '-T' ], $input, $output);
 	return;
 }
 
@@ -299,56 +311,59 @@ sub copy_files {
 	return;
 }
 
-sub build_library {
-	my ($self, %library) = @_;
-	my @raw_files  = get_input_files(@library{qw/input_files input_dir/});
-	my $input_dir  = $library{input_dir}  || '.';
-	my $output_dir = $library{output_dir} || 'blib';
-	my $tempdir    = $library{temp_dir}   || '_build';
-	my %object_for = map { ( "$input_dir/$_" => "$tempdir/".$self->{builder}->object_file($_) ) } @raw_files;
+sub build_objects {
+	my ($self, %args) = @_;
+
+	my $input_dir  = $args{input_dir}  || '.';
+	my $tempdir    = $args{temp_dir}   || '_build';
+	my @raw_files  = get_input_files(@args{qw/input_files input_dir/});
+	my %object_for = map { (catfile($input_dir, $_) => catfile($tempdir, $self->{builder}->object_file($_))) } @raw_files;
+
 	for my $source_file (sort keys %object_for) {
 		my $object_file = $object_for{$source_file};
 		next if -e $object_file and -M $source_file > -M $object_file;
+		$self->create_dir(dirname($object_file));
 		$self->{builder}->compile(
 			source               => $source_file,
 			object_file          => $object_file,
-			'C++'                => $library{'C++'},
-			include_dirs         => $self->include_dirs($library{include_dirs}),
-			extra_compiler_flags => $library{cc_flags} || [ cc_flags ],
+			'C++'                => $args{'C++'},
+			include_dirs         => $self->include_dirs($args{include_dirs}),
+			extra_compiler_flags => $args{cc_flags} || [ cc_flags ],
 		);
 	}
-	my $library_file = $library{libfile} || "$output_dir/arch/lib".$self->{builder}->lib_file($library{name});
+	return values %object_for;
+}
+
+sub build_library {
+	my ($self, %library) = @_;
+
+	my @objects      = $self->build_objects(%library);
+
+	my $output_dir   = $library{output_dir} || 'blib';
+	my $library_file = $library{libfile} || catfile($output_dir, 'arch', 'lib' . $self->{builder}->lib_file($library{name}));
 	my $linker_flags = linker_flags($library{libs}, $library{libdirs}, append => $library{linker_append}, 'C++' => $library{'C++'});
+	$self->create_dir(dirname($library_file));
 	$self->{builder}->link(
 		lib_file           => $library_file,
-		objects            => [ values %object_for ],
+		objects            => \@objects,
 		extra_linker_flags => $linker_flags,
 		module_name        => 'libperl++',
-	) if not -e $library_file or any { (-M $_ < -M $library_file ) } values %object_for;
+	) if not -e $library_file or any { (-M $_ < -M $library_file ) } @objects;
 	return;
 }
 
 sub build_executable {
-	my ($self, $prog_source, $prog_exec, %args) = @_;
+	my ($self, %args) = @_;
 
-	my $tempdir    = $args{temp_dir} || '_build';
-	my $prog_object = "$tempdir/".($args{object_file} || $self->{builder}->object_file($prog_source));
-
+	my @objects      = $self->build_objects(%args);
 	my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
-	$self->{builder}->compile(
-		source               => $prog_source,
-		object_file          => $prog_object,
-		extra_compiler_flags => [ cc_flags ],
-		'C++'                => $args{'C++'},
-		include_dirs         => $self->include_dirs($args{include_dirs}),
-	) if not -e $prog_object or -M $prog_source < -M $prog_object;
-
+	$self->create_dir(dirname($args{output}));
 	$self->{builder}->link_executable(
-		objects            => $prog_object,
-		exe_file           => $prog_exec,
+		objects            => \@objects,
+		exe_file           => $args{output},
 		extra_linker_flags => $linker_flags,
 		'C++'              => $args{'C++'},
-	) if not -e $prog_exec or -M $prog_object < -M $prog_exec;
+	) if not -e $args{output} or any { (-M $_ < -M $args{output}) } @objects;
 	return;
 }
 
@@ -366,7 +381,7 @@ sub run_tests {
 		color => -t STDOUT,
 	});
 
-	local $ENV{$library_var} = 'blib/arch';
+	local $ENV{$library_var} = catdir(qw/blib arch/);
 	return $harness->runtests(@test_goals);
 }
 
@@ -378,17 +393,13 @@ sub remove_tree {
 
 sub tests {
 	my $self = shift;
-	return defined $self->{test_files} ? split / /, $self->{test_files} : glob 't/*.t';
+	return defined $self->{test_files} ? split / /, $self->{test_files} : glob catfile('t', '*.t');
 }
 
 sub get_dirty_files {
-	my ($self, $category) = @_;
-	if ($category eq 'all') {
-		return map { @{ $self->{dirty_files}{$_} } } sort keys %{$self->{dirty_files}};
-	}
-	else {
-		return @{$self->{dirty_files}{$category}};
-	}
+	my ($self, @categories) = @_;
+	my @keys = map { $_ eq 'all' ? keys %{ $self->{dirty_files} } : $_ } @categories;
+	return map { @{ $self->{dirty_files}{$_} } } uniq sort @keys;
 }
 
 sub register_dirty {
@@ -408,9 +419,9 @@ sub register_actions {
 }
 
 sub dispatch {
-	my $self = shift;
+	my $self        = shift;
 	my $action_name = shift || croak 'No action defined';
-	my $action_sub = $self->{action_map}{$action_name} or croak "No action '$action_name' defined";
+	my $action_sub  = $self->{action_map}{$action_name} or croak "No action '$action_name' defined";
 	$action_sub->($self);
 	return;
 }
