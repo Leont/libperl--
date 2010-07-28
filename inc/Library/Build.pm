@@ -188,6 +188,18 @@ sub linker_flags {
 	return;
 };
 
+sub find_tests {
+	my $dir = shift;
+	my @ret;
+	find({
+		wanted   => sub {
+			push @ret, $_ if $_ =~ / \. t \z /xms
+		},
+		no_chdir => 1,
+	} , 't') if -d 't';
+	return sort @ret;
+}
+
 BEGIN {
 	local $@;
 	*subname = eval { require Sub::Name } ? \&Sub::Name::subname : sub {};
@@ -423,7 +435,7 @@ sub remove_tree {
 
 sub tests {
 	my $self = shift;
-	return defined $self->test_files ? split / /, $self->test_files : glob catfile('t', '*.t');
+	return defined $self->test_files ? split / /, $self->test_files : find_tests('t');
 }
 
 sub get_dirty_files {
