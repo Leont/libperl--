@@ -252,7 +252,7 @@ my %default_actions = (
 	},
 	clean     => sub {
 		my $builder = shift;
-		$builder->remove_tree($builder->get_dirty_files('all'));
+		$builder->remove_dirty_files($builder->{what} || 'all');
 	},
 	realclean => sub {
 		my $builder = shift;
@@ -261,7 +261,7 @@ my %default_actions = (
 	},
 	testclean => sub {
 		my $builder = shift;
-		$builder->remove_tree($builder->get_dirty_files('test'));
+		$builder->remove_dirty_files('test');
 	},
 );
 
@@ -424,6 +424,12 @@ sub get_dirty_files {
 	my ($self, @categories) = @_;
 	my @keys = map { $_ eq 'all' ? keys %{ $self->{dirty_files} } : $_ } @categories;
 	return map { @{ $self->{dirty_files}{$_} } } uniq sort @keys;
+}
+
+sub remove_dirty_files {
+	my ($self, @categories) = @_;
+	$self->remove_tree($self->get_dirty_files(@categories));
+	return
 }
 
 sub register_dirty {
