@@ -23,9 +23,10 @@ use POSIX qw/strftime/;
 use Readonly;
 use TAP::Harness;
 
-Readonly my $compiler => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
-Readonly my $NOTFOUND => -1;
-Readonly my $SECURE   => oct 744;
+Readonly my $compiler    => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
+Readonly my $NOTFOUND    => -1;
+Readonly my $SECURE      => oct 744;
+Readonly my $NONREADABLE => ~oct 22;
 
 sub compiler_flags {
 	if ($compiler eq 'gcc') {
@@ -92,10 +93,10 @@ sub parse_action {
 sub set_option {
 	my ($options, $key, $value) = @_;
 	if ($key eq 'verbose') {
-		$options->{quiet} = -$value;
+		return $options->{quiet} = -$value;
 	}
 	else {
-		$options->{$key} = $value;
+		return $options->{$key} = $value;
 	}
 }
 
@@ -169,28 +170,30 @@ sub linker_flags {
 	return join ' ', @elements;
 }
 
-*my_system = $^O eq 'MSWin32'
-? sub {
-	my ($self, $exec, $input, $output) = @_;
-	my $call = join ' ', @{$exec}, $input, '>', $output;
-	print "$call\n" if $self->arg('quiet') <= 0;
-	system $call and croak "Couldn't system(): $!";
-	return;
+BEGIN {
+	*my_system = $^O eq 'MSWin32'
+	? sub {
+		my ($self, $exec, $input, $output) = @_;
+		my $call = join ' ', @{$exec}, $input, '>', $output;
+		print "$call\n" if $self->arg('quiet') <= 0;
+		system $call and croak "Couldn't system(): $!";
+		return;
+	}
+	: sub {
+		my ($self, $exec, $input, $output) = @_;
+		my @call = (@{$exec}, $input);
+		print "@call > $output\n" if $self->arg('quiet') <= 0;
+		my $pid = fork;
+		if ($pid) {
+			waitpid $pid, 0;
+		}
+		else {
+			open STDOUT, '>', $output;
+			exec @call or croak "Couldn't exec: $!";
+		}
+		return;
+	};
 }
-: sub {
-	my ($self, $exec, $input, $output) = @_;
-	my @call = (@{$exec}, $input);
-	print "@call > $output\n" if $self->arg('quiet') <= 0;
-	my $pid = fork;
-	if ($pid) {
-		waitpid $pid, 0;
-	}
-	else {
-		open STDOUT, '>', $output;
-		exec @call or croak "Couldn't exec: $!";
-	}
-	return;
-};
 
 sub find_tests {
 	my $dir = shift;
@@ -201,7 +204,8 @@ sub find_tests {
 		},
 		no_chdir => 1,
 	} , 't') if -d 't';
-	return sort @ret;
+	@ret = sort @ret;
+	return @ret;
 }
 
 BEGIN {
@@ -248,12 +252,11 @@ my %default_actions = (
 	dist      => sub {
 		my $builder = shift;
 		$builder->dispatch('build');
-		$builder->dispatch('manifest') if not -f 'MANIFEST';
-		my $arch = Archive::Tar->new;
 		my $manifest = maniread() or croak 'No MANIFEST found';
 		my @files = keys %{$manifest};
+		my $arch = Archive::Tar->new;
 		$arch->add_files(@files);
-		$_->mode($_->mode & ~022) for $arch->get_files;
+		$_->mode($_->mode & $NONREADABLE) for $arch->get_files;
 		my $release_name = $builder->name . '-' . $builder->version;
 		print "tar xjf $release_name.tar.gz @files\n" if $builder->arg('quiet') <= 0;
 		$arch->write("$release_name.tar.gz", COMPRESS_GZIP, $release_name);
@@ -437,13 +440,14 @@ sub run_tests {
 		verbosity => -$self->arg('quiet'),
 		exec => sub {
 			my (undef, $file) = @_;
-			return -B $file ? [ $file ] : [ $^X, '-T', $file ];
+			return -B $file ? [ $file ] : [ $^X, '-T', '-I' . catdir(qw/blib lib/), $file ];
 		},
 		merge => 1,
 		color => -t STDOUT,
 	});
 
-	local $ENV{$library_var} = catdir(qw/blib so/);
+	my $ld_dir = catdir(qw/blib so/);
+	local $ENV{$library_var} = $ld_dir if -d $ld_dir;
 	return $harness->runtests(@test_goals);
 }
 
@@ -458,15 +462,11 @@ sub tests {
 	return defined $self->arg('test_files') ? split / /, $self->arg('test_files') : find_tests('t');
 }
 
-sub get_dirty_files {
-	my ($self, @categories) = @_;
-	my @keys = map { $_ eq 'all' ? keys %{ $self->{dirty_files} } : $_ } @categories;
-	return map { @{ $self->{dirty_files}{$_} } } uniq sort @keys;
-}
-
 sub remove_dirty_files {
 	my ($self, @categories) = @_;
-	$self->remove_tree($self->get_dirty_files(@categories));
+	my @keys = map { $_ eq 'all' ? keys %{ $self->{dirty_files} } : $_ } @categories;
+	my @files = map { @{ $self->{dirty_files}{$_} } } uniq sort @keys;
+	$self->remove_tree(@files);
 	return
 }
 
