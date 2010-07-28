@@ -435,4 +435,10 @@ sub dispatch_next {
 	return;
 }
 
+sub dispatch_default {
+	my $self = shift;
+	$self->dispatch($self->{action});
+	return;
+}
+
 1;

@@ -31,7 +31,7 @@ use Library::Build::Libperlpp 'create_builder';
 my \$VERSION = '$VERSION';
 
 my \$builder = create_builder(\\\@ARGV, $arguments, \$VERSION);
-\$builder->dispatch(\$builder->{action});
+\$builder->dispatch_default();
 EOF
 
 my $current_mode = (stat $name)[2] or die "Can't stat '$name': $!\n";
