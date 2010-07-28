@@ -170,14 +170,14 @@ sub linker_flags {
 ? sub {
 	my ($self, $exec, $input, $output) = @_;
 	my $call = join ' ', @{$exec}, $input, '>', $output;
-	print "$call\n" if $self->quiet <= 0;
+	print "$call\n" if $self->arg('quiet') <= 0;
 	system $call and croak "Couldn't system(): $!";
 	return;
 }
 : sub {
 	my ($self, $exec, $input, $output) = @_;
 	my @call = (@{$exec}, $input);
-	print "@call > $output\n" if $self->quiet <= 0;
+	print "@call > $output\n" if $self->arg('quiet') <= 0;
 	my $pid = fork;
 	if ($pid) {
 		waitpid $pid, 0;
@@ -207,14 +207,19 @@ BEGIN {
 	eval { require namespace::clean } and namespace::clean->import;
 }
 
-for my $accessor_name (qw/name version quiet test_files action/) {
+for my $accessor_name (qw/name version/) {
 	my $sub = sub {
 		my $self = shift;
-		return $self->{$accessor_name};
+		return $self->arg($accessor_name);
 	};
 	subname $accessor_name, $sub;
 	no strict 'refs';
 	*{$accessor_name} = $sub;
+}
+
+sub arg {
+	my ($self, $argname) = @_;
+	return $self->{args}{$argname};
 }
 
 my %default_actions = (
@@ -245,12 +250,12 @@ my %default_actions = (
 
 		install([
 			from_to => {
-				'blib/so'      => $builder->{libdir} || (split ' ', $Config{libpth})[0],
-				'blib/headers' => $builder->{incdir} || $Config{usrinc},
-				'blib/lib'     => $builder->{moddir} || $Config{installsitelib},
+				'blib/so'      => $builder->arg('libdir') || (split ' ', $Config{libpth})[0],
+				'blib/headers' => $builder->arg('incdir') || $Config{usrinc},
+				'blib/lib'     => $builder->arg('moddir') || $Config{installsitelib},
 			},
-			verbose => $builder->quiet <= 0,
-			dry_run => $builder->{dry_run},
+			verbose => $builder->arg('quiet') <= 0,
+			dry_run => $builder->arg('dry_run'),
 		]);
 	},
 	dist      => sub {
@@ -263,7 +268,7 @@ my %default_actions = (
 		$arch->add_files(@files);
 		$_->mode($_->mode & ~022) for $arch->get_files;
 		my $release_name = $builder->name . '-' . $builder->version;
-		print "tar xjf $release_name.tar.gz @files\n" if $builder->quiet <= 0;
+		print "tar xjf $release_name.tar.gz @files\n" if $builder->arg('quiet') <= 0;
 		$arch->write("$release_name.tar.gz", COMPRESS_GZIP, $release_name);
 	},
 	manifest  => sub {
@@ -279,7 +284,7 @@ my %default_actions = (
 	},
 	clean     => sub {
 		my $builder = shift;
-		$builder->remove_dirty_files($builder->{what} || 'all');
+		$builder->remove_dirty_files($builder->arg('what') || 'all');
 	},
 	realclean => sub {
 		my $builder = shift;
@@ -294,26 +299,26 @@ my %default_actions = (
 
 sub new {
 	my ($class, @meta) = @_;
-	my %self = parse_options(@meta);
-	my $self = bless \%self, $class;
+	my %args = parse_options(@meta);
+	my $self = bless { args => \%args }, $class;
 	$self->register_actions(%default_actions);
 	$self->register_dirty(
 		binary => [ qw/blib _build/ ],
 		meta   => [ 'MYMETA.yml' ],
 		test   => [ '_build/t' ],
-		tarball  => [ "$self{name}-$self{version}.tar.bz2" ],
+		tarball  => [ "$args{name}-$args{version}.tar.bz2" ],
 	);
 	return $self;
 }
 
 sub builder {
 	my $self = shift;
-	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->quiet)
+	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->arg('quiet'))
 }
 
 sub include_dirs {
 	my ($self, $extra) = @_;
-	return [ (defined $self->{include_dirs} ? split(/:/, $self->{include_dirs}) : ()), (defined $extra ? @{$extra} : ()) ];
+	return [ (defined $self->arg('include_dirs') ? split(/:/, $self->arg('include_dirs')) : ()), (defined $extra ? @{$extra} : ()) ];
 }
 
 sub create_by_system {
@@ -338,7 +343,7 @@ sub process_perl {
 
 sub create_dir {
 	my ($self, @dirs) = @_;
-	mkpath(\@dirs, $self->quiet <= 0, $SECURE);
+	mkpath(\@dirs, $self->arg('quiet') <= 0, $SECURE);
 	return;
 }
 
@@ -355,7 +360,7 @@ sub copy_files {
 	elsif (-f $source) {
 		$self->create_dir(dirname($destination));
 		if (not -e $destination or -M $source < -M $destination) {
-			print "cp $source $destination\n" if $self->quiet <= 0;
+			print "cp $source $destination\n" if $self->arg('quiet') <= 0;
 			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
 		}
 	}
@@ -420,10 +425,10 @@ sub build_executable {
 
 sub run_tests {
 	my ($self, @test_goals) = @_;
-	my $library_var = $self->{library_var} || $Config{ldlibpthname};
-	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->quiet < 2;
+	my $library_var = $self->arg('library_var') || $Config{ldlibpthname};
+	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->arg('quiet') < 2;
 	my $harness = TAP::Harness->new({ 
-		verbosity => -$self->quiet,
+		verbosity => -$self->arg('quiet'),
 		exec => sub {
 			my (undef, $file) = @_;
 			return -B $file ? [ $file ] : [ $^X, '-T', $file ];
@@ -438,13 +443,13 @@ sub run_tests {
 
 sub remove_tree {
 	my ($self, @files) = @_;
-	rmtree(\@files, $self->quiet <= 0, 0);
+	rmtree(\@files, $self->arg('quiet') <= 0, 0);
 	return;
 }
 
 sub tests {
 	my $self = shift;
-	return defined $self->test_files ? split / /, $self->test_files : find_tests('t');
+	return defined $self->arg('test_files') ? split / /, $self->arg('test_files') : find_tests('t');
 }
 
 sub get_dirty_files {
@@ -494,7 +499,7 @@ sub dispatch_next {
 
 sub dispatch_default {
 	my $self = shift;
-	$self->dispatch($self->action);
+	$self->dispatch($self->arg('action'));
 	return;
 }
 
