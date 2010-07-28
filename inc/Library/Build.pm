@@ -168,14 +168,14 @@ sub linker_flags {
 	? sub {
 		my ($self, $exec, $input, $output) = @_;
 		my $call = join ' ', @{$exec}, $input, '>', $output;
-		print "$call\n" if $self->{quiet} <= 0;
+		print "$call\n" if $self->quiet <= 0;
 		system $call and croak "Couldn't system(): $!";
 		return;
 	}
 	: sub {
 		my ($self, $exec, $input, $output) = @_;
 		my @call = (@{$exec}, $input);
-		print "@call > $output\n" if $self->{quiet} <= 0;
+		print "@call > $output\n" if $self->quiet <= 0;
 		my $pid = fork;
 		if ($pid) {
 			waitpid $pid, 0;
@@ -187,7 +187,21 @@ sub linker_flags {
 		return;
 	};
 
-use namespace::clean;
+BEGIN {
+	local $@;
+	*subname = eval { require Sub::Name } ? \&Sub::Name::subname : sub {};
+	eval { require namespace::clean } and namespace::clean->import;
+}
+
+for my $accessor_name (qw/name version quiet test_files action/) {
+	my $sub = sub {
+		my $self = shift;
+		return $self->{$accessor_name};
+	};
+	subname $accessor_name, $sub;
+	no strict 'refs';
+	*{$accessor_name} = $sub;
+}
 
 my %default_actions = (
 	lib       => sub {
@@ -216,7 +230,7 @@ my %default_actions = (
 				'blib/headers' => $builder->{incdir} || $Config{usrinc},
 				'blib/lib'     => $builder->{moddir} || $Config{installsitelib},
 			},
-			verbose => $builder->{quiet} <= 0,
+			verbose => $builder->quiet <= 0,
 			dry_run => $builder->{dry_run},
 		]);
 	},
@@ -228,9 +242,9 @@ my %default_actions = (
 		my @files = map { chomp; $_ } <$file>;
 		close $file;
 		$arch->add_files(@files);
-		my $name = $builder->{name};
-		my $version = $builder->{version};
-		print "tar xjf $name-$version.tar.bz2 @files\n" if $builder->{quiet} <= 0;
+		my $name = $builder->name;
+		my $version = $builder->version;
+		print "tar xjf $name-$version.tar.bz2 @files\n" if $builder->quiet <= 0;
 		$arch->write("$name-$version.tar.bz2", COMPRESS_BZIP, "$name-$version");
 	},
 	help      => sub {
@@ -254,8 +268,8 @@ my %default_actions = (
 
 sub new {
 	my ($class, @meta) = @_;
-	my %options = parse_options(@meta);
-	my $self = bless { %options, builder => ExtUtils::CBuilder->new(quiet => $options{quiet}) }, $class;
+	my %self = parse_options(@meta);
+	my $self = bless \%self, $class;
 	$self->register_actions(%default_actions);
 	$self->register_dirty(
 		binary => [ qw/blib _build/ ],
@@ -263,6 +277,11 @@ sub new {
 		test   => [ '_build/t' ],
 	);
 	return $self;
+}
+
+sub builder {
+	my $self = shift;
+	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->quiet)
 }
 
 sub include_dirs {
@@ -292,7 +311,7 @@ sub process_perl {
 
 sub create_dir {
 	my ($self, @dirs) = @_;
-	mkpath(\@dirs, $self->{quiet} <= 0, $SECURE);
+	mkpath(\@dirs, $self->quiet <= 0, $SECURE);
 	return;
 }
 
@@ -309,7 +328,7 @@ sub copy_files {
 	elsif (-f $source) {
 		$self->create_dir(dirname($destination));
 		if (not -e $destination or -M $source < -M $destination) {
-			print "cp $source $destination\n" if $self->{quiet} <= 0;
+			print "cp $source $destination\n" if $self->quiet <= 0;
 			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
 		}
 	}
@@ -322,13 +341,13 @@ sub build_objects {
 	my $input_dir  = $args{input_dir} || '.';
 	my $tempdir    = $args{temp_dir}  || '_build';
 	my @raw_files  = get_input_files(@args{qw/input_files input_dir/});
-	my %object_for = map { (catfile($input_dir, $_) => catfile($tempdir, $self->{builder}->object_file($_))) } @raw_files;
+	my %object_for = map { (catfile($input_dir, $_) => catfile($tempdir, $self->builder->object_file($_))) } @raw_files;
 
 	for my $source_file (sort keys %object_for) {
 		my $object_file = $object_for{$source_file};
 		next if -e $object_file and -M $source_file > -M $object_file;
 		$self->create_dir(dirname($object_file));
-		$self->{builder}->compile(
+		$self->builder->compile(
 			source               => $source_file,
 			object_file          => $object_file,
 			'C++'                => $args{'C++'},
@@ -345,10 +364,10 @@ sub build_library {
 	my @objects      = $self->build_objects(%library);
 
 	my $output_dir   = $library{output_dir} || 'blib';
-	my $library_file = $library{libfile} || catfile($output_dir, 'so', 'lib' . $self->{builder}->lib_file($library{name}));
+	my $library_file = $library{libfile} || catfile($output_dir, 'so', 'lib' . $self->builder->lib_file($library{name}));
 	my $linker_flags = linker_flags($library{libs}, $library{libdirs}, append => $library{linker_append}, 'C++' => $library{'C++'});
 	$self->create_dir(dirname($library_file));
-	$self->{builder}->link(
+	$self->builder->link(
 		lib_file           => $library_file,
 		objects            => \@objects,
 		extra_linker_flags => $linker_flags,
@@ -363,7 +382,7 @@ sub build_executable {
 	my @objects      = $self->build_objects(%args);
 	my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
 	$self->create_dir(dirname($args{output}));
-	$self->{builder}->link_executable(
+	$self->builder->link_executable(
 		objects            => \@objects,
 		exe_file           => $args{output},
 		extra_linker_flags => $linker_flags,
@@ -375,9 +394,9 @@ sub build_executable {
 sub run_tests {
 	my ($self, @test_goals) = @_;
 	my $library_var = $self->{library_var} || $Config{ldlibpthname};
-	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->{quiet} < 2;
+	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->quiet < 2;
 	my $harness = TAP::Harness->new({ 
-		verbosity => -$self->{quiet},
+		verbosity => -$self->quiet,
 		exec => sub {
 			my (undef, $file) = @_;
 			return -B $file ? [ $file ] : [ $^X, '-T', $file ];
@@ -392,13 +411,13 @@ sub run_tests {
 
 sub remove_tree {
 	my ($self, @files) = @_;
-	rmtree(\@files, $self->{quiet} <= 0, 0);
+	rmtree(\@files, $self->quiet <= 0, 0);
 	return;
 }
 
 sub tests {
 	my $self = shift;
-	return defined $self->{test_files} ? split / /, $self->{test_files} : glob catfile('t', '*.t');
+	return defined $self->test_files ? split / /, $self->test_files : glob catfile('t', '*.t');
 }
 
 sub get_dirty_files {
@@ -442,7 +461,7 @@ sub dispatch_next {
 
 sub dispatch_default {
 	my $self = shift;
-	$self->dispatch($self->{action});
+	$self->dispatch($self->action);
 	return;
 }
 
