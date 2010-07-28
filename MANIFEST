@@ -19,8 +19,8 @@ examples/Extend.C
 examples/extend.pl
 examples/Extend.pm
 examples/game.C
-inc/Library/Build/PL.pm
 inc/Library/Build.pm
+inc/Library/Build/PL.pm
 inc/Perlpp/Build.pm
 lib/Perlpp/Extend.pm
 MANIFEST
@@ -72,7 +72,7 @@ t/50-binds.C
 t/50-function-exports.C
 t/50-method-exports.C
 t/50-tie.C
-tap++/headers/tap++.h
-tap++/source/tap++.C
 t/pod-coverage.t
 t/pod.t
+tap++/headers/tap++.h
+tap++/source/tap++.C

@@ -1,0 +1,14 @@
+^_build
+^Build$
+^blib
+~$
+\.bak$
+^MANIFEST\.SKIP$
+(^|/)\.
+libperl\+\+-.*.tar.gz
+^t/.0-.*\.t$
+^MYMETA.yml$
+^perl\+\+/headers/config.h$
+^perl\+\+/headers/extend.h$
+^perl\+\+/source/evaluate.C$
+^ppport.h$

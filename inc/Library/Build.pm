@@ -12,6 +12,7 @@ use Carp 'croak';
 use Config;
 use ExtUtils::CBuilder;
 use ExtUtils::Install qw/install/;
+use ExtUtils::Manifest qw/maniread manicheck mkmanifest/;
 use File::Basename qw/dirname/;
 use File::Copy qw/copy/;
 use File::Find qw/find/;
@@ -255,14 +256,22 @@ my %default_actions = (
 	dist      => sub {
 		my $builder = shift;
 		$builder->dispatch('build');
+		$builder->dispatch('manifest') if not -f 'MANIFEST';
 		my $arch = Archive::Tar->new;
-		open my $file, '<', 'MANIFEST'; 
-		my @files = map { chomp; $_ } <$file>;
-		close $file;
+		my $manifest = maniread() or croak 'No MANIFEST found';
+		my @files = keys %{$manifest};
 		$arch->add_files(@files);
+		$_->mode($_->mode & ~022) for $arch->get_files;
 		my $release_name = $builder->name . '-' . $builder->version;
-		print "tar xjf $release_name.tar.bz2 @files\n" if $builder->quiet <= 0;
-		$arch->write("$release_name.tar.bz2", COMPRESS_BZIP, $release_name);
+		print "tar xjf $release_name.tar.gz @files\n" if $builder->quiet <= 0;
+		$arch->write("$release_name.tar.gz", COMPRESS_GZIP, $release_name);
+	},
+	manifest  => sub {
+		mkmanifest();
+	},
+	distcheck => sub {
+		my @missing = manicheck();
+		croak "Missing files @missing" if @missing;
 	},
 	help      => sub {
 		my $builder = shift;

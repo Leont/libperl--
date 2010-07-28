@@ -10,7 +10,7 @@ perl++/source/evaluate.C
 test.out
 Build
 MYMETA.yml
-libperl++-*.tar.bz2
+libperl++-*.tar.gz
 examples/combined
 examples/game
 examples/Extend.so
