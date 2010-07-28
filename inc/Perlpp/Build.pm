@@ -1,4 +1,4 @@
-package Library::Build::Libperlpp;
+package Perlpp::Build;
 
 use 5.008;
 use strict;
@@ -7,14 +7,12 @@ use warnings;
 our $VERSION = 0.003;
 
 use Exporter 5.57 qw/import/;
-our @EXPORT_OK = qw/create_builder/;
+our @EXPORT_OK = qw/write_build/;
 
 use Carp qw/croak/;
 use Config;
 use ExtUtils::Embed qw/ldopts/;
 use File::Spec::Functions qw/catfile/;
-
-use Library::Build;
 
 sub portable {
 	my @args = @_;
@@ -128,7 +126,8 @@ my %action_map = (
 );
 
 sub create_builder {
-	my ($arguments, $cached, $version) = @_;
+	my (undef, $arguments, $cached, $version) = @_;
+	require Library::Build;
 
 	my $builder = Library::Build->new($arguments, $cached, 'libperl++', $version);
 	$builder->register_actions(%action_map);
@@ -138,6 +137,16 @@ sub create_builder {
 		examples => [ portable(qw{examples/combined examples/game examples/Extend.so}) ],
 	);
 	return $builder;
+}
+
+sub write_build {
+	my $version = shift;
+	require Library::Build::PL;
+	my $buildpl = Library::Build::PL->new;
+	$buildpl->check_cplusplus();
+	$buildpl->write_build(builder => __PACKAGE__, function => 'create_builder', version => $version);
+	$buildpl->write_mymeta();
+	return;
 }
 
 1;
