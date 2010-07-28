@@ -25,7 +25,7 @@ Readonly my $compiler => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
 Readonly my $NOTFOUND => -1;
 Readonly my $SECURE   => oct 744;
 
-sub cc_flags {
+sub compiler_flags {
 	if ($compiler eq 'gcc') {
 		return qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra -Winvalid-pch/;
 	}
@@ -61,8 +61,8 @@ sub read_config {
 	
 	my @files = (
 		($ENV{MODULEBUILDRC} ? $ENV{MODULEBUILDRC}                        : ()), 
-		($ENV{HOME} ?          catfile($ENV{HOME},".modulebuildrc")       : ()), 
-		($ENV{USERPROFILE} ?   catfile($ENV{USERPROFILE},".modulebuldrc") : ()),
+		($ENV{HOME} ?          catfile($ENV{HOME},'.modulebuildrc')       : ()), 
+		($ENV{USERPROFILE} ?   catfile($ENV{USERPROFILE},'.modulebuldrc') : ()),
 	);
 	FILE:
 	for my $file (@files) {
@@ -140,6 +140,7 @@ sub get_input_files {
 		closedir $dh;
 		return @ret;
 	}
+	croak 'Can\'t establish source files';
 }
 
 sub linker_flags {
@@ -168,7 +169,8 @@ sub linker_flags {
 		my ($self, $exec, $input, $output) = @_;
 		my $call = join ' ', @{$exec}, $input, '>', $output;
 		print "$call\n" if $self->{quiet} <= 0;
-		system $call;
+		system $call and croak "Couldn't system(): $!";
+		return;
 	}
 	: sub {
 		my ($self, $exec, $input, $output) = @_;
@@ -180,8 +182,9 @@ sub linker_flags {
 		}
 		else {
 			open STDOUT, '>', $output;
-			exec @call;
+			exec @call or croak "Couldn't exec: $!";
 		}
+		return;
 	};
 
 use namespace::clean;
@@ -191,11 +194,11 @@ my %default_actions = (
 		my $builder = shift;
 		$builder->copy_files('lib', catdir(qw/blib lib/));
 	},
-	testbuild => sub {
-	},
 	build     => sub {
 		my $builder = shift;
 		$builder->dispatch('lib');
+	},
+	testbuild => sub {
 	},
 	test      => sub {
 		my $builder = shift;
@@ -221,7 +224,9 @@ my %default_actions = (
 		my $builder = shift;
 		$builder->dispatch('build');
 		my $arch = Archive::Tar->new;
-		my @files = map { chomp; $_ } do { open my $file, '<', 'MANIFEST'; <$file> };
+		open my $file, '<', 'MANIFEST'; 
+		my @files = map { chomp; $_ } <$file>;
+		close $file;
 		$arch->add_files(@files);
 		my $name = $builder->{name};
 		my $version = $builder->{version};
@@ -230,7 +235,7 @@ my %default_actions = (
 	},
 	help      => sub {
 		my $builder = shift;
-		print "No help available yet\n";
+		print "No help available\n";
 	},
 	clean     => sub {
 		my $builder = shift;
@@ -275,7 +280,7 @@ sub create_by_system {
 
 sub process_cpp {
 	my ($self, $input, $output) = @_;
-	$self->create_by_system([ $Config{cpp}, split(/ /, $Config{ccflags}), "-I" . catdir($Config{archlibexp}, "CORE") ], $input, $output);
+	$self->create_by_system([ $Config{cpp}, split(/ /, $Config{ccflags}), '-I' . catdir($Config{archlibexp}, 'CORE') ], $input, $output);
 	return;
 }
 
@@ -304,8 +309,8 @@ sub copy_files {
 	elsif (-f $source) {
 		$self->create_dir(dirname($destination));
 		if (not -e $destination or -M $source < -M $destination) {
-			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
 			print "cp $source $destination\n" if $self->{quiet} <= 0;
+			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
 		}
 	}
 	return;
@@ -314,8 +319,8 @@ sub copy_files {
 sub build_objects {
 	my ($self, %args) = @_;
 
-	my $input_dir  = $args{input_dir}  || '.';
-	my $tempdir    = $args{temp_dir}   || '_build';
+	my $input_dir  = $args{input_dir} || '.';
+	my $tempdir    = $args{temp_dir}  || '_build';
 	my @raw_files  = get_input_files(@args{qw/input_files input_dir/});
 	my %object_for = map { (catfile($input_dir, $_) => catfile($tempdir, $self->{builder}->object_file($_))) } @raw_files;
 
@@ -328,7 +333,7 @@ sub build_objects {
 			object_file          => $object_file,
 			'C++'                => $args{'C++'},
 			include_dirs         => $self->include_dirs($args{include_dirs}),
-			extra_compiler_flags => $args{cc_flags} || [ cc_flags ],
+			extra_compiler_flags => $args{cc_flags} || [ compiler_flags ],
 		);
 	}
 	return values %object_for;

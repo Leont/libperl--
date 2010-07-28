@@ -1,7 +1,5 @@
 package Library::Build::Libperlpp;
 
-# This code needs some serious refactoring, but it works…
-
 use 5.008;
 use strict;
 use warnings;
@@ -19,7 +17,8 @@ use File::Spec::Functions qw/catfile/;
 use Library::Build;
 
 sub portable {
-	my @ret = map { catfile(split '/', $_) } @_;
+	my @args = @_;
+	my @ret = map { catfile(split m{/}, $_) } @args;
  	return wantarray ? @ret : $ret[0];
 }
 
