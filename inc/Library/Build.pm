@@ -14,6 +14,7 @@ use ExtUtils::CBuilder;
 use ExtUtils::Install qw/install/;
 use File::Basename qw/dirname/;
 use File::Copy qw/copy/;
+use File::Find qw/find/;
 use File::Path qw/mkpath rmtree/;
 use File::Spec::Functions qw/catfile catdir/;
 use List::MoreUtils qw/any first_index uniq/;
@@ -165,27 +166,27 @@ sub linker_flags {
 }
 
 *my_system = $^O eq 'MSWin32'
-	? sub {
-		my ($self, $exec, $input, $output) = @_;
-		my $call = join ' ', @{$exec}, $input, '>', $output;
-		print "$call\n" if $self->quiet <= 0;
-		system $call and croak "Couldn't system(): $!";
-		return;
+? sub {
+	my ($self, $exec, $input, $output) = @_;
+	my $call = join ' ', @{$exec}, $input, '>', $output;
+	print "$call\n" if $self->quiet <= 0;
+	system $call and croak "Couldn't system(): $!";
+	return;
+}
+: sub {
+	my ($self, $exec, $input, $output) = @_;
+	my @call = (@{$exec}, $input);
+	print "@call > $output\n" if $self->quiet <= 0;
+	my $pid = fork;
+	if ($pid) {
+		waitpid $pid, 0;
 	}
-	: sub {
-		my ($self, $exec, $input, $output) = @_;
-		my @call = (@{$exec}, $input);
-		print "@call > $output\n" if $self->quiet <= 0;
-		my $pid = fork;
-		if ($pid) {
-			waitpid $pid, 0;
-		}
-		else {
-			open STDOUT, '>', $output;
-			exec @call or croak "Couldn't exec: $!";
-		}
-		return;
-	};
+	else {
+		open STDOUT, '>', $output;
+		exec @call or croak "Couldn't exec: $!";
+	}
+	return;
+};
 
 BEGIN {
 	local $@;
@@ -206,7 +207,12 @@ for my $accessor_name (qw/name version quiet test_files action/) {
 my %default_actions = (
 	lib       => sub {
 		my $builder = shift;
-		$builder->copy_files('lib', catdir(qw/blib lib/));
+		find({
+			wanted   => sub {
+				$builder->copy_files($_, catfile('blib', $_)) if $_ =~ / \. p(m|od) \z /xms
+			},
+			no_chdir => 1,
+		} , 'lib') if -d 'lib';
 	},
 	build     => sub {
 		my $builder = shift;

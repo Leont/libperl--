@@ -78,9 +78,9 @@ my %action_map = (
 	},
 	build     => sub { 
 		my ($builder, $next) = @_;
-		$builder->dispatch_next($next);
 		$builder->dispatch('perl++');
 		$builder->dispatch('tap');
+		$builder->dispatch_next($next);
 	},
 	examples  => sub {
 		my $builder = shift;
