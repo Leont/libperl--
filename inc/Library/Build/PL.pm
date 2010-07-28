@@ -48,9 +48,10 @@ use warnings;
 
 use lib qw{@{$args{inc}}};
 use $args{builder};
-my \$VERSION = '$args{version}';
+my \$module  = '$args{name}';
+my \$version = '$args{version}';
 
-my \$builder = $args{builder}->$args{function}(\\\@ARGV, $arguments, \$VERSION);
+my \$builder = $args{builder}->$args{function}(\$module, \$version, { argv => \\\@ARGV, cached => $arguments });
 \$builder->dispatch_default();
 EOF
 

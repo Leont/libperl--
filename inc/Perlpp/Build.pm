@@ -128,9 +128,9 @@ my %action_map = (
 );
 
 sub create_builder {
-	my (undef, $arguments, $cached, $version) = @_;
+	my (undef, $name, $version, $options) = @_;
 
-	my $builder = Library::Build->new($arguments, $cached, 'libperl++', $version);
+	my $builder = Library::Build->new($name, $version, $options);
 	$builder->register_actions(%action_map);
 	$builder->register_dirty(
 		test     => [ glob 't/*0-*.t' ],

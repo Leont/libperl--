@@ -9,5 +9,5 @@ my $VERSION = 0.003;
 
 my $buildpl = Library::Build::PL->new;
 $buildpl->check_cplusplus();
-$buildpl->write_build(builder => 'Perlpp::Build', function => 'create_builder', version => $VERSION);
+$buildpl->write_build(builder => 'Perlpp::Build', function => 'create_builder', name => 'libperl++', version => $VERSION);
 $buildpl->write_mymeta();

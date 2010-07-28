@@ -57,13 +57,11 @@ Recent version of the Intel and Codeweavers compilers may work, but have not bee
 
 =back
 
-Also there are a number of packages that are recommended to be installed during build
+Also there one module that is recommended to be installed during build
 
 =over 4
 
 =item * namespace::clean
-
-=item * Sub::Name
 
 =back
 

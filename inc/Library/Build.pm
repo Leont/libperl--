@@ -60,10 +60,10 @@ sub read_config {
 	my $action = shift;
 
 	my @ret;
-	
+
 	my @files = (
-		($ENV{MODULEBUILDRC} ? $ENV{MODULEBUILDRC}                        : ()), 
-		($ENV{HOME} ?          catfile($ENV{HOME},'.modulebuildrc')       : ()), 
+		($ENV{MODULEBUILDRC} ? $ENV{MODULEBUILDRC}                        : ()),
+		($ENV{HOME} ?          catfile($ENV{HOME},'.modulebuildrc')       : ()),
 		($ENV{USERPROFILE} ?   catfile($ENV{USERPROFILE},'.modulebuldrc') : ()),
 	);
 	FILE:
@@ -89,29 +89,33 @@ sub parse_action {
 	return;
 }
 
+sub set_option {
+	my ($options, $key, $value) = @_;
+	if ($key eq 'verbose') {
+		$options->{quiet} = -$value;
+	}
+	else {
+		$options->{$key} = $value;
+	}
+}
+
 sub parse_option {
 	my ($options, $argument) = @_;
 	$argument =~ s/ ^ -- //xms;
 	if ($argument =~ / \A (\w+) = (.*) \z /xms) {
-		$options->{$1} = $2;
+		set_option($options, $1, $2);
 	}
 	else {
-		$options->{$argument} = 1;
+		set_option($options, $argument, 1);
 	}
 	return;
 }
 
 sub parse_options {
-	my @args = @_;
-	my (%meta_arguments, $name, $version);
-	(@meta_arguments{qw/argv cached/}, $name, $version) = @args;
+	my %meta_arguments = @_;
 	@{ $meta_arguments{envs} } = split / /, $ENV{PERL_MB_OPT} if $ENV{PERL_MB_OPT};
 
-	my %options = (
-		quiet   => 0,
-		name    => $name,
-		version => $version,
-	);
+	my %options = ( quiet => 0 );
 
 	$options{action} = parse_action(\%meta_arguments) || 'build';
 
@@ -122,7 +126,6 @@ sub parse_options {
 			parse_option(\%options, $argument);
 		}
 	}
-	$options{quiet} = -$options{verbose} if not $options{quiet} and $options{verbose};
 	return %options;
 }
 
@@ -203,23 +206,7 @@ sub find_tests {
 
 BEGIN {
 	local $@;
-	*subname = eval { require Sub::Name } ? \&Sub::Name::subname : sub {};
 	eval { require namespace::clean } and namespace::clean->import;
-}
-
-for my $accessor_name (qw/name version/) {
-	my $sub = sub {
-		my $self = shift;
-		return $self->arg($accessor_name);
-	};
-	subname $accessor_name, $sub;
-	no strict 'refs';
-	*{$accessor_name} = $sub;
-}
-
-sub arg {
-	my ($self, $argname) = @_;
-	return $self->{args}{$argname};
 }
 
 my %default_actions = (
@@ -298,22 +285,41 @@ my %default_actions = (
 );
 
 sub new {
-	my ($class, @meta) = @_;
-	my %args = parse_options(@meta);
-	my $self = bless { args => \%args }, $class;
+	my ($class, $name, $version, $meta) = @_;
+	my %args = parse_options(%{$meta});
+	my $self = bless {
+		name    => $name,
+		version => $version,
+		args    => \%args
+	}, $class;
 	$self->register_actions(%default_actions);
 	$self->register_dirty(
 		binary => [ qw/blib _build/ ],
 		meta   => [ 'MYMETA.yml' ],
 		test   => [ '_build/t' ],
-		tarball  => [ "$args{name}-$args{version}.tar.bz2" ],
+		tarball  => [ "$name-$version.tar.bz2" ],
 	);
 	return $self;
 }
 
+sub name {
+	my $self = shift;
+	return $self->{name};
+}
+
+sub version {
+	my $self = shift;
+	return $self->{version};
+}
+
+sub arg {
+	my ($self, $argname) = @_;
+	return $self->{args}{$argname};
+}
+
 sub builder {
 	my $self = shift;
-	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->arg('quiet'))
+	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->arg('quiet') > 0)
 }
 
 sub include_dirs {
@@ -427,7 +433,7 @@ sub run_tests {
 	my ($self, @test_goals) = @_;
 	my $library_var = $self->arg('library_var') || $Config{ldlibpthname};
 	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->arg('quiet') < 2;
-	my $harness = TAP::Harness->new({ 
+	my $harness = TAP::Harness->new({
 		verbosity => -$self->arg('quiet'),
 		exec => sub {
 			my (undef, $file) = @_;
