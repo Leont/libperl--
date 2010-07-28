@@ -41,6 +41,8 @@ Recent version of the Intel and Codeweavers compilers may work, but have not bee
 
 =over 4
 
+=item * Archive::Tar (included in perl 5.10.0)
+
 =item * autodie (included in perl 5.10.1)
 
 =item * Exporter 5.57 (included in perl 5.8.3)
@@ -49,11 +51,19 @@ Recent version of the Intel and Codeweavers compilers may work, but have not bee
 
 =item * List::MoreUtils
 
-=item * namespace::clean
-
-=item * TAP::Harness 3
+=item * TAP::Harness 3 (included in perl 5.10.1)
 
 =back
+
+=back
+
+Also there are a number of packages that are recommended to be installed during build
+
+=over 4
+
+=item * namespace::clean
+
+=item * Sub::Name
 
 =back
 
