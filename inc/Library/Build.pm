@@ -242,10 +242,9 @@ my %default_actions = (
 		my @files = map { chomp; $_ } <$file>;
 		close $file;
 		$arch->add_files(@files);
-		my $name = $builder->name;
-		my $version = $builder->version;
-		print "tar xjf $name-$version.tar.bz2 @files\n" if $builder->quiet <= 0;
-		$arch->write("$name-$version.tar.bz2", COMPRESS_BZIP, "$name-$version");
+		my $release_name = $builder->name . '-' . $builder->version;
+		print "tar xjf $release_name.tar.bz2 @files\n" if $builder->quiet <= 0;
+		$arch->write("$release_name.tar.bz2", COMPRESS_BZIP, $release_name);
 	},
 	help      => sub {
 		my $builder = shift;
@@ -275,6 +274,7 @@ sub new {
 		binary => [ qw/blib _build/ ],
 		meta   => [ 'MYMETA.yml' ],
 		test   => [ '_build/t' ],
+		tarball  => [ "$self{name}-$self{version}.tar.bz2" ],
 	);
 	return $self;
 }
