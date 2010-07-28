@@ -7,12 +7,9 @@ our $VERSION = '0.003';
 
 use Carp qw/croak/;
 use Data::Dumper;
-use Exporter 5.57 'import';
 use File::Copy qw/copy/;
 use File::Spec::Functions 'catfile';
 use FindBin;
-
-our @EXPORT = qw/write_build write_mymeta check_compiler check_cplusplus/;
 
 sub new {
 	my $class = shift;

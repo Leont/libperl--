@@ -6,9 +6,6 @@ use warnings;
 
 our $VERSION = 0.003;
 
-use Exporter 5.57 qw/import/;
-our @EXPORT_OK = qw/write_build/;
-
 use Carp qw/croak/;
 use Config;
 use ExtUtils::Embed qw/ldopts/;

@@ -14,7 +14,6 @@ requires:
 build_requires:
   autodie: 0
   Archive::Tar: 0
-  Exporter: 5.57
   ExtUtils::CBuilder: 0.27
   ExtUtils::Install:  1.47
   List::MoreUtils: 0.12

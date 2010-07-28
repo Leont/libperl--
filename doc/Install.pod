@@ -45,8 +45,6 @@ Recent version of the Intel and Codeweavers compilers may work, but have not bee
 
 =item * autodie (included in perl 5.10.1)
 
-=item * Exporter 5.57 (included in perl 5.8.3)
-
 =item * ExtUtils::CBuilder (included in perl 5.10.0)
 
 =item * List::MoreUtils
