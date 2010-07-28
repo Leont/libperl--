@@ -413,7 +413,7 @@ sub register_dirty {
 sub register_actions {
 	my ($self, %action_map) = @_;
 	while (my ($name, $sub) = each %action_map) {
-		$self->{action_map}{$name} = $sub;
+		unshift @{ $self->{action_map}{$name} }, $sub;
 	}
 	return;
 }
@@ -421,8 +421,17 @@ sub register_actions {
 sub dispatch {
 	my $self        = shift;
 	my $action_name = shift || croak 'No action defined';
-	my $action_sub  = $self->{action_map}{$action_name} or croak "No action '$action_name' defined";
-	$action_sub->($self);
+	my $action_ref  = $self->{action_map}{$action_name} or croak "No action '$action_name' defined";
+	$self->dispatch_next($action_ref);
+	return;
+}
+
+sub dispatch_next {
+	my ($self, $action_ref) = @_;
+	if (@{$action_ref}) {
+		my ($action_sub, @action_rest) = @{$action_ref};
+		$action_sub->($self, \@action_rest);
+	}
 	return;
 }
 

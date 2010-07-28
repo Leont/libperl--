@@ -78,9 +78,9 @@ my %action_map = (
 		);
 	},
 	build     => sub { 
-		my $builder = shift;
+		my ($builder, $next) = @_;
+		$builder->dispatch_next($next);
 		$builder->dispatch('perl++');
-		$builder->dispatch('lib');
 		$builder->dispatch('tap');
 	},
 	examples  => sub {
@@ -110,8 +110,9 @@ my %action_map = (
 		}
 	},
 	testbuild => sub {
-		my $builder = shift;
+		my ($builder, $next) = @_;
 		$builder->dispatch('build');
+		$builder->dispatch_next($next);
 
 		my %test_executable_for = test_map($builder);
 		for my $test_source (sort keys %test_executable_for) {
