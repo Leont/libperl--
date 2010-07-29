@@ -49,6 +49,8 @@ Recent version of the Intel and Codeweavers compilers may work, but have not bee
 
 =item * List::MoreUtils
 
+=item * Module::Load (included in perl 5.10.0)
+
 =item * TAP::Harness 3 (included in perl 5.10.1)
 
 =back

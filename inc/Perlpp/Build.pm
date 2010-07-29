@@ -124,17 +124,15 @@ my %action_map = (
 	},
 );
 
-sub create_builder {
-	my (undef, $name, $version, $options) = @_;
-
-	my $builder = Library::Build->new($name, $version, $options);
+sub mixin {
+	my $builder = shift;
 	$builder->register_actions(%action_map);
 	$builder->register_dirty(
 		test     => [ glob 't/*0-*.t' ],
 		source   => [ portable(qw{source/ppport.h perl++/source/evaluate.C perl++/headers/config.h perl++/headers/extend.h}) ],
 		examples => [ portable(qw{examples/combined examples/game examples/Extend.so}) ],
 	);
-	return $builder;
+	return;
 }
 
 1;

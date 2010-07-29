@@ -18,6 +18,7 @@ use File::Copy qw/copy/;
 use File::Find qw/find/;
 use File::Path qw/mkpath rmtree/;
 use File::Spec::Functions qw/catfile catdir/;
+use Module::Load qw/load/;
 use List::MoreUtils qw/any first_index uniq/;
 use POSIX qw/strftime/;
 use Readonly;
@@ -515,6 +516,16 @@ sub dispatch_next {
 sub dispatch_default {
 	my $self = shift;
 	$self->dispatch($self->arg('action'));
+	return;
+}
+
+sub mixin {
+	my ($self, @modules) = @_;
+	for my $module (@modules) {
+		load($module);
+		my $method = "$module\::mixin";
+		$self->$method();
+	}
 	return;
 }
 

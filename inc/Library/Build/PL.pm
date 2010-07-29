@@ -19,11 +19,11 @@ sub new {
 sub write_build {
 	my ($self, @args) = @_;
 	my %args = (
-		builder  => 'Library::Build',
-		function => 'new',
+		mixin    => [],
 		argv     => \@ARGV,
 		inc      => [ 'inc' ],
 		version  => '0.001',
+		extra    => '',
 		@args
 	);
 	$args{filename} ||= do {
@@ -37,19 +37,23 @@ sub write_build {
 	local $Data::Dumper::Terse  = 1;
 	local $Data::Dumper::Indent = 0;
 	my $arguments = Dumper($args{argv});
-	print {$fh} <<"EOF" or croak 'Can\'t write Build: $!';
+	my $inc       = Dumper(@{$args{inc}});
+	my $mixin     = Dumper(@{$args{mixin}});
+	print {$fh} <<"EOF";# or croak 'Can\'t write Build: $!';
 #! $^X
 
 use strict;
 use warnings;
 
-use lib qw{@{$args{inc}}};
-use $args{builder};
+use lib ($inc);
+use Library::Build;
 my \$module  = '$args{name}';
 my \$version = '$args{version}';
 
-my \$builder = $args{builder}->$args{function}(\$module, \$version, { argv => \\\@ARGV, cached => $arguments });
+my \$builder = Library::Build->new(\$module, \$version, { argv => \\\@ARGV, cached => $arguments });
+\$builder->mixin($mixin);
 \$builder->dispatch_default();
+$args{extra}
 EOF
 
 	my $current_mode = (stat $fh)[2] or croak "Can't stat '$args{filename}': $!\n";
