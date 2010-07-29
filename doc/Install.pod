@@ -43,8 +43,6 @@ Recent version of the Intel and Codeweavers compilers may work, but have not bee
 
 =item * Archive::Tar (included in perl 5.10.0)
 
-=item * autodie (included in perl 5.10.1)
-
 =item * ExtUtils::CBuilder (included in perl 5.10.0)
 
 =item * List::MoreUtils

@@ -7,7 +7,6 @@ use warnings FATAL => 'all';
 our $VERSION = 0.003;
 
 use Archive::Tar;
-use autodie;
 use Carp 'croak';
 use Config;
 use ExtUtils::CBuilder;
@@ -142,7 +141,7 @@ sub get_input_files {
 		}
 	}
 	elsif ($input_dir) {
-		opendir my ($dh), $input_dir;
+		opendir my ($dh), $input_dir or croak "Can't open input directory '$input_dir': $!";
 		my @ret = grep { /^ .+ \. C $/xsm } readdir $dh;
 		closedir $dh;
 		return @ret;
@@ -177,7 +176,7 @@ BEGIN {
 		my ($self, $exec, $input, $output) = @_;
 		my $call = join ' ', @{$exec}, $input, '>', $output;
 		print "$call\n" if $self->arg('quiet') <= 0;
-		system $call and croak "Couldn't system(): $!";
+		system $call and croak "Couldn't call system(): $!";
 		return;
 	}
 	: sub {
@@ -189,7 +188,7 @@ BEGIN {
 			waitpid $pid, 0;
 		}
 		else {
-			open STDOUT, '>', $output;
+			open STDOUT, '>', $output or die "Can't write to file '$output': $!";
 			exec @call or croak "Couldn't exec: $!";
 		}
 		return;
@@ -367,6 +366,7 @@ sub copy_files {
 			next if $filename =~ / \A \. /xms;
 			$self->copy_files("$source/$filename", "$destination/$filename");
 		}
+		closedir $dh;
 	}
 	elsif (-f $source) {
 		$self->create_dir(dirname($destination));
