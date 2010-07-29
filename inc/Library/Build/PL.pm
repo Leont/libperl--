@@ -12,12 +12,7 @@ use File::Spec::Functions 'catfile';
 use FindBin;
 
 sub new {
-	my $class = shift;
-	return bless {}, $class;
-}
-
-sub write_build {
-	my ($self, @args) = @_;
+	my ($class, @args) = @_;
 	my %args = (
 		mixin    => [],
 		argv     => \@ARGV,
@@ -31,33 +26,38 @@ sub write_build {
 		$filename =~ s/\.PL$// or croak "Can't parse filefilename '$filename'";
 		$filename;
 	};
+	return bless \%args, $class;
+}
 
-	open my $fh, '>', $args{filename} or die "Can't open file '$args{filename}': $!\n";
+sub write_build {
+	my ($self, @args) = @_;
 
+	open my $fh, '>', $self->{filename} or die "Can't open file '$self->{filename}': $!\n";
+
+	my $arguments = Dumper($self->{argv});
 	local $Data::Dumper::Terse  = 1;
 	local $Data::Dumper::Indent = 0;
-	my $arguments = Dumper($args{argv});
-	my $inc       = Dumper(@{$args{inc}});
-	my $mixin     = Dumper(@{$args{mixin}});
+	my $inc       = join ', ', Dumper(@{$self->{inc}});
+	my $mixin     = join ', ', Dumper(@{$self->{mixin}});
 	print {$fh} <<"EOF";# or croak 'Can\'t write Build: $!';
 #! $^X
 
 use strict;
 use warnings;
 
-use lib ($inc);
+use lib $inc;
 use Library::Build;
-my \$module  = '$args{name}';
-my \$version = '$args{version}';
+my \$module  = '$self->{name}';
+my \$version = '$self->{version}';
 
 my \$builder = Library::Build->new(\$module, \$version, { argv => \\\@ARGV, cached => $arguments });
 \$builder->mixin($mixin);
 \$builder->dispatch_default();
-$args{extra}
+$self->{extra}
 EOF
 
-	my $current_mode = (stat $fh)[2] or croak "Can't stat '$args{filename}': $!\n";
-	chmod $current_mode | oct(111), $fh or croak "Can't make '$args{filename}' executable: $!\n";
+	my $current_mode = (stat $fh)[2] or croak "Can't stat '$self->{filename}': $!\n";
+	chmod $current_mode | oct(111), $fh or croak "Can't make '$self->{filename}' executable: $!\n";
 	close $fh or die "Can't close filehandle: $!\n";
 
 	return;
