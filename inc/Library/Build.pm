@@ -299,9 +299,9 @@ sub new {
 		tarball  => [ "$name-$version.tar.bz2" ],
 	);
 	$self->register_paths(
-		'blib/so'      => $self->arg('libdir') || (split ' ', $Config{libpth})[0],
-		'blib/headers' => $self->arg('incdir') || $Config{usrinc},
-		'blib/lib'     => $self->arg('moddir') || $Config{installsitelib},
+		'so'      => $self->arg('libdir') || (split ' ', $Config{libpth})[0],
+		'headers' => $self->arg('incdir') || $Config{usrinc},
+		'lib'     => $self->arg('moddir') || $Config{installsitelib},
 	);
 	return $self;
 }
@@ -491,7 +491,7 @@ sub register_actions {
 sub register_paths {
 	my ($self, %paths) = @_;
 	while (my ($source, $destination) = each %paths) {
-		$self->{install_paths}{$source} = $destination;
+		$self->{install_paths}{"blib/$source"} = $destination;
 	}
 	return;
 }
