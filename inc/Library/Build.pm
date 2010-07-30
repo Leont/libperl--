@@ -210,6 +210,8 @@ my %default_actions = (
 		$builder->dispatch('lib');
 	},
 	testbuild => sub {
+		my $builder = shift;
+		$builder->dispatch('build');
 	},
 	test      => sub {
 		my $builder = shift;

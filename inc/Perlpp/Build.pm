@@ -107,7 +107,6 @@ my %action_map = (
 	},
 	testbuild => sub {
 		my ($builder, $next) = @_;
-		$builder->dispatch('build');
 		$builder->dispatch_next($next);
 
 		my %test_executable_for = test_map($builder);
