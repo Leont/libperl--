@@ -461,6 +461,26 @@ sub tests {
 	return defined $self->arg('test_files') ? split / /, $self->arg('test_files') : $self->find_files('t', qr/ \. t (?:$Config{_exe})? \z /xms);
 }
 
+sub prompt {
+	my ($self, $question, $default) = @_;
+	return $default if $ENV{PERL_MM_USE_DEFAULT} or not -t STDIN and eof STDIN;
+	print "$question [$default] ";
+	my $answer = <STDIN>;
+	return $default if not defined $answer;
+	chomp $answer;
+	return $answer;
+}
+
+sub yes_no {
+	my ($self, $question, $default) = @_;
+	while (1) {
+		my $answer = $self->prompt($question, $default ? 'y' : 'n');
+		return 1 if $answer =~ / \A y ( es )? \z /xmsi;
+		return 0 if $answer =~ / \A n ( o  )? \z /xmsi;
+		print "Please answer 'y' or 'n'.\n";
+	}
+}
+
 sub remove_dirty_files {
 	my ($self, @categories) = @_;
 	my @keys = map { $_ eq 'all' ? keys %{ $self->{dirty_files} } : $_ } @categories;
