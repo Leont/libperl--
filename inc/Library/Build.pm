@@ -195,19 +195,6 @@ BEGIN {
 	};
 }
 
-sub find_tests {
-	my $dir = shift;
-	my @ret;
-	find({
-		wanted   => sub {
-			push @ret, $_ if $_ =~ / \. t \z /xms
-		},
-		no_chdir => 1,
-	} , 't') if -d 't';
-	@ret = sort @ret;
-	return @ret;
-}
-
 BEGIN {
 	local $@;
 	eval { require namespace::clean } and namespace::clean->import;
@@ -216,12 +203,7 @@ BEGIN {
 my %default_actions = (
 	lib       => sub {
 		my $builder = shift;
-		find({
-			wanted   => sub {
-				$builder->copy_files($_, catfile('blib', $_)) if $_ =~ / \. p(m|od) \z /xms
-			},
-			no_chdir => 1,
-		} , 'lib') if -d 'lib';
+		$builder->copy_files($_, catfile('blib', $_)) for $builder->find_files('lib', qr/ \. p(m|od) \z /xms);
 	},
 	build     => sub {
 		my $builder = shift;
@@ -459,9 +441,22 @@ sub remove_tree {
 	return;
 }
 
+sub find_files {
+	my ($self, $dir, $regexp) = @_;
+	my @ret;
+	find({
+		wanted   => sub {
+			push @ret, $_ if $_ =~ $regexp; 
+		},
+		no_chdir => 1,
+	} , $dir) if -d $dir;
+	@ret = sort @ret;
+	return @ret;
+}
+
 sub tests {
 	my $self = shift;
-	return defined $self->arg('test_files') ? split / /, $self->arg('test_files') : find_tests('t');
+	return defined $self->arg('test_files') ? split / /, $self->arg('test_files') : $self->find_files('t', qr/ \. t (?:$Config{_exe})? \z /xms);
 }
 
 sub remove_dirty_files {
