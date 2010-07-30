@@ -16,7 +16,7 @@ use Library::Build;
 sub portable {
 	my @args = @_;
 	my @ret = map { catfile(split m{/}, $_) } @args;
- 	return wantarray ? @ret : $ret[0];
+	return wantarray ? @ret : $ret[0];
 }
 
 my %cpp_files = (
@@ -85,23 +85,23 @@ my %action_map = (
 
 		for my $example_name (@{$examples{executables}}) {
 			$builder->build_executable(
-				output               => catfile('examples', $example_name),
-				input_files          => [ catfile('examples', "$example_name.C") ],
-				include_dirs         => [ portable('blib/headers') ],
-				libs                 => [ 'perl++' ],
-				libdirs              => [ portable('blib/so') ],
-				'C++'                => 1,
+				output       => catfile('examples', $example_name),
+				input_files  => [ catfile('examples', "$example_name.C") ],
+				include_dirs => [ portable('blib/headers') ],
+				libs         => [ 'perl++' ],
+				libdirs      => [ portable('blib/so') ],
+				'C++'        => 1,
 			);
 		}
 		for my $example_name (@{$examples{libraries}}) {
 			$builder->build_library(
-				name                 => $example_name,
-				input_files          => [ catfile('examples', "$example_name.C") ],
-				include_dirs         => [ portable('blib/headers') ],
-				libs                 => [ 'perl++' ],
-				libdirs              => [ portable('blib/so') ],
-				libfile              => catfile('examples', "$example_name\.$Config{dlext}"),
-				'C++'                => 1,
+				name         => $example_name,
+				input_files  => [ catfile('examples', "$example_name.C") ],
+				include_dirs => [ portable('blib/headers') ],
+				libs         => [ 'perl++' ],
+				libdirs      => [ portable('blib/so') ],
+				libfile      => catfile('examples', "$example_name\.$Config{dlext}"),
+				'C++'        => 1,
 			);
 		}
 	},
@@ -112,12 +112,12 @@ my %action_map = (
 		my %test_executable_for = test_map($builder);
 		for my $test_source (sort keys %test_executable_for) {
 			$builder->build_executable(
-				output               => $test_executable_for{$test_source},
-				input_files          => [ $test_source ] ,
-				include_dirs         => [ portable('blib/headers') ],
-				libs                 => [ qw/perl++ tap++/ ],
-				libdirs              => [ portable('blib/so') ],
-				'C++'                => 1,
+				output       => $test_executable_for{$test_source},
+				input_files  => [ $test_source ] ,
+				include_dirs => [ portable('blib/headers') ],
+				libs         => [ qw/perl++ tap++/ ],
+				libdirs      => [ portable('blib/so') ],
+				'C++'        => 1,
 			);
 		}
 	},

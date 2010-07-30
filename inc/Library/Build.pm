@@ -482,7 +482,7 @@ sub remove_dirty_files {
 	my @keys = map { $_ eq 'all' ? keys %{ $self->{dirty_files} } : $_ } @categories;
 	my @files = map { @{ $self->{dirty_files}{$_} } } uniq sort @keys;
 	$self->remove_tree(@files);
-	return
+	return;
 }
 
 sub register_dirty {
