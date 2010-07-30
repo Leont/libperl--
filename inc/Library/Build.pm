@@ -305,7 +305,7 @@ sub arg {
 	return $self->{args}{$argname};
 }
 
-sub builder {
+sub cbuilder {
 	my $self = shift;
 	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->arg('quiet') > 0)
 }
@@ -368,13 +368,13 @@ sub build_objects {
 	my $input_dir  = $args{input_dir} || '.';
 	my $tempdir    = $args{temp_dir}  || '_build';
 	my @raw_files  = get_input_files(@args{qw/input_files input_dir/});
-	my %object_for = map { (catfile($input_dir, $_) => catfile($tempdir, $self->builder->object_file($_))) } @raw_files;
+	my %object_for = map { (catfile($input_dir, $_) => catfile($tempdir, $self->cbuilder->object_file($_))) } @raw_files;
 
 	for my $source_file (sort keys %object_for) {
 		my $object_file = $object_for{$source_file};
 		next if -e $object_file and -M $source_file > -M $object_file;
 		$self->create_dir(dirname($object_file));
-		$self->builder->compile(
+		$self->cbuilder->compile(
 			source               => $source_file,
 			object_file          => $object_file,
 			'C++'                => $args{'C++'},
@@ -391,10 +391,10 @@ sub build_library {
 	my @objects      = $self->build_objects(%args);
 
 	my $output_dir   = $args{output_dir} || 'blib';
-	my $library_file = $args{libfile} || catfile($output_dir, 'so', 'lib' . $self->builder->lib_file($args{name}));
+	my $library_file = $args{libfile} || catfile($output_dir, 'so', 'lib' . $self->cbuilder->lib_file($args{name}));
 	my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
 	$self->create_dir(dirname($library_file));
-	$self->builder->link(
+	$self->cbuilder->link(
 		lib_file           => $library_file,
 		objects            => \@objects,
 		extra_linker_flags => $linker_flags,
@@ -409,7 +409,7 @@ sub build_executable {
 	my @objects      = $self->build_objects(%args);
 	my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
 	$self->create_dir(dirname($args{output}));
-	$self->builder->link_executable(
+	$self->cbuilder->link_executable(
 		objects            => \@objects,
 		exe_file           => $args{output},
 		extra_linker_flags => $linker_flags,
