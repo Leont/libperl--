@@ -20,7 +20,7 @@ use File::Spec::Functions qw/catfile catdir/;
 use Module::Load qw/load/;
 use List::MoreUtils qw/any first_index uniq/;
 use POSIX qw/strftime/;
-use Readonly;
+use Readonly ();
 use TAP::Harness;
 
 Readonly::Scalar my $compiler    => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
@@ -28,14 +28,10 @@ Readonly::Scalar my $NOTFOUND    => -1;
 Readonly::Scalar my $SECURE      => oct 744;
 Readonly::Scalar my $NONREADABLE => ~oct 22;
 
-sub compiler_flags {
-	if ($compiler eq 'gcc') {
-		return qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra -Winvalid-pch/;
-	}
-	elsif ($compiler eq 'msvc') {
-		return qw{/TP /EHsc /Wall};
-	}
-}
+Readonly::Array my @compiler_flags => 
+	($compiler eq 'gcc') ? qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra -Winvalid-pch/ : 
+	($compiler eq 'msvc') ? qw{/TP /EHsc /Wall} : 
+	();
 
 sub parse_line {
 	my ($action, $line) = @_;
@@ -379,7 +375,7 @@ sub build_objects {
 			object_file          => $object_file,
 			'C++'                => $args{'C++'},
 			include_dirs         => $self->include_dirs($args{include_dirs}),
-			extra_compiler_flags => $args{cc_flags} || [ compiler_flags ],
+			extra_compiler_flags => $args{cc_flags} || \@compiler_flags,
 		);
 	}
 	return values %object_for;
