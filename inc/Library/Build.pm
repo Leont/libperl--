@@ -514,10 +514,13 @@ sub register_paths {
 }
 
 sub dispatch {
-	my $self        = shift;
-	my $action_name = shift || croak 'No action defined';
-	my $action_ref  = $self->{action_map}{$action_name} or croak "No action '$action_name' defined";
-	$self->dispatch_next($action_ref);
+	my ($self, @action_names) = @_;
+	croak 'No action defined' if not @action_names;
+	for my $action_name (@action_names) {
+		next if $self->{dispatched}{$action_name}++;
+		my $action_ref = $self->{action_map}{$action_name} or croak "No action '$action_name' defined";
+		$self->dispatch_next($action_ref);
+	}
 	return;
 }
 
