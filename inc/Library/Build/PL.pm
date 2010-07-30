@@ -34,7 +34,7 @@ sub write_build {
 
 	local $Data::Dumper::Terse  = 1;
 	local $Data::Dumper::Indent = 0;
-	print {$fh} "$_\n" for ("#! $^X", '', 'use strict;', 'use warnings;');
+	print {$fh} "$_\n" for ("#! $^X", '', 'use strict;', 'use warnings;', "use FindBin;", 'BEGIN { chdir $FindBin::Bin };');
 	printf {$fh} "use lib %s;\n", join ', ', Dumper(@{$self->{inc}}) if $self->{inc};
 	print {$fh} "use Library::Build;\n";
 	print {$fh} "use $_;\n" for @{$self->{use}};
