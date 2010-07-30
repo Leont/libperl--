@@ -23,10 +23,10 @@ use POSIX qw/strftime/;
 use Readonly;
 use TAP::Harness;
 
-Readonly my $compiler    => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
-Readonly my $NOTFOUND    => -1;
-Readonly my $SECURE      => oct 744;
-Readonly my $NONREADABLE => ~oct 22;
+Readonly::Scalar my $compiler    => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
+Readonly::Scalar my $NOTFOUND    => -1;
+Readonly::Scalar my $SECURE      => oct 744;
+Readonly::Scalar my $NONREADABLE => ~oct 22;
 
 sub compiler_flags {
 	if ($compiler eq 'gcc') {
@@ -47,7 +47,7 @@ sub parse_line {
 
 
 		if (my ($name, $args) = m/ \A \s* (\* | \w+ ) \s+ (.*?) \s* \z /xms) {
-			my @args = split /\s+/, $args;
+			my @args = split / \s+ /x, $args;
 			return @args if $name eq $action or $name eq '*';
 		}
 		else {
@@ -73,7 +73,7 @@ sub read_config {
 
 		open my $fh, '<', $file or croak "Couldn't open configuration file '$file': $!";
 		my @lines = split / \n (?! \s) /xms, do { local $/ = undef, <$fh> };
-		close $fh;
+		close $fh or croak "Can't close $file: $!";
 		for my $line (@lines) {
 			push @ret, parse_line($action, $line);
 		}
@@ -84,7 +84,7 @@ sub read_config {
 sub parse_action {
 	my $meta_arguments = shift;
 	for my $meta_argument (map { $meta_arguments->{$_} } qw/argv envs/) {
-		my $position = first_index { not m/ ^ -- /xms and not m/=/xms } @{$meta_argument};
+		my $position = first_index { not m/ ^ -- /xms and not m/ = /xms } @{$meta_argument};
 		return splice @{$meta_argument}, $position, 1 if $position != $NOTFOUND;
 	}
 	return;
@@ -188,7 +188,7 @@ BEGIN {
 			waitpid $pid, 0;
 		}
 		else {
-			open STDOUT, '>', $output or die "Can't write to file '$output': $!";
+			open STDOUT, '>', $output or croak "Can't write to file '$output': $!";
 			exec @call or croak "Couldn't exec: $!";
 		}
 		return;
@@ -280,7 +280,7 @@ sub new {
 		binary => [ qw/blib _build/ ],
 		meta   => [ 'MYMETA.yml' ],
 		test   => [ '_build/t' ],
-		tarball  => [ "$name-$version.tar.bz2" ],
+		tarball  => [ "$name-$version.tar.gz" ],
 	);
 	$self->register_paths(
 		'so'      => $self->arg('libdir') || (split ' ', $Config{libpth})[0],
@@ -312,7 +312,7 @@ sub builder {
 
 sub include_dirs {
 	my ($self, $extra) = @_;
-	return [ (defined $self->arg('include_dirs') ? split(/:/, $self->arg('include_dirs')) : ()), (defined $extra ? @{$extra} : ()) ];
+	return [ (defined $self->arg('include_dirs') ? split(/ : /x, $self->arg('include_dirs')) : ()), (defined $extra ? @{$extra} : ()) ];
 }
 
 sub create_by_system {
@@ -386,13 +386,13 @@ sub build_objects {
 }
 
 sub build_library {
-	my ($self, %library) = @_;
+	my ($self, %args) = @_;
 
-	my @objects      = $self->build_objects(%library);
+	my @objects      = $self->build_objects(%args);
 
-	my $output_dir   = $library{output_dir} || 'blib';
-	my $library_file = $library{libfile} || catfile($output_dir, 'so', 'lib' . $self->builder->lib_file($library{name}));
-	my $linker_flags = linker_flags($library{libs}, $library{libdirs}, append => $library{linker_append}, 'C++' => $library{'C++'});
+	my $output_dir   = $args{output_dir} || 'blib';
+	my $library_file = $args{libfile} || catfile($output_dir, 'so', 'lib' . $self->builder->lib_file($args{name}));
+	my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
 	$self->create_dir(dirname($library_file));
 	$self->builder->link(
 		lib_file           => $library_file,
