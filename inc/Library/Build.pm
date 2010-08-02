@@ -432,6 +432,17 @@ sub register_paths {
 	return;
 }
 
+sub mixin {
+	my ($self, @modules) = @_;
+	for my $module (@modules) {
+		next if $self->{mixed_in}{$module}++;
+		load($module);
+		my $method = "$module\::mixin";
+		$self->$method();
+	}
+	return;
+}
+
 sub dispatch {
 	my ($self, @action_names) = @_;
 	croak 'No action defined' if not @action_names;
@@ -455,16 +466,6 @@ sub dispatch_next {
 sub dispatch_default {
 	my $self = shift;
 	$self->dispatch($self->arg('action'));
-	return;
-}
-
-sub mixin {
-	my ($self, @modules) = @_;
-	for my $module (@modules) {
-		load($module);
-		my $method = "$module\::mixin";
-		$self->$method();
-	}
 	return;
 }
 
