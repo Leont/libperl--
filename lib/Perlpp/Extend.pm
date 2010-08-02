@@ -61,7 +61,7 @@ Perlpp::Extend - Dynamically load C++ module into your perl program.
 
 =head1 VERSION
 
-Version 0.020
+Version 0.002
 
 =head1 SYNOPSIS
 

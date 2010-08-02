@@ -13,5 +13,6 @@ MYMETA.yml
 libperl++-*.tar.gz
 examples/combined
 examples/game
-examples/Extend.so
-examples/Extend.dll
+examples/*.so
+examples/*.dll
+examples/*.exe

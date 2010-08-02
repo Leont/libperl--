@@ -26,7 +26,7 @@ my %cpp_files = (
 
 my %examples = (
 	executables => [ qw/combined game/ ],
-	libraries   => [ qw/Extend/ ]
+	libraries   => [ qw/Extend Extend2/ ]
 );
 
 sub test_map {
