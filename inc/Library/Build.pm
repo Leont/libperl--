@@ -12,13 +12,14 @@ use Config;
 use ExtUtils::CBuilder;
 use ExtUtils::Install qw/install/;
 use ExtUtils::Manifest qw/maniread manicheck mkmanifest/;
-use File::Basename qw/dirname/;
+use File::Basename qw/basename dirname/;
 use File::Copy qw/copy/;
 use File::Find qw/find/;
 use File::Path qw/mkpath rmtree/;
-use File::Spec::Functions qw/catfile catdir/;
-use Module::Load qw/load/;
+use File::Spec::Functions qw/catfile catdir splitdir/;
 use List::MoreUtils qw/any uniq/;
+use Module::Load qw/load/;
+use Pod::Man;
 use POSIX qw/strftime/;
 use Readonly ();
 use TAP::Harness;
@@ -107,7 +108,13 @@ BEGIN {
 my %default_actions = (
 	lib       => sub {
 		my $builder = shift;
-		$builder->copy_files($_, catfile('blib', $_)) for $builder->find_files('lib', qr/ \. p(m|od) \z /xms);
+		for my $file ($builder->find_files('lib', qr/ \. p(?:m|od) \z /xms)) {
+			$builder->copy_files($file, catfile('blib', $file));
+			my @directories = splitdir(dirname($file));
+			shift @directories;
+			my $base = basename($file, qw/.pm .pod/);
+			$builder->pod2man($file, catfile('blib', 'libdoc', @directories, "$base.3"));
+		}
 	},
 	build     => sub {
 		my $builder = shift;
@@ -319,6 +326,14 @@ sub build_executable {
 		extra_linker_flags => $linker_flags,
 		'C++'              => $args{'C++'},
 	) if not -e $args{output} or any { (-M $_ < -M $args{output}) } @objects;
+	return;
+}
+
+sub pod2man {
+	my ($self, $source, $dest) = @_;
+	$self->create_dir(dirname($dest));
+	print "pod2man $source $dest\n" if $self->arg('quiet') <= 0;
+	my $parser = Pod::Man->new->parse_from_file($source, $dest);
 	return;
 }
 
