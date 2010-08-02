@@ -36,6 +36,12 @@ const Scalar::Temp eigth(Array args) {
 	return args[0];
 }
 
+void ninth(const char* arg) {
+}
+
+void tenth(const std::string& arg){
+}
+
 int main() {
 	plan(8);
 
@@ -56,6 +62,10 @@ int main() {
 	universe.call("seventh", 1);
 	universe.add("eigth", &eigth);
 	ok(universe.call("eigth", 1), "const Scalar::Temp eight(1);");
+	universe.add("ninth", &ninth);
+	universe.add("tenth", &tenth);
+	Scalar foo = universe.value_of("foo");
+	std::string bar = foo;
 
 	return exit_status();
 }

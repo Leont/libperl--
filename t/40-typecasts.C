@@ -43,7 +43,7 @@ int main() {
 
 	is(typecast_from(universe, bar), 1, "typecast_from(bar) == 1");
 
-	Ref<Array> baz = universe.eval("[1, 2, 3]");
+	Array baz = universe.eval_list("(1, 2, 3)");
 
 	vector<my_type> buz = typecast_to<vector<my_type> >(baz);
 
