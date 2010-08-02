@@ -259,7 +259,7 @@ sub copy_files {
 		opendir my $dh, $source or croak "Can't open dir $source: $!";
 		for my $filename (readdir $dh) {
 			next if $filename =~ / \A \. /xms;
-			$self->copy_files("$source/$filename", "$destination/$filename");
+			$self->copy_files(catfile($source, $filename), catfile($destination, $filename));
 		}
 		closedir $dh;
 	}
@@ -331,6 +331,7 @@ sub build_executable {
 
 sub pod2man {
 	my ($self, $source, $dest) = @_;
+	return if -e $dest and -M $source > -M $dest;
 	$self->create_dir(dirname($dest));
 	print "pod2man $source $dest\n" if $self->arg('quiet') <= 0;
 	my $parser = Pod::Man->new->parse_from_file($source, $dest);
@@ -465,7 +466,7 @@ sub dispatch_next {
 
 sub dispatch_default {
 	my $self = shift;
-	$self->dispatch($self->arg('action'));
+	$self->dispatch($self->arg('action') || 'build');
 	return;
 }
 

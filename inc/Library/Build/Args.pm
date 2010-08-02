@@ -88,13 +88,13 @@ sub parse_option {
 
 sub parse_options {
 	my %meta_arguments = @_;
-	@{ $meta_arguments{envs} } = split / /, $ENV{PERL_MB_OPT} if $ENV{PERL_MB_OPT};
+	@{ $meta_arguments{envs} } = split / /, $ENV{PERL_MB_OPT} if not defined $meta_arguments{envs} and $ENV{PERL_MB_OPT};
 
 	my %options = ( quiet => 0 );
 
-	$options{action} = parse_action(\%meta_arguments) || 'build';
+	$options{action} = parse_action(\%meta_arguments);
 
-	@{ $meta_arguments{config} } = read_config($options{action});
+	@{ $meta_arguments{config} } = read_config($options{action} || 'build');
 
 	for my $argument_list (map { $meta_arguments{$_} } qw/config cached envs argv/) {
 		for my $argument (@{$argument_list}) {
