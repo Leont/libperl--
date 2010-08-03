@@ -130,7 +130,8 @@ my %default_actions = (
 		my $builder = shift;
 
 		$builder->dispatch('testbuild');
-		$builder->run_tests($builder->tests)
+		my @tests = defined $builder->arg('test_files') ? split / /, $builder->arg('test_files') : $builder->find_files('t', qr/ \. t (?:$Config{_exe})? \z /xms);
+		$builder->run_tests(@tests);
 	},
 	install   => sub {
 		my $builder = shift;
@@ -223,11 +224,6 @@ sub cbuilder {
 	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->arg('quiet') > 0)
 }
 
-sub include_dirs {
-	my ($self, $extra) = @_;
-	return [ (defined $self->arg('include_dirs') ? split(/ : /x, $self->arg('include_dirs')) : ()), (defined $extra ? @{$extra} : ()) ];
-}
-
 sub create_by_system {
 	my ($self, $exec, $input, $output) = @_;
 	if (not -e $output or -M $input < -M $output) {
@@ -282,6 +278,7 @@ sub build_objects {
 	my $tempdir    = $args{temp_dir}  || '_build';
 	my @raw_files  = get_input_files(@args{qw/input_files input_dir/});
 	my %object_for = map { (catfile($input_dir, $_) => catfile($tempdir, $self->cbuilder->object_file($_))) } @raw_files;
+	my @input_dirs = ( (defined $self->arg('include_dirs') ? split(/ : /x, $self->arg('include_dirs')) : ()), (defined $args{include_dirs} ? @{ $args{include_dirs} } : ()));
 
 	for my $source_file (sort keys %object_for) {
 		my $object_file = $object_for{$source_file};
@@ -291,7 +288,7 @@ sub build_objects {
 			source               => $source_file,
 			object_file          => $object_file,
 			'C++'                => $args{'C++'},
-			include_dirs         => $self->include_dirs($args{include_dirs}),
+			include_dirs         => \@input_dirs,
 			extra_compiler_flags => $args{cc_flags} || \@compiler_flags,
 		);
 	}
@@ -377,11 +374,6 @@ sub find_files {
 	} , $dir) if -d $dir;
 	@ret = sort @ret;
 	return @ret;
-}
-
-sub tests {
-	my $self = shift;
-	return defined $self->arg('test_files') ? split / /, $self->arg('test_files') : $self->find_files('t', qr/ \. t (?:$Config{_exe})? \z /xms);
 }
 
 sub prompt {
