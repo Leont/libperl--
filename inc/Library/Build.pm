@@ -108,12 +108,14 @@ BEGIN {
 my %default_actions = (
 	lib       => sub {
 		my $builder = shift;
-		for my $file ($builder->find_files('lib', qr/ \. p(?:m|od) \z /xms)) {
-			$builder->copy_files($file, catfile('blib', $file));
-			my @directories = splitdir(dirname($file));
-			shift @directories;
-			my $base = basename($file, qw/.pm .pod/);
-			$builder->pod2man($file, catfile('blib', 'libdoc', @directories, "$base.3"));
+		for my $ext (qw/pm pod/) {
+			for my $file ($builder->find_files('lib', qr/ \. $ext \z /xms)) {
+				$builder->copy_files($file, catfile('blib', $file));
+				my @directories = splitdir(dirname($file));
+				shift @directories;
+				my $base = basename($file, $ext);
+				$builder->pod2man($file, catfile('blib', 'libdoc', join('::', @directories, $base) . '3'));
+			}
 		}
 	},
 	build     => sub {
@@ -334,7 +336,8 @@ sub pod2man {
 	return if -e $dest and -M $source > -M $dest;
 	$self->create_dir(dirname($dest));
 	print "pod2man $source $dest\n" if $self->arg('quiet') <= 0;
-	my $parser = Pod::Man->new->parse_from_file($source, $dest);
+	$self->{pod_parser} ||= Pod::Man->new;
+	$self->{pod_parser}->parse_from_file($source, $dest);
 	return;
 }
 
