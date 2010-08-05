@@ -8,7 +8,6 @@ our $VERSION = 0.003;
 
 use Carp 'croak';
 use Config;
-use ExtUtils::CBuilder;
 use File::Basename qw/dirname/;
 use File::Copy qw/copy/;
 use File::Find qw/find/;
@@ -130,6 +129,7 @@ sub arg {
 
 sub cbuilder {
 	my $self = shift;
+	require ExtUtils::CBuilder;
 	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->arg('quiet') > 0)
 }
 
