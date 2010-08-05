@@ -102,6 +102,14 @@ sub arg {
 	return $self->{args}{$argname};
 }
 
+sub stash {
+	my ($self, $name, $value) = @_;
+	if (@_ > 2) {
+		$self->{stash}{$name} = $value;
+	}
+	return $self->{stash}{$name};
+}
+
 sub cbuilder {
 	my $self = shift;
 	require ExtUtils::CBuilder;
