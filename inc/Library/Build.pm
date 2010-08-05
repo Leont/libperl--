@@ -71,31 +71,6 @@ sub linker_flags {
 }
 
 BEGIN {
-	*my_system = $^O eq 'MSWin32'
-	? sub {
-		my ($self, $exec, $input, $output) = @_;
-		my $call = join ' ', @{$exec}, $input, '>', $output;
-		print "$call\n" if $self->arg('quiet') <= 0;
-		system $call and croak "Couldn't call system(): $!";
-		return;
-	}
-	: sub {
-		my ($self, $exec, $input, $output) = @_;
-		my @call = (@{$exec}, $input);
-		print "@call > $output\n" if $self->arg('quiet') <= 0;
-		my $pid = fork;
-		if ($pid) {
-			waitpid $pid, 0;
-		}
-		else {
-			open STDOUT, '>', $output or croak "Can't write to file '$output': $!";
-			exec @call or croak "Couldn't exec: $!";
-		}
-		return;
-	};
-}
-
-BEGIN {
 	local $@;
 	eval { require namespace::clean } and namespace::clean->import;
 }
@@ -133,10 +108,33 @@ sub cbuilder {
 	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->arg('quiet') > 0)
 }
 
+my $my_system = $^O eq 'MSWin32'
+? sub {
+	my ($self, $exec, $input, $output) = @_;
+	my $call = join ' ', @{$exec}, $input, '>', $output;
+	print "$call\n" if $self->arg('quiet') <= 0;
+	system $call and croak "Couldn't call system(): $!";
+	return;
+}
+: sub {
+	my ($self, $exec, $input, $output) = @_;
+	my @call = (@{$exec}, $input);
+	print "@call > $output\n" if $self->arg('quiet') <= 0;
+	my $pid = fork;
+	if ($pid) {
+		waitpid $pid, 0;
+	}
+	else {
+		open STDOUT, '>', $output or croak "Can't write to file '$output': $!";
+		exec @call or croak "Couldn't exec: $!";
+	}
+	return;
+};
+
 sub create_by_system {
 	my ($self, $exec, $input, $output) = @_;
 	if (not -e $output or -M $input < -M $output) {
-		my_system($self, $exec, $input, $output);
+		$my_system->($self, $exec, $input, $output);
 	}
 	return;
 }
