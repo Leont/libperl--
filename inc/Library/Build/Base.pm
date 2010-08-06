@@ -74,7 +74,10 @@ my %default_actions = (
 	},
 	help      => sub {
 		my $builder = shift;
-		print "No help available\n";
+		print "Available commands:\n";
+		for my $command (sort keys %{$builder->{action_map}}) {
+			print "$command\n";
+		}
 	},
 	clean     => sub {
 		my $builder = shift;
