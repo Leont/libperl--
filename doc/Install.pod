@@ -23,17 +23,21 @@ Compiling libperl++ requires a number of dependencies to be fullfilled
 
 =item * perl 5.8 or higher. perl 5.10 or higher is recommended.
 
-=item * A recent C++ compiler. Currently supported are
+=item * A recent C++ compiler. Compilers that should be able to compile libperl++ are:
 
 =over 2
 
 =item * GCC 4.4 or higher
 
+GCC support is well tested.
+
 =item * MS Visual C++ 2010
+
+Note that due to the state of Perl's C++ toolchain on Windows, MSVC++ support is sadly theoretical currently.
 
 =back
 
-Recent version of the Intel and Codeweavers compilers may work, but have not been tested in any way.
+Recent version of the Intel and Codeweavers compilers might work too, but have not been tried in any way.
 
 =item * The Boost libraries. Note that this only includes headers, not runtime libraries.
 
@@ -78,6 +82,8 @@ Any options given to it will be saved and passed on to all subsequent calls of B
 =head2 Building the library
 
  ./Build
+
+This can take one option:
 
 =over 4
 
