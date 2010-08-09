@@ -6,7 +6,7 @@ using namespace perl;
 struct foo {
 	foo(const std::string&);
 	void bar(const char* world);
-	std::string buz(int);
+	std::string buz;
 };
 
 static void exporter(Class<foo>& extend) {
