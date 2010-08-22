@@ -31,8 +31,8 @@ my %examples = (
 
 sub test_map {
 	my $self = shift;
-	if ($self->arg('test_files')) {
-		return map { (my $source = $_) =~ s/ .t (?:$Config{_exe})? \z /.C/xms; -e $source ? ($source => $_) : () } split / /, $self->arg('test_files');
+	if ($self->stash('test_file')) {
+		return map { (my $source = $_) =~ s/ .t (?:$Config{_exe})? \z /.C/xms; -e $source ? ($source => $_) : () } @{ $self->stash('test_file') };
 	}
 	else {
 		return map { (my $test = $_) =~ s/ .C \z /.t$Config{_exe}/xms; ( $_ => $test ) } glob portable('t/*.C');

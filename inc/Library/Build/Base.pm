@@ -4,6 +4,8 @@ use 5.006;
 use strict;
 use warnings FATAL => 'all';
 
+our $VERSION = '0.003';
+
 use Archive::Tar;
 use Carp 'croak';
 use Config;
@@ -40,7 +42,7 @@ my %default_actions = (
 		my $builder = shift;
 
 		$builder->dispatch('testbuild');
-		my @tests = defined $builder->arg('test_files') ? split / /, $builder->arg('test_files') : $builder->find_files('t', qr/ \. t (?:$Config{_exe})? \z /xms);
+		my @tests = defined $builder->stash('test_file') ? @{ $builder->stash('test_file') } : $builder->find_files('t', qr/ \. t (?:$Config{_exe})? \z /xms);
 		$builder->run_tests(@tests);
 	},
 	install   => sub {
@@ -49,8 +51,8 @@ my %default_actions = (
 
 		install([
 			from_to => $builder->{install_paths},
-			verbose => $builder->arg('quiet') <= 0,
-			dry_run => $builder->arg('dry_run'),
+			verbose => $builder->stash('verbose') >= 0,
+			dry_run => $builder->stash('dry_run'),
 		]);
 	},
 	dist      => sub {
@@ -62,7 +64,7 @@ my %default_actions = (
 		$arch->add_files(@files);
 		$_->mode($_->mode & $NONREADABLE) for $arch->get_files;
 		my $release_name = $builder->name . '-' . $builder->version;
-		print "tar xjf $release_name.tar.gz @files\n" if $builder->arg('quiet') <= 0;
+		print "tar xjf $release_name.tar.gz @files\n" if $builder->stash('verbose') >= 0;
 		$arch->write("$release_name.tar.gz", COMPRESS_GZIP, $release_name);
 	},
 	manifest  => sub {
@@ -81,7 +83,7 @@ my %default_actions = (
 	},
 	clean     => sub {
 		my $builder = shift;
-		$builder->remove_dirty_files($builder->arg('what') || 'all');
+		$builder->remove_dirty_files($builder->stash('what') || 'all');
 	},
 	realclean => sub {
 		my $builder = shift;
@@ -103,9 +105,15 @@ sub mixin {
 		test   => [ '_build/t' ],
 		tarball  => [ $builder->name . '' . $builder->version . '.tar.gz' ],
 	);
+	$builder->register_argument($_, 0) for qw/verbose dry_run/;
+	$builder->register_argument($_, 1) for qw/library_var what/;
+	$builder->register_argument($_, 2) for qw/include_dir test_file/;
 	$builder->register_paths(
 		'so'      => $builder->arg('libdir') || (split ' ', $Config{libpth})[0],
 		'headers' => $builder->arg('incdir') || $Config{usrinc},
 		'lib'     => $builder->arg('moddir') || $Config{installsitelib},
 	);
+	return;
 }
+
+1;

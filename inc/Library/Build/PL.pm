@@ -1,5 +1,6 @@
 package Library::Build::PL;
 
+use 5.006;
 use strict;
 use warnings FATAL => 'all';
 
@@ -34,17 +35,19 @@ sub write_build {
 
 	local $Data::Dumper::Terse  = 1;
 	local $Data::Dumper::Indent = 0;
-	print {$fh} "$_\n" for ("#! $^X", '', 'use strict;', 'use warnings;', "use FindBin;", 'BEGIN { chdir $FindBin::Bin };');
+	print {$fh} "$_\n" for ("#! $^X", '', 'use strict;', 'use warnings;', 'use FindBin;', 'BEGIN { chdir $FindBin::Bin };');
 	printf {$fh} "use lib %s;\n", join ', ', Dumper(@{ $self->{inc} }) if $self->{inc};
 	print {$fh} "use Library::Build;\n";
 	print {$fh} "use $_;\n" for @{ $self->{use} };
 	print {$fh} "\n";
 
-	printf {$fh} "my \$builder = Library::Build->new('$self->{name}', '$self->{version}', { argv => \\\@ARGV, cached => %s });\n", Dumper($self->{argv});
+	print {$fh} "my \$builder = Library::Build->new('$self->{name}', '$self->{version}');\n";
+	print {$fh} "\$builder->mixin('Library::Build::Base');\n" if not $self->{skip_base};
 	printf {$fh} "\$builder->mixin(%s);\n", join ', ', Dumper(@{ $self->{mixin} }) if $self->{mixin};
+	printf {$fh} "\$builder->parse({ argv => \\\@ARGV, cached => %s });\n", Dumper($self->{argv});
 	if (defined $self->{action_map}) {
 		my $deparser = B::Deparse->new;
-		while (my ($key, $subs) = each %{$self->{action_map}}) {
+		while (my ($key, $subs) = each %{ $self->{action_map} }) {
 			for my $sub (@{$subs}) {
 				printf {$fh} "\$builder->register_actions('%s' => sub %s);\n", $key, $deparser->coderef2text($sub);
 			}

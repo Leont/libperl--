@@ -20,7 +20,7 @@ use POSIX qw/strftime/;
 use Readonly ();
 use TAP::Harness;
 
-use Library::Build::Args;
+use Library::Build::Config;
 
 Readonly::Scalar my $compiler    => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
 Readonly::Scalar my $SECURE      => oct 744;
@@ -77,14 +77,68 @@ BEGIN {
 
 sub new {
 	my ($class, $name, $version, $meta) = @_;
-	my %args = Library::Build::Args::parse_options(%{$meta});
 	my $self = bless {
 		name    => $name,
 		version => $version,
-		args    => \%args
+		stash   => {
+			verbose => 0,
+		},
 	}, $class;
-	$self->mixin('Library::Build::Base');
 	return $self;
+}
+
+sub _peek_action {
+	my $meta_arguments = shift;
+	for my $arguments (map { $meta_arguments->{$_} } qw/argv envs/) {
+		for my $argument (@{$arguments}) {
+			return $argument if not $argument =~ m/ ^ -- /xms;
+		}
+	}
+	return 'build';
+}
+
+sub _parse_option {
+	my ($self, $options, $argument_list) = @_;
+	my $argument = shift @{$argument_list};
+	if ($argument eq '--') {
+		push @{ $self->{arguments} }, @{$argument_list};
+		last;
+	}
+	if ($argument =~ / \A -- (.+) \z /xms) {
+		my $cb = $self->{argument_callback}{$1};
+		if ($cb) {
+			$cb->($options, $1, $argument_list);
+		}
+		else {
+			croak "Unknown option '$1'";
+		}
+	}
+	else {
+		push @{ $self->{arguments} }, $argument;
+	}
+	return;
+}
+
+sub parse {
+	my ($self, $meta_arguments) = @_;
+	my %meta_arguments = %{$meta_arguments};
+	@{ $meta_arguments{envs} } = split / /, $ENV{PERL_MB_OPT} if not defined $meta_arguments{envs} and $ENV{PERL_MB_OPT};
+
+	my $action = _peek_action(\%meta_arguments);
+	$self->stash('action', $action);
+
+	@{ $meta_arguments{config} } = Library::Build::Config::read_config($action);
+
+	my %options;
+	for my $argument_list (map { $meta_arguments{$_} } qw/config cached envs argv/) {
+		while ($argument_list && @{$argument_list}) {
+			$self->_parse_option(\%options, $argument_list);
+		}
+	}
+	while (my ($key, $value) = each %options) {
+		$self->stash($key, $value);
+	}
+	return;
 }
 
 sub name {
@@ -113,21 +167,21 @@ sub stash {
 sub cbuilder {
 	my $self = shift;
 	require ExtUtils::CBuilder;
-	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->arg('quiet') > 0)
+	return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->stash('verbose') < 0)
 }
 
 my $my_system = $^O eq 'MSWin32'
 ? sub {
 	my ($self, $exec, $input, $output) = @_;
 	my $call = join ' ', @{$exec}, $input, '>', $output;
-	print "$call\n" if $self->arg('quiet') <= 0;
+	print "$call\n" if $self->stash('verbose') >= 0;
 	system $call and croak "Couldn't call system(): $!";
 	return;
 }
 : sub {
 	my ($self, $exec, $input, $output) = @_;
 	my @call = (@{$exec}, $input);
-	print "@call > $output\n" if $self->arg('quiet') <= 0;
+	print "@call > $output\n" if $self->stash('verbose') >= 0;
 	my $pid = fork;
 	if ($pid) {
 		waitpid $pid, 0;
@@ -161,7 +215,7 @@ sub process_perl {
 
 sub create_dir {
 	my ($self, @dirs) = @_;
-	mkpath(\@dirs, $self->arg('quiet') <= 0, $SECURE);
+	mkpath(\@dirs, $self->stash('verbose') >= 0, $SECURE);
 	return;
 }
 
@@ -179,7 +233,7 @@ sub copy_files {
 	elsif (-f $source) {
 		$self->create_dir(dirname($destination));
 		if (not -e $destination or -M $source < -M $destination) {
-			print "cp $source $destination\n" if $self->arg('quiet') <= 0;
+			print "cp $source $destination\n" if $self->stash('verbose') >= 0;
 			copy($source, $destination) or croak "Could not copy '$source' to '$destination': $!";
 		}
 	}
@@ -193,7 +247,7 @@ sub build_objects {
 	my $tempdir    = $args{temp_dir}  || '_build';
 	my @raw_files  = get_input_files(@args{qw/input_files input_dir/});
 	my %object_for = map { (catfile($input_dir, $_) => catfile($tempdir, $self->cbuilder->object_file($_))) } @raw_files;
-	my @input_dirs = ( (defined $self->arg('include_dirs') ? split(/ : /x, $self->arg('include_dirs')) : ()), (defined $args{include_dirs} ? @{ $args{include_dirs} } : ()));
+	my @input_dirs = ( (defined $self->stash('include_dirs') ? split(/ : /x, $self->stash('include_dirs')) : ()), (defined $args{include_dirs} ? @{ $args{include_dirs} } : ()));
 
 	for my $source_file (sort keys %object_for) {
 		my $object_file = $object_for{$source_file};
@@ -247,7 +301,7 @@ sub pod2man {
 	my ($self, $source, $dest) = @_;
 	return if -e $dest and -M $source > -M $dest;
 	$self->create_dir(dirname($dest));
-	print "pod2man $source $dest\n" if $self->arg('quiet') <= 0;
+	print "pod2man $source $dest\n" if $self->stash('verbose') >= 0;
 	$self->{pod_parser} ||= Pod::Man->new;
 	$self->{pod_parser}->parse_from_file($source, $dest);
 	return;
@@ -255,10 +309,10 @@ sub pod2man {
 
 sub run_tests {
 	my ($self, @test_goals) = @_;
-	my $library_var = $self->arg('library_var') || $Config{ldlibpthname};
-	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->arg('quiet') < 2;
+	my $library_var = $self->stash('library_var') || $Config{ldlibpthname};
+	printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->stash('verbose') > -2;
 	my $harness = TAP::Harness->new({
-		verbosity => -$self->arg('quiet'),
+		verbosity => $self->stash('verbose'),
 		exec => sub {
 			my (undef, $file) = @_;
 			return -B $file ? [ $file ] : [ $^X, '-T', '-I' . catdir(qw/blib lib/), $file ];
@@ -274,7 +328,7 @@ sub run_tests {
 
 sub remove_tree {
 	my ($self, @files) = @_;
-	rmtree(\@files, $self->arg('quiet') <= 0, 0);
+	rmtree(\@files, $self->stash('verbose') >= 0, 0);
 	return;
 }
 
@@ -343,6 +397,27 @@ sub register_paths {
 	return;
 }
 
+my @stash_default_callbacks = (
+	sub {
+		my ($options, $name, undef) = @_;
+		$options->{$name}++;
+	},
+	sub {
+		my ($options, $name, $arguments) = @_;
+		$options->{$name} = shift @{$arguments};
+	},
+	sub {
+		my ($options, $name, $arguments) = @_;
+		push @{ $options->{$name} }, shift @{$arguments};
+	}
+);
+
+sub register_argument {
+	my ($self, $name, $destination) = @_;
+	$self->{argument_callback}{$name} = ref($destination) ? $destination : $stash_default_callbacks[$destination];
+	return;
+}
+
 sub mixin {
 	my ($self, @modules) = @_;
 	for my $module (@modules) {
@@ -376,7 +451,7 @@ sub dispatch_next {
 
 sub dispatch_default {
 	my $self = shift;
-	$self->dispatch($self->arg('action') || 'build');
+	$self->dispatch($self->stash('action'));
 	return;
 }
 
