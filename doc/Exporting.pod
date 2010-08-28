@@ -8,35 +8,68 @@ libperl++ -
 
 This documentation refers to libperl++ version 0.0.48
 
-=head1 SYNOPSIS
+=head1 EXPORTING FUNCTIONS
 
-	#Something
+Functions can be exported using the add method of Interpreter.
 
-=head1 DESCRIPTION
+	int some_function(const char*);
+	//...
+	universe.add("some_function", some_function);
+	universe.call("some_function", "hello world");
 
-A full description of the module and its features.
-May include numerous subsections (i.e., =head2, =head3, etc.).
+	Package somewhere = universe.package("foo");
+	universe.add("other_name", some_function);
 
-=head1 SUBROUTINES/METHODS
+libperl++ will automatically convert scalars from and to native numbers and std::strings. If needed you can define your own conversion operators as explained in L<Functions>.
 
-A separate section listing the public components of the module's interface.
-These normally consist of either subroutines that may be exported, or methods
-that may be called on objects belonging to the classes that the module provides.
-Name the section accordingly.
+=head1 EXPORTING METHODS
 
-In an object-oriented module, this section should begin with a sentence of the
-form "An object of this class represents...", to give the reader a high-level
-context to help them understand the methods that are subsequently described.
+Let's take this class
 
-=head1 DIAGNOSTICS
+	struct player {
+		player(const std::string&);
+		string get_name() const;
+		pair<int, int> get_position() const;
+		void set_position(pair<int, int>);
 
-A list of every error and warning message that the module can generate
-(even the ones that will "never happen"), with a full explanation of each
-problem, one or more likely causes, and any suggested remedies.
-(See also "Documenting Errors" in Chapter 13.)
+		double get_strength() const;
+		void set_strength(double);
+		void die(string);
+	};
 
-=head1 AUTHOR
+The class can be exported like this.
 
-Leon Timmermans (fawaka@gmail.com)
+	Class<player> player_class = universe.add_class("Player");
+	player_class.add(init<std::string>());
+	player_class.add("get_name", &player::get_name);
+	player_class.add("get_position", &player::get_position);
+	player_class.add("set_position", &player::set_position);
+	player_class.add("get_strength", &player::get_strength);
+	player_class.add("set_strength", &player::set_strength);
+	player_class.add("die", &player::die);
+
+=head1 EXPORTING VARIABLES
+
+Binds are a two way link between a Perl and a C++ variable. Changes to the one will be reflected in the other. You can do this using three functions.
+
+=over 4
+
+=item magical::readwrite(Scalar::Value& s, T variable)
+
+=item magical::readonly(Scalar::Value& s, T variable)
+
+=item magical::writeonly(Scalar::Value& s, T variable)
+
+Each of them accepts a scalar as first argument and a C++ variable as second argument.
+
+=back
+
+You can bind a package variable using the add method of Interpreter.
+
+	universe.add("Module::Variable", my_var);
+
+This is a shortcut for saying
+
+	magical::readwrite(universe.scalar("Module::Variable"), my_var);
 
 =cut
