@@ -19,12 +19,11 @@ use File::Spec::Functions qw/catfile catdir splitdir/;
 use List::MoreUtils qw/any uniq/;
 use Pod::Man;
 use POSIX qw/strftime/;
-use Readonly ();
 use TAP::Harness;
 
-Readonly::Scalar my $NONREADABLE => ~oct 22;
-Readonly::Scalar my $SECURE      => oct 744;
-Readonly::Scalar my $compiler    => $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
+my $NONREADABLE = ~oct 22;
+my $SECURE      = oct 744;
+my $compiler    = $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
 
 sub _compiler_flags {
 	return ($compiler eq 'gcc') ? [ qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra -Winvalid-pch/ ] : 

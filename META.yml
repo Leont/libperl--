@@ -17,7 +17,6 @@ build_requires:
   ExtUtils::Install:  1.47
   List::MoreUtils: 0.12
   Module::Load: 0
-  Readonly: 1.03
   TAP::Harness: 3
 configure_requires:
   ExtUtils::CBuilder: 0.27

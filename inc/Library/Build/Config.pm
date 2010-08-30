@@ -8,9 +8,8 @@ our $VERSION = '0.003';
 
 use Carp qw/croak/;
 use File::Spec::Functions qw/catfile/;
-use Readonly ();
 
-Readonly::Scalar my $NOTFOUND => -1;
+my $NOTFOUND = -1;
 
 sub parse_line {
 	my ($action, $line) = @_;
