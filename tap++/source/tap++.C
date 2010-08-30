@@ -2,6 +2,7 @@
 #include <tap++/tap++.h>
 #include <stack>
 #include <boost/lexical_cast.hpp>
+#include <cstdlib>
 
 namespace TAP {
 	std::string TODO = "";
@@ -68,7 +69,7 @@ namespace TAP {
 	}
 	void plan(const details::skip_all_type&, const std::string& reason) throw(fatal_exception) {
 		output_plan(0, " #skip " + reason);
-		exit(0);
+		std::exit(0);
 	}
 	void plan(const details::no_plan_type&) throw() {
 		is_planned = true;
@@ -113,7 +114,7 @@ namespace TAP {
 
 	void bail_out(const std::string& reason) throw() {
 		*details::output << "Bail out!  " << reason << std::endl;
-		exit(255); // Does not unwind stack!
+		std::exit(255); // Does not unwind stack!
 	}
 
 	bool ok(bool is_ok, const std::string& message) throw() {
