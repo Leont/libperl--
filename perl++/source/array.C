@@ -138,7 +138,7 @@ namespace perl {
 	}
 
 	namespace {
-		int array_store(interpreter* interp, SV* var, MAGIC* magic) {
+		int array_store(pTHX_ SV* var, MAGIC* magic) {
 			int index = *reinterpret_cast<int*>(magic->mg_ptr);
 			SV* tmp = newSVsv(var);
 			av_store(reinterpret_cast<AV*>(magic->mg_obj), index, tmp);

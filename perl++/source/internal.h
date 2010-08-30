@@ -13,8 +13,7 @@
 //#include <XSUB.h>
 //#endif
 
-#undef aTHX
-#define aTHX interp
+#define my_perl interp
 #undef die
 
 #ifdef MGf_LOCAL

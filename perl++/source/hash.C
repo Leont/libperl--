@@ -41,7 +41,7 @@ namespace perl {
 	}
 
 	namespace {
-		int string_store(interpreter* interp, SV* var, MAGIC* magic) {
+		int string_store(pTHX_ SV* var, MAGIC* magic) {
 			SV* tmp = newSVsv(var);
 			hv_store(reinterpret_cast<HV*>(magic->mg_obj), magic->mg_ptr, magic->mg_len, tmp, 0);
 			SvSETMAGIC(tmp);
@@ -71,7 +71,7 @@ namespace perl {
 		return Scalar::Temp(interp, ret, false);
 	}
 	namespace {
-		int scalar_store(interpreter* interp, SV* var, MAGIC* magic) {
+		int scalar_store(pTHX_ SV* var, MAGIC* magic) {
 			SV* tmp = newSVsv(var);
 			hv_store_ent(reinterpret_cast<HV*>(magic->mg_obj), *reinterpret_cast<SV**>(magic->mg_ptr), tmp, 0);
 			SvSETMAGIC(tmp);

@@ -249,7 +249,7 @@ namespace perl {
 			package_name = SvPV_nolen(ST(0));
 		}
 		Package Exporter_helper::get_package() {
-			return Package(aTHX, package_name);
+			return Package(aTHX_ package_name);
 		}
 		Exporter_helper::~Exporter_helper() {
 			int ax = axp;
