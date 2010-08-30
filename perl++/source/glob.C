@@ -5,10 +5,10 @@ namespace perl {
 	Glob::Glob(interpreter* _interp, GV* _handle) : interp(_interp), handle(_handle) {
 	}
 	Glob::Glob(const Glob& other) : interp(other.interp), handle(other.handle) {
-		SvREFCNT_inc(reinterpret_cast<const SV*>(handle));
+		SvREFCNT_inc(reinterpret_cast<SV*>(handle));
 	}
 	Glob::~Glob() {
-		SvREFCNT_dec(reinterpret_cast<const SV*>(handle));
+		SvREFCNT_dec(reinterpret_cast<SV*>(handle));
 	}
 
 	Glob& Glob::operator=(const Scalar::Base& other) {
