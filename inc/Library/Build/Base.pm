@@ -16,7 +16,6 @@ use File::Copy qw/copy/;
 use File::Find qw/find/;
 use File::Path qw/mkpath rmtree/;
 use File::Spec::Functions qw/catfile catdir splitdir/;
-use List::MoreUtils qw/any uniq/;
 use Pod::Man;
 use POSIX qw/strftime/;
 use TAP::Harness;
@@ -187,7 +186,7 @@ sub build_library {
 		objects            => \@objects,
 		extra_linker_flags => $linker_flags,
 		module_name        => 'libperl++',
-	) if not -e $library_file or any { (-M $_ < -M $library_file ) } @objects;
+	) if not -e $library_file or grep { (-M $_ < -M $library_file ) } @objects;
 	return;
 }
 
@@ -202,7 +201,7 @@ sub build_executable {
 		exe_file           => $args{output},
 		extra_linker_flags => $linker_flags,
 		'C++'              => $args{'C++'},
-	) if not -e $args{output} or any { (-M $_ < -M $args{output}) } @objects;
+	) if not -e $args{output} or grep { (-M $_ < -M $args{output}) } @objects;
 	return;
 }
 
@@ -277,7 +276,7 @@ sub yes_no {
 sub remove_dirty_files {
 	my ($self, @categories) = @_;
 	my @keys = map { $_ eq 'all' ? keys %{ $self->{dirty_files} } : $_ } @categories;
-	my @files = map { @{ $self->{dirty_files}{$_} } } uniq sort @keys;
+	my @files = map { @{ $self->{dirty_files}{$_} } } sort @keys;
 	$self->remove_tree(@files);
 	return;
 }
