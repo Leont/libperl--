@@ -768,7 +768,8 @@ namespace perl {
 
 		Scalar::Temp scalar(const char*) const;
 		Array::Temp array(const char*) const;
-		Hash::Temp hash(const char* name) const;
+		Hash::Temp hash(const char*) const;
+		Ref<Code>::Temp code(const char*) const;
 
 		Glob glob(const char*) const;
 
