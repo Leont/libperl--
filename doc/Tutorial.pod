@@ -27,17 +27,90 @@ libperl++ is a library for embedding perl. In this tutorial I'm taking simple im
 
 Using the interpreter we can access perl variables and functions. This is the starting point for all uses of this library.
 
-=head1 ACCESSING PERL
-
-Accessing Perl is L<Interpreter/"ACCESSING PERL FROM C++">.
-
 =head1 USING PERL VALUES
 
-libperl++ defines a number of value type corresponding to Perl values. Use of these values is described in L<Scalar>, L<Array> and L<Hash>. They are best read in that order.
+libperl++ defines a number of value type corresponding to Perl values. The details of using them is described in L<Scalar>, L<Array> and L<Hash>, They are best read in that order. The main rule of thumb is that they will try to DWIM whenever possible.
+
+=head2 Scalars
+
+Scalars are probably the most complicated part of this library, because they have to bridge between the relatively strongly typed world of C++ and the relatively weakly typed world of Perl. To make this a little more managable there are two kinds of scalars. The generic classes contain 80% of the functionality of all specific classes, but are less type safe. They implicitly convert to lots of types (which is both a strength and a weakness). The specific classes are limited to one kind of behavior (Integer, String, Ref<>), but contain all of that behavior.
+
+=head2 Arrays
+
+On one hand, Arrays try to be as perlish as possible. They have all array and list operators (such as exists and grep) as keywords, they can be converted into their length, they even have most functions from List::Util as methods. On the other hand they have fully STL compatible iterators and can be used like any other container. Theytry really hard to DWIM for you. For example, these three sniplets all do the same in style of Perl, C and C++ respectively.
+
+	bar.each(test);
+	
+	for (unsigned i = 0; i < bar; ++i) {
+		test(bar[i]);
+	}
+	
+	std::for_each(bar.begin(), bar.end(), test);
+
+=head2 Hashes
+
+Like Arrays, hashes come with all the tools you're used to in perl. 
+
+=head1 ACCESSING PERL
+
+When accessing perl from C++ you start with an interpreter object. One can be declared as such:
+
+	Interpreter universe;
+
+If your perl has been compiled with C<MULTIPLICITY> defined you can have multiple interpreters. The interpreter object is the starting point for all further interactions with perl.
+
+=head2 EVALUATING
+
+One method to get things done quickly is to use evaluations. You can evaluate string using the C<eval> and C<eval_list> methods. These functions return a scalar and an array respectively. They 
+
+	bool success = universe.eval("print qq{Hello World\n}");
+
+=head2 LOADING MODULES
+
+You can use modules using the use method. The first argument is the module name, the second and optional argument is the minimal version of the module.
+
+	Package dbi = universe.use("DBI", 1.000);
+
+The method returns a package object that can be used to call methods on. For example you can implement this piece of perl code:
+
+	my $foo = DBI->connect("dbi:SQLite:dbname=examples/dbfile", "", "");
+	my @bar = $foo->selectrow_array("SELECT * FROM test WHERE name = ?", universe.undef(), "a");
+
+By doing this:
+
+	Ref<Hash> foo = dbi.call("connect", "dbi:SQLite:dbname=examples/dbfile", "", "");
+	Array bar = foo.call_list("selectrow_array", "SELECT * FROM test WHERE name = ?", universe.undef(), "a");
+
+
+=head2 ACCESSING PACKAGE VARIABLES
+
+You can access package variables using the C<scalar>, C<array> and C<hash> methods. These functions return an lvalue that can be assigned to.
+
+	Array data = universe.array("Module::data");
+	universe.scalar("status") = 404;        # @main::status = 404
+	universe.hash("table").exists("hello"); # exists %main::table
+
+=head2 CALLING FUNCTIONS
+
+Perl function calls will accept all primitive types libperl++ can convert into a scalar, but also user defined types with a suitable conversion function as specified in L<Functions>. Some types, such as Arrays will be flattened before calling. You can call functions using the call function, like this:
+
+	int result = universe.call("function_name", argument1, argument2);
+
+Alternatively, you could use the code function to retrieve a coderef, and then call that directly:
+
+	Ref<Code> func = universe.code("function_name");
+	int result = func(argument1, argument2);
+
+=head2 CONVERTING VALUES INTO SCALARS
+
+Interpreter has a value_of method that is overloaded to accept many primitive types (such as integers and doubles) and some classes (such as strings) and convert them into Perl scalars.
+
+	String foo = universe.value_of("foo ");
+	Scalar bar = universe.value_of(0.42);
 
 =head1 EXPORTING C++
 
-Exporting C++ to Perl is described in L<Interpreter/"ACCESSING C++ FROM PERL"> and L<Package>.
+Exporting C++ to Perl is described in L<Exporter> and L<Package>.
 
 =head1 EXTENDING PERL
 
