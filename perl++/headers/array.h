@@ -373,8 +373,8 @@ namespace perl {
 		const Array::key_type size = length();
 		Array::Temp ret(interp);
 		for(key_type current = 0; current < size; ++current) {
-			const Scalar::Temp tmp = operator[](current);
-			if (functor(static_cast<const Scalar::Value&>(tmp))) {
+			const Scalar::Temp& tmp = operator[](current);
+			if (functor(tmp)) {
 				ret.push(tmp);
 			}
 		}
