@@ -297,11 +297,6 @@ sub register_paths {
 	return;
 }
 
-sub arg {
-	my ($self, $argname) = @_;
-	return $self->{args}{$argname};
-}
-
 my %default_actions = (
 	lib       => sub {
 		my $builder = shift;
@@ -402,9 +397,9 @@ sub mixin {
 	$builder->register_argument($_, 1) for qw/library_var what/;
 	$builder->register_argument($_, 2) for qw/include_dir test_file/;
 	$builder->register_paths(
-		'so'      => $builder->arg('libdir') || (split ' ', $Config{libpth})[0],
-		'headers' => $builder->arg('incdir') || $Config{usrinc},
-		'lib'     => $builder->arg('moddir') || $Config{installsitelib},
+		'so'      => (split ' ', $Config{libpth})[0],
+		'headers' => $Config{usrinc},
+		'lib'     => $Config{installsitelib},
 	);
 	return;
 }
