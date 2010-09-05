@@ -4,8 +4,11 @@ examples/dbfile
 examples/Extend.C
 examples/extend.pl
 examples/Extend.pm
+examples/Extend2.C
 examples/game.C
 inc/Library/Build.pm
+inc/Library/Build/Base.pm
+inc/Library/Build/Config.pm
 inc/Library/Build/PL.pm
 inc/Perlpp/Build.pm
 lib/Perlpp/Extend.pm
@@ -74,5 +77,6 @@ t/50-method-exports.C
 t/50-tie.C
 t/pod-coverage.t
 t/pod.t
+tap++/doc/libtap++.pod
 tap++/headers/tap++.h
 tap++/source/tap++.C
