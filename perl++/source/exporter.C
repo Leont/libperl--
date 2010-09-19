@@ -158,8 +158,8 @@ namespace perl {
 		return Scalar::Temp(interp, ST(pos), false);
 	}
 	context Argument_stack::get_context() const {
-		return GIMME_V == G_VOID  ? VOID : 
-			   GIMME_V == G_ARRAY ? LIST : 
-			   SCALAR;
+		return GIMME_V == G_VOID  ? VOID_C : 
+			   GIMME_V == G_ARRAY ? LIST_C : 
+			   SCALAR_C;
 	}
 }

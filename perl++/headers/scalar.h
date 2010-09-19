@@ -182,7 +182,7 @@ namespace perl {
 
 	class Package;
 	class Regex;
-	enum context {VOID, SCALAR, LIST};
+	enum context {VOID_C, SCALAR_C, LIST_C};
 
 	namespace implementation {
 		namespace array {
