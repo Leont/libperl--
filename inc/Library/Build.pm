@@ -134,6 +134,14 @@ sub register_argument {
 	return;
 }
 
+sub register_help {
+	my ($self, %what) = @_;
+	while (my ($command, $description) = each %what) {
+		$self->{help_for}{$command} = $description;
+	}
+	return;
+}
+
 sub mixin {
 	my ($self, @modules) = @_;
 	for my $module (@modules) {
