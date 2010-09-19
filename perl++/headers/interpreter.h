@@ -45,7 +45,7 @@ namespace perl {
 
 		bool has_magic_string(interpreter*, SV*);
 
-		typedef int (*magic_fun)(interpreter*, SV*, MAGIC*);
+		typedef int (*magic_fun)(pTHX_ SV*, MAGIC*);
 		void attach_getset_magic(interpreter* interp, SV* var, magic_fun get_val, magic_fun set_val, const void* buffer, size_t buffer_length);
 
 		void* get_magic_ptr(const MAGIC*);
@@ -69,15 +69,15 @@ namespace perl {
 					(object.*writer)(arg);
 				}
 				public:
-				static int read(interpreter* interp, SV* var, MAGIC* magic_ptr) {
+				static int read(pTHX_ SV* var, MAGIC* magic_ptr) {
 					const Wrapper& tmp = *implementation::get_magic_ptr<Wrapper>(magic_ptr);
-					Scalar::Temp val(interp, var, false);
+					Scalar::Temp val(aTHX_ var, false);
 					tmp.read(val);
 					return 0;
 				}
-				static int write(interpreter* interp, SV* var, MAGIC* magic_ptr) {
+				static int write(pTHX_ SV* var, MAGIC* magic_ptr) {
 					const Wrapper& tmp = *implementation::get_magic_ptr<Wrapper>(magic_ptr);
-					Scalar::Temp val(interp, var, false);
+					Scalar::Temp val(aTHX_ var, false);
 					tmp.write(val);
 					return 0;
 				}

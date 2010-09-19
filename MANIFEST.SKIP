@@ -11,5 +11,6 @@ libperl\+\+-.*\.tar\.gz
 ^MYMETA\.yml$
 ^perl\+\+/headers/config\.h$
 ^perl\+\+/headers/extend\.h$
+^perl\+\+/headers/multiplicity.h$
 ^perl\+\+/source/evaluate\.C$
 ^ppport\.h$

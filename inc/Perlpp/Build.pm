@@ -24,6 +24,11 @@ my %cpp_files = (
 	portable('perl++/source/extend.pre') => portable('perl++/headers/extend.h'),
 );
 
+my %perl_files = (
+	portable('perl++/source/evaluate.C.PL')     => portable('perl++/source/evaluate.C'),
+	portable('perl++/source/multiplicity.h.PL') => portable('perl++/headers/multiplicity.h'),
+);
+
 my %examples = (
 	executables => [ qw/combined game/ ],
 	libraries   => [ qw/Extend Extend2/ ]
@@ -46,7 +51,9 @@ my %action_map = (
 			$builder->process_cpp($input, $output);
 		}
 		
-		$builder->process_perl(portable('perl++/source/evaluate.C.PL'), portable('perl++/source/evaluate.C'));
+		while (my ($input, $output) = each %perl_files) {
+			$builder->process_perl($input, $output);
+		}
 	},
 	'perl++'  => sub {
 		my $builder = shift;

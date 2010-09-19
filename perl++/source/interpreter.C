@@ -8,7 +8,7 @@
 extern "C" {
 	void boot_DynaLoader(pTHX_ CV* cv);
 
-	static void xs_init(interpreter* interp) {
+	static void xs_init(pTHX) {
 		dXSUB_SYS;
 		newXS(const_cast<char*>("DynaLoader::boot_DynaLoader"), boot_DynaLoader, const_cast<char*>(__FILE__));
 	}
@@ -69,9 +69,11 @@ namespace perl {
 	Interpreter::Interpreter(interpreter* other, const override&) : raw_interp(other, noop) {
 		eval(implementation::to_eval);
 	}
+#ifdef MULTIPLICITY
 	Interpreter Interpreter::clone() const {
 		return Interpreter(perl_clone(interp, CLONEf_KEEP_PTR_TABLE), override()); // FIXME reference counting
 	}
+#endif
 	bool operator==(const Interpreter& first, const Interpreter& second) {
 		return first.raw_interp == second.raw_interp;
 	}
@@ -199,7 +201,7 @@ namespace perl {
 			family.insert(&type);
 		}
 
-		MGVTBL* get_object_vtbl(const std::type_info& pre_key, int (*destruct_ptr)(interpreter*, SV*, MAGIC*)) {
+		MGVTBL* get_object_vtbl(const std::type_info& pre_key, int (*destruct_ptr)(pTHX_ SV*, MAGIC*)) {
 			static boost::ptr_map<const std::type_info*, MGVTBL> table;
 			const std::type_info* key = &pre_key;
 			if (table.find(key) == table.end()) {
@@ -253,7 +255,7 @@ namespace perl {
 			package_name = SvPV_nolen(ST(0));
 		}
 		Package Exporter_helper::get_package() {
-			return Package(aTHX_ package_name);
+			return Package(interp, package_name);
 		}
 		Exporter_helper::~Exporter_helper() {
 			int ax = axp;

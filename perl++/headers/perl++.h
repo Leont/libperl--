@@ -37,6 +37,7 @@
 #endif
 
 // I split the header, to ease working with it.
+#include <perl++/multiplicity.h>
 #include <perl++/config.h>
 #include <perl++/helpers.h>
 #include <perl++/scalar.h>

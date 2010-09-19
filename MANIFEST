@@ -50,6 +50,7 @@ perl++/source/hash.C
 perl++/source/helpers.C
 perl++/source/internal.h
 perl++/source/interpreter.C
+perl++/source/multiplicity.h.PL
 perl++/source/primitives.C
 perl++/source/reference.C
 perl++/source/regex.C

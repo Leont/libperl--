@@ -67,7 +67,7 @@ namespace perl {
 		Perl_mark::Perl_mark(int _ax, SV** _mark, unsigned _items) : ax(_ax), mark(_mark), items(_items) {
 		}
 
-		const Code::Value export_as(interpreter* interp, const char* name, void (*func)(interpreter* , CV*), const void* buffer, int length) {
+		const Code::Value export_as(interpreter* interp, const char* name, void (*func)(pTHX_ CV*), const void* buffer, int length) {
 			static char nothing[] = "";
 			CV* const tmp = newXS(const_cast<char *>(name), func, nothing);
 			implementation::set_magic_string(interp, reinterpret_cast<SV*>(tmp), static_cast<const char*>(buffer), length);
