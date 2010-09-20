@@ -59,7 +59,7 @@ sub write_build {
 	print {$fh} "$self->{extra}\n" if $self->{extra};
 	print {$fh} "\$builder->dispatch_default();\n";
 	my $current_mode = (stat $fh)[2] or croak "Can't stat '$self->{filename}': $!\n";
-	chmod $current_mode | oct(111), $fh or croak "Can't make '$self->{filename}' executable: $!\n";
+	chmod $current_mode | oct(111), $fh or croak "Can't make '$self->{filename}' executable: $!\n" unless $^O eq 'MSWin32';
 	close $fh or die "Can't close filehandle: $!\n";
 
 	return;
