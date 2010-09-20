@@ -135,7 +135,7 @@ sub mixin {
 	$builder->register_actions(%action_map);
 	$builder->register_dirty(
 		test     => [ glob 't/*0-*.t' ],
-		source   => [ portable(qw{source/ppport.h perl++/source/evaluate.C perl++/headers/config.h perl++/headers/extend.h}) ],
+		source   => [ portable(qw{source/ppport.h perl++/source/evaluate.C perl++/headers/config.h perl++/headers/extend.h perl++/headers/multiplicity.h}) ],
 		examples => [ portable(qw{examples/combined examples/game examples/Extend.so}) ],
 	);
 	return;
