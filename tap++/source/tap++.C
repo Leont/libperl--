@@ -93,7 +93,7 @@ namespace TAP {
 	}
 
 	int exit_status() throw () {
-		bool passing;
+//		bool passing;
 		if (!is_planned && encountered()) {
 			diag("Tests were run but no plan was declared and done_testing() was not seen.");
 		}

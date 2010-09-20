@@ -85,26 +85,26 @@ namespace TAP {
 		try {
 			bool ret = ok(left == right, message);
 			if (!ret) {
-				note("Failed test '", message, "'");
-				note("       Got: ", left);
-				note("  Expected: ", right);
+				diag("Failed test '", message, "'");
+				diag("       Got: ", left);
+				diag("  Expected: ", right);
 			}
 			return ret;
 		}
 		catch(const std::exception& e) {
 			fail(message);
-			note("Failed test '", message, "'");
-			note("Cought exception '", e.what(), "'");
-			note("       Got: ", left);
-			note("  Expected: ", right);
+			diag("Failed test '", message, "'");
+			diag("Cought exception '", e.what(), "'");
+			diag("       Got: ", left);
+			diag("  Expected: ", right);
 			return false;
 		}
 		catch(...) {
 			fail(message);
-			note("Failed test '", message, "'");
-			note("Cought unknown exception");
-			note("       Got: ", left);
-			note("  Expected: ", right);
+			diag("Failed test '", message, "'");
+			diag("Cought unknown exception");
+			diag("       Got: ", left);
+			diag("  Expected: ", right);
 			return false;
 		}
 	}
@@ -115,14 +115,14 @@ namespace TAP {
 		}
 		catch(const std::exception& e) {
 			fail(message);
-			note("In test ", message);
-			note("Cought exception: ", e.what());
+			diag("In test ", message);
+			diag("Cought exception: ", e.what());
 			return false;
 		}
 		catch(...) {
 			fail(message);
-			note("In test ", message);
-			note("Cought unknown exception");
+			diag("In test ", message);
+			diag("Cought unknown exception");
 			return false;
 		}
 	}
@@ -131,26 +131,26 @@ namespace TAP {
 		try {
 			bool ret = ok(2 * fabs(left - right) / (fabs(left) + fabs(right)) < epsilon);
 			if (!ret) {
-				note("Failed test '", message, "'");
-				note("       Got: ", left);
-				note("  Expected: ", right);
+				diag("Failed test '", message, "'");
+				diag("       Got: ", left);
+				diag("  Expected: ", right);
 			}
 			return ret;
 		}
 		catch(const std::exception& e) {
 			fail(message);
-			note("Failed test '", message, "'");
-			note("Cought exception '", e.what(), "'");
-			note("       Got: ", left);
-			note("  Expected: ", right);
+			diag("Failed test '", message, "'");
+			diag("Cought exception '", e.what(), "'");
+			diag("       Got: ", left);
+			diag("  Expected: ", right);
 			return false;
 		}
 		catch(...) {
 			fail(message);
-			note("Failed test '", message, "'");
-			note("Cought unknown exception");
-			note("       Got: ", left);
-			note("  Expected: ", right);
+			diag("Failed test '", message, "'");
+			diag("Cought unknown exception");
+			diag("       Got: ", left);
+			diag("  Expected: ", right);
 			return false;
 		}
 	}
@@ -163,14 +163,14 @@ namespace TAP {
 		}
 		catch(const std::exception& e) {
 			fail(message);
-			note("Failed test '", message, "'");
-			note("Cought exception '", e.what(), "'");
+			diag("Failed test '", message, "'");
+			diag("Cought exception '", e.what(), "'");
 			return false;
 		}
 		catch(...) {
 			fail(message);
-			note("Failed test '", message, "'");
-			note("Cought unknown exception");
+			diag("Failed test '", message, "'");
+			diag("Cought unknown exception");
 			return false;
 		}
 	}
