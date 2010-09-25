@@ -155,7 +155,7 @@ sub build_objects {
 	my $tempdir    = $args{temp_dir}  || '_build';
 	my @raw_files  = _get_input_files(@args{qw/input_files input_dir/});
 	my %object_for = map { (catfile($input_dir, $_) => catfile($tempdir, $self->cbuilder->object_file($_))) } @raw_files;
-	my @input_dirs = ( (defined $self->stash('include_dirs') ? split(/ : /x, $self->stash('include_dirs')) : ()), (defined $args{include_dirs} ? @{ $args{include_dirs} } : ()));
+	my @input_dirs = ( (defined $self->stash('include_dir') ? @{ $self->stash('include_dir') } : ()), (defined $args{include_dirs} ? @{ $args{include_dirs} } : ()));
 
 	for my $source_file (sort keys %object_for) {
 		my $object_file = $object_for{$source_file};

@@ -85,9 +85,9 @@ This can take one option:
 
 =over 4
 
-=item * include_dirs
+=item * include_dir
 
-This is a colon separated list of directories to add to the include path. In particular, you need this on some platforms to indicate the location of boost.
+This argument adds a directory to the include path. It can be repeated to include multiple paths. In particular, you may need this on some platforms to indicate the location of boost.
 
 =back
 
