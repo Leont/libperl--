@@ -41,10 +41,10 @@ perl++/headers/scalar.h
 perl++/headers/typecasts.h
 perl++/source/array.C
 perl++/source/call.C
-perl++/source/config.pre
+perl++/source/config.h
 perl++/source/evaluate.C.PL
 perl++/source/exporter.C
-perl++/source/extend.pre
+perl++/source/extend.h
 perl++/source/glob.C
 perl++/source/hash.C
 perl++/source/helpers.C

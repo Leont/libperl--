@@ -20,8 +20,8 @@ sub portable {
 }
 
 my %cpp_files = (
-	portable('perl++/source/config.pre') => portable('perl++/headers/config.h'),
-	portable('perl++/source/extend.pre') => portable('perl++/headers/extend.h'),
+	portable('perl++/source/config.h') => portable('perl++/headers/config.h'),
+	portable('perl++/source/extend.h') => portable('perl++/headers/extend.h'),
 );
 
 my %perl_files = (
