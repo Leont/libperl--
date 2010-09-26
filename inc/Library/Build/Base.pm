@@ -306,7 +306,7 @@ my %default_actions = (
 				my @directories = splitdir(dirname($file));
 				shift @directories;
 				my $base = basename($file, $ext);
-				$builder->pod2man($file, catfile('blib', 'libdoc', join('::', @directories, $base) . '3'));
+				$builder->pod2man($file, catfile('blib', 'libdoc', join('::', @directories, $base) . '3')) if $^O ne 'MSWin32';
 			}
 		}
 	},
