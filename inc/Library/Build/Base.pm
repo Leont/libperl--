@@ -185,7 +185,7 @@ sub build_library {
 		lib_file           => $library_file,
 		objects            => \@objects,
 		extra_linker_flags => $linker_flags,
-		module_name        => 'libperl++',
+		module_name        => $args{name},
 	) if not -e $library_file or grep { (-M $_ < -M $library_file ) } @objects;
 	return;
 }
