@@ -7,12 +7,12 @@ namespace perl {
 			hv_iterinit(from);
 			while (HE* iterator = hv_iternext(from)) {
 				if (HeKLEN(iterator) == HEf_SVKEY) {
-					hv_store_ent(to, SvREFCNT_inc(HeSVKEY(iterator)), SvREFCNT_inc(HeVAL(iterator)), HeHASH(iterator));
+					hv_store_ent(to, SvREFCNT_inc(HeSVKEY(iterator)), newSVsv(HeVAL(iterator)), HeHASH(iterator));
 				} 
 				else {
 					STRLEN len;
 					char* tmp = HePV(iterator, len);
-					hv_store(to, tmp, len, SvREFCNT_inc(HeVAL(iterator)), HeHASH(iterator));
+					hv_store(to, tmp, len, newSVsv(HeVAL(iterator)), HeHASH(iterator));
 				}
 			}
 			return to;
