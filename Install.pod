@@ -57,14 +57,6 @@ Recent version of the Intel and Codeweavers compilers might work too, but have n
 
 =back
 
-Also there one module that is recommended to be installed during build
-
-=over 4
-
-=item * namespace::clean
-
-=back
-
 =head1 BUILDING
 
 libperl++'s build process is Build.PL compatible. All actions take options in the form C<options=value>, though if no value is given 1 is assumed.
@@ -85,7 +77,7 @@ This can take one option:
 
 =over 4
 
-=item * include_dir
+=item * --include_dir <dir>
 
 This argument adds a directory to the include path. It can be repeated to include multiple paths. In particular, you may need this on some platforms to indicate the location of boost.
 
@@ -105,13 +97,29 @@ Install can take a number of options
 
 =over 4
 
-=item * libdir: the location where the libperl++ library will be installed. The default is installation dependent.
+=item * --install_path type=path
 
-=item * incdir: the location where libperl++ headers will be installed. The default is installation dependent.
+This sets the install path of C<type> to C<path>. Type can be any of these:
 
-=item * moddir: the location there helper modules will be installed. The default is installation dependent.
+=over 4
 
-=item * dry_run: if this is true it will print out what it was planning to do without actually doing it. Defaults to false.
+=item * lib
+
+=item * headers
+
+=item * libdoc
+
+=item * so
+
+=back
+
+=item * --installdirs <target>
+
+Sets the install target to C<target>. Target should be either C<site> (the default), C<vendor> or C<core>.
+
+=item * --install_base <base-path>
+
+Install the targets to paths derived from C<base-path>.
 
 =back
 
