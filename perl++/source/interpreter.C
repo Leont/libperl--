@@ -144,7 +144,7 @@ namespace perl {
 		SvGETMAGIC(reinterpret_cast<SV*>(ret));
 		return Hash::Temp(raw_interp.get(), ret, false);
 	}
-	Ref<Code>::Temp Interpreter::code(const char* name) const {
+	const Ref<Code>::Temp Interpreter::code(const char* name) const {
 		CV* const cv = get_cv(name, true);
 		return Ref<Code>::Temp(raw_interp.get(), newRV_inc((SV*)cv), true);
 	}

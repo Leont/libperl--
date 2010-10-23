@@ -16,11 +16,87 @@ This documentation refers to libperl++ version 0.0.48
 
 The Interpreter class is the central point of this library. From it you can derive all other values you need.
 
-=head1 ACCESSING PERL FROM C++
+=head1 METHODS
 
-=head1 ACCESSING C++ FROM PERL
+=over 4
 
-Exporting C++ functions and variables is explained in L<Exporting.pod>
+=item * const Scalar::Temp eval(const char*) const;
+=item * const Scalar::Temp eval(const Scalar::Base&) const;
+
+Evaluate a string in scalar context, and return its return value.
+
+=item * const Array::Temp eval_list(const char*) const;
+=item * const Array::Temp eval_list(const Scalar::Base&) const;
+
+Evaluate a string in list context, and return its return value.
+
+=item * Package use(const char* package_name) const;
+=item * Package use(const char* package_name, double version) const;
+
+Load a package, and return its package object.
+
+=item * Package package(const char* name) const;
+
+Retrieve a package object for package C<name>. The package is created if it doesn't exist already.
+
+=item * Scalar::Temp scalar(const char*) const;
+
+Get or set a package scalar.
+
+=item * Array::Temp array(const char*) const;
+
+Get or set a package array.
+
+=item * Hash::Temp hash(const char*) const;
+
+Get or set a package hash.
+
+=item * const Ref<Code>::Temp code(const char*) const;
+
+Get a code reference.
+
+=item * const Regex regex(const String::Value& pattern, Raw_string modifiers = "") const;
+=item * const Regex regex(Raw_string pattern, Raw_string modifiers = "") const;
+
+Create a new regexp based on C<pattern> and C<modifiers>.
+
+=item * const Scalar::Temp undef() const;
+
+Get a new undefined scalar.
+
+=item * T value_of(U) const;
+
+Get a Perl value of type T (like String::Temp or Integer::Temp) from a C++ type U (like const char*, std::string, int).
+
+=item * T add(const char* name, U something)
+
+Add a C++ function or variable to perl. This is documented in L<Exporting>.
+
+=item * const Array::Temp list(...)
+
+Create a new list containing values C<...>.
+
+=item * const Hash::Temp hash();
+
+Create a new empty hash
+
+=item * const Scalar::Temp call(const char* function, ...)
+
+=item * const Scalar::Temp call(const Scalar::Value& function, ...)
+
+Call function C<function> with arguments C<...> in scalar context.
+
+=item * const Scalar::Temp call_list(const char* function, ...)
+
+=item * const Scalar::Temp call_list(const Scalar::Value&, function, ...)
+
+Call function C<function> with arguments C<...> in list context.
+
+=item * const String::Temp pack(const char* template, ...)
+
+Pack arguments C<...> according to C<template>.
+
+=back
 
 =head1 AUTHOR
 
