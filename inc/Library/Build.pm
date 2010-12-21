@@ -113,6 +113,28 @@ sub inject_method {
 	return;
 }
 
+sub inject_roles {
+	my ($self, $roles) = @_;
+
+	my %counter_for;
+	my %method_for;
+	for my $role (keys %{$roles}) {
+		for my $method (keys %{ $roles->{$role} }) {
+			push @{ $counter_for{$method} }, $role;
+			$method_for{$method} = $roles->{$role}{$method};
+		}
+	}
+	if (my @fail = grep { @{ $counter_for{$_} } != 1 } keys %counter_for) {
+		Carp::croak "Role collision: " . join "; ", map { "$_ is defined in " . join ', ', @{ $counter_for{$_} } } @fail;
+	}
+	while (my ($name, $sub) = each %method_for) {
+		Carp::croak "method for '$name' is not a coderef" if not ref($sub) eq 'CODE';
+		no strict 'refs';
+		*{ ref($self) . "::$name" } = $sub;
+	}
+	return;
+}
+
 my @stash_default_callbacks = (
 	sub {
 		my ($options, $name, undef) = @_;
