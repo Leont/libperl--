@@ -42,7 +42,9 @@ sub write_build {
 	print {$fh} "\n";
 
 	print {$fh} "my \$builder = Library::Build->new('$self->{name}', '$self->{version}');\n";
-	print {$fh} "\$builder->mixin('Library::Build::Base');\n" if not $self->{skip_base};
+	if (!$self->{skip_base}) {
+		print {$fh} "\$builder->mixin('Library::Build::$_');\n" for qw/Util Install Build Test Author/;
+	}
 	printf {$fh} "\$builder->mixin(%s);\n", join ', ', Dumper(@{ $self->{mixin} }) if $self->{mixin};
 	printf {$fh} "\$builder->parse({ argv => \\\@ARGV, cached => %s });\n", Dumper($self->{argv});
 	if (defined $self->{action_map}) {

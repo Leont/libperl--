@@ -7,10 +7,15 @@ examples/Extend.pm
 examples/Extend2.C
 examples/game.C
 inc/Library/Build.pm
-inc/Library/Build/Base.pm
+inc/Library/Build/Author.pm
+inc/Library/Build/Build.pm
 inc/Library/Build/Config.pm
+inc/Library/Build/Install.pm
 inc/Library/Build/PL.pm
+inc/Library/Build/Test.pm
+inc/Library/Build/Util.pm
 inc/Perlpp/Build.pm
+Install.pod
 lib/Perlpp/Extend.pm
 MANIFEST
 META.yml
@@ -19,7 +24,6 @@ perl++/doc/exporting.html
 perl++/doc/Exporting.pod
 perl++/doc/Functions.pod
 perl++/doc/Hash.pod
-perl++/doc/Install.pod
 perl++/doc/Interpreter.pod
 perl++/doc/Makefile
 perl++/doc/Overview.pod

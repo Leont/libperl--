@@ -6,7 +6,7 @@ use warnings FATAL => 'all';
 
 our $VERSION = 0.003;
 
-use Carp ();
+use Carp         ();
 use Module::Load ();
 
 use Library::Build::Config ();
@@ -18,9 +18,14 @@ sub new {
 		version => $version,
 	};
 	my $new_class = '_Singletons::' . (0 + $self);    # See Advanced Perl, or Class::SingletonMethods
-	no strict 'refs';
-	@{ $new_class . '::ISA' } = ($class);
-	return bless $self, $new_class;
+	{
+		no strict 'refs';
+		@{ $new_class . '::ISA' } = ($class);
+	}
+	bless $self, $new_class;
+	$self->stash(verbose => 0);
+	$self->register_argument(verbose => 0);
+	return $self;
 }
 
 sub _peek_action {
@@ -125,7 +130,7 @@ sub inject_roles {
 		}
 	}
 	if (my @fail = grep { @{ $counter_for{$_} } != 1 } keys %counter_for) {
-		Carp::croak "Role collision: " . join "; ", map { "$_ is defined in " . join ', ', @{ $counter_for{$_} } } @fail;
+		Carp::croak 'Role collision: ' . join '; ', map { "$_ is defined in " . join ', ', @{ $counter_for{$_} } } @fail;
 	}
 	while (my ($name, $sub) = each %method_for) {
 		Carp::croak "method for '$name' is not a coderef" if not ref($sub) eq 'CODE';
@@ -151,8 +156,10 @@ my @stash_default_callbacks = (
 );
 
 sub register_argument {
-	my ($self, $name, $destination) = @_;
-	$self->{argument_callback}{$name} = ref($destination) ? $destination : $stash_default_callbacks[$destination];
+	my ($self, %arguments) = @_;
+	while (my ($name, $destination) = each %arguments) {
+		$self->{argument_callback}{$name} = ref($destination) ? $destination : $stash_default_callbacks[$destination];
+	}
 	return;
 }
 
