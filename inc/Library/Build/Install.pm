@@ -8,6 +8,7 @@ our $VERSION = '0.003';
 
 use Config;
 use ExtUtils::Install qw/install/;
+use File::Spec::Functions qw/catfile/;
 
 my %install_dirs_for = (
 	core   => {
@@ -68,8 +69,15 @@ my %install_actions = (
 		my $builder = shift;
 		$builder->dispatch('build');
 
+		my %from_to = %{ $builder->{install_paths} };
+		if (my $destdir = $builder->stash('dest_dir')) {
+			for my $destination (values %from_to) {
+				$destination = catfile($destdir, $destination);
+			}
+		}
+
 		install([
-			from_to => $builder->{install_paths},
+			from_to => \%from_to,
 			verbose => $builder->stash('verbose') >= 0,
 			dry_run => $builder->stash('dry_run'),
 		]);
@@ -89,10 +97,10 @@ sub mixin {
 			my ($name, $value) = $arg =~ / (\w+) = (.*) /x;
 			$builder->register_paths($name => $value);
 		},
-		installdirs => sub {
+		installdirs  => sub {
 			my (undef, undef, $arguments) = @_;
 			my $type = shift @{$arguments};
-			$builder->register_paths($install_dirs_for{$type});
+			$builder->register_paths(%{ $install_dirs_for{$type} });
 			return;
 		},
 		install_base => sub {
@@ -104,9 +112,10 @@ sub mixin {
 			}
 			$builder->register_paths(%path_for);
 		},
-		dry_run => 0,
+		dest_dir     => 1,
+		dry_run      => 0,
 	);
-	$builder->register_paths(%{ $install_dirs_for{'site'} });
+	$builder->register_paths(%{ $install_dirs_for{site} });
 	return;
 }
 
