@@ -28,34 +28,26 @@ sub new {
 	return $self;
 }
 
-sub _peek_action {
-	my $meta_arguments = shift;
-	for my $arguments (map { $meta_arguments->{$_} } qw/argv envs/) {
-		for my $argument (@{$arguments}) {
-			return $argument if not $argument =~ m/ ^ -- /xms;
-		}
-	}
-	return 'build';
-}
-
-sub _parse_option {
+sub _parse_options {
 	my ($self, $options, $argument_list) = @_;
-	my $argument = shift @{$argument_list};
-	if ($argument eq '--') {
-		push @{ $self->{arguments} }, @{$argument_list};
-		last;
-	}
-	if ($argument =~ / \A -- (.+) \z /xms) {
-		my $cb = $self->{argument_callback}{$1};
-		if ($cb) {
-			$cb->($options, $1, $argument_list);
+	while ($argument_list && @{$argument_list}) {
+		my $argument = shift @{$argument_list};
+		if ($argument eq '--') {
+			push @{ $self->{arguments} }, @{$argument_list};
+			last;
+		}
+		if ($argument =~ / \A -- (.+) \z /xms) {
+			my $cb = $self->{argument_callback}{$1};
+			if ($cb) {
+				$cb->($options, $1, $argument_list);
+			}
+			else {
+				Carp::croak "Unknown option '$1'";
+			}
 		}
 		else {
-			Carp::croak "Unknown option '$1'";
+			push @{ $self->{arguments} }, $argument;
 		}
-	}
-	else {
-		push @{ $self->{arguments} }, $argument;
 	}
 	return;
 }
@@ -65,19 +57,17 @@ sub parse {
 	my %meta_arguments = %{$meta_arguments};
 	@{ $meta_arguments{envs} } = split / /, $ENV{PERL_MB_OPT} if not defined $meta_arguments{envs} and $ENV{PERL_MB_OPT};
 
-	my $action = _peek_action(\%meta_arguments);
+	my $action = @{ $meta_arguments{argv} } ? shift @{ $meta_arguments{argv} } : 'build';
 	$self->stash('action', $action);
 
 	@{ $meta_arguments{config} } = Library::Build::Config::read_config($action);
 
 	my %options;
 	for my $argument_list (map { $meta_arguments{$_} } qw/config cached envs argv/) {
-		while ($argument_list && @{$argument_list}) {
-			$self->_parse_option(\%options, $argument_list);
-		}
+		$self->_parse_options(\%options, $argument_list);
 	}
-	while (my ($key, $value) = each %options) {
-		$self->stash($key, $value);
+	for my $key (keys %options) {
+		$self->stash($key, $options{$key});
 	}
 	return;
 }
