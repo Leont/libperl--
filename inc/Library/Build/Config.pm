@@ -8,6 +8,7 @@ our $VERSION = '0.003';
 
 use Carp qw/croak carp/;
 use File::Spec::Functions qw/catfile/;
+use Text::ParseWords qw/shellwords/;
 
 my $NOTFOUND = -1;
 
@@ -41,7 +42,7 @@ sub read_config {
 		for my $line (split /\n/, $content) {
 			next LINE if $line =~ / \A \s* \z /xms;  # Skip empty lines
 			if (my ($name, $args) = $line =~ m/ \A \s* (\* | [\w.-]+ ) \s+ (.*?) \s* \z /xms) {
-				push @ret, split / \s+ /x, $args if $name eq $action or $name eq '*';
+				push @ret, shellwords($args) if $name eq $action or $name eq '*';
 			}
 			else {
 				carp "Can't parse line '$line'";

@@ -8,6 +8,7 @@ our $VERSION = 0.003;
 
 use Carp         ();
 use Module::Load ();
+use Text::ParseWords ();
 
 use Library::Build::Config ();
 
@@ -55,7 +56,7 @@ sub _parse_options {
 sub parse {
 	my ($self, $meta_arguments) = @_;
 	my %meta_arguments = %{$meta_arguments};
-	@{ $meta_arguments{envs} } = split / /, $ENV{PERL_MB_OPT} if not defined $meta_arguments{envs} and $ENV{PERL_MB_OPT};
+	@{ $meta_arguments{envs} } = Text::ParseWords::shellwords($ENV{PERL_MB_OPT}) if not defined $meta_arguments{envs} and $ENV{PERL_MB_OPT};
 
 	my $action = @{ $meta_arguments{argv} } ? shift @{ $meta_arguments{argv} } : 'build';
 	$self->stash('action', $action);
