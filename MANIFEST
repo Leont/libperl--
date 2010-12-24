@@ -9,6 +9,7 @@ examples/game.C
 inc/Library/Build.pm
 inc/Library/Build/Author.pm
 inc/Library/Build/Build.pm
+inc/Library/Build/Compile.pm
 inc/Library/Build/Config.pm
 inc/Library/Build/Install.pm
 inc/Library/Build/PL.pm
