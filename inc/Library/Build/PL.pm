@@ -13,6 +13,8 @@ use File::Copy qw/copy/;
 use File::Spec::Functions qw/catfile/;
 use FindBin;
 
+use Library::Build::Config;
+
 my %registries = (
 	dirty_files   => 'register_dirty',
 	install_paths => 'register_paths',
@@ -21,7 +23,8 @@ my %registries = (
 sub new {
 	my ($class, @args) = @_;
 	my %args = (
-		argv => \@ARGV,
+		argv   => \@ARGV,
+		config => [ Library::Build::Config::read_config('Build_PL') ],
 		@args
 	);
 	return bless \%args, $class;
