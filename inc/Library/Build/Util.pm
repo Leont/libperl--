@@ -11,7 +11,7 @@ use File::Basename qw/dirname/;
 use File::Copy qw/copy/;
 use File::Find qw/find/;
 use File::Path qw/mkpath rmtree/;
-use File::Spec::Functions qw/catfile catdir splitdir/;
+use File::Spec::Functions qw/catfile/;
 
 my $SECURE      = oct 744;
 

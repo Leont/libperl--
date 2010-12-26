@@ -43,7 +43,7 @@ sub _parse_options {
 				$cb->($options, $1, $argument_list);
 			}
 			else {
-				Carp::croak "Unknown option '$1'";
+				Carp::carp("Unknown option '--$1'");
 			}
 		}
 		else {
@@ -99,16 +99,6 @@ sub register_actions {
 	return;
 }
 
-sub inject_method {
-	my ($self, %methods) = @_;
-	while (my ($name, $sub) = each %methods) {
-		Carp::croak "method for '$name' is not a method" if not ref($sub) eq 'CODE';
-		no strict 'refs';
-		*{ ref($self) . "::$name" } = $sub;
-	}
-	return;
-}
-
 sub inject_roles {
 	my ($self, $roles) = @_;
 
@@ -121,10 +111,10 @@ sub inject_roles {
 		}
 	}
 	if (my @fail = grep { @{ $counter_for{$_} } != 1 } keys %counter_for) {
-		Carp::croak 'Role collision: ' . join '; ', map { "$_ is defined in " . join ', ', @{ $counter_for{$_} } } @fail;
+		Carp::croak('Role collision: ' . join '; ', map { "$_ is defined in " . join ', ', @{ $counter_for{$_} } } @fail);
 	}
 	while (my ($name, $sub) = each %method_for) {
-		Carp::croak "method for '$name' is not a coderef" if not ref($sub) eq 'CODE';
+		Carp::croak("method for '$name' is not a coderef") if not ref($sub) eq 'CODE';
 		no strict 'refs';
 		*{ ref($self) . "::$name" } = $sub;
 	}
@@ -175,10 +165,10 @@ sub mixin {
 
 sub dispatch {
 	my ($self, @action_names) = @_;
-	Carp::croak 'No action defined' if not @action_names;
+	Carp::croak('No action defined') if not @action_names;
 	for my $action_name (@action_names) {
 		next if $self->{dispatched}{$action_name}++;
-		my $action_ref = $self->{action_map}{$action_name} or Carp::croak "No action '$action_name' defined";
+		my $action_ref = $self->{action_map}{$action_name} or Carp::croak("No action '$action_name' defined");
 		$self->dispatch_next($action_ref);
 	}
 	return;
