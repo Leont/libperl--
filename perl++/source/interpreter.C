@@ -259,8 +259,10 @@ namespace perl {
 		}
 		Exporter_helper::~Exporter_helper() {
 			int ax = axp;
+#if PERL_VERSION >= 10
 		    if (PL_unitcheckav)
 				 Perl_call_list(aTHX_ PL_scopestack_ix, PL_unitcheckav);
+#endif
 
 			XSRETURN_YES;
 		}
