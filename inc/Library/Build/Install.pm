@@ -7,7 +7,8 @@ use warnings FATAL => 'all';
 our $VERSION = '0.003';
 
 use Config;
-use ExtUtils::Install qw/install/;
+use ExtUtils::Install qw/install uninstall/;
+use ExtUtils::Installed;
 use File::Spec::Functions qw/catfile/;
 
 my %install_dirs_for = (
@@ -76,11 +77,7 @@ my %install_actions = (
 			}
 		}
 
-		install([
-			from_to => \%from_to,
-			verbose => $builder->stash('verbose') >= 0,
-			dry_run => $builder->stash('dry_run'),
-		]);
+		install(\%from_to, $builder->stash('verbose') >= 0, $builder->stash('dry_run'), $builder->stash('uninst'));
 	},
 );
 
@@ -114,6 +111,7 @@ sub mixin {
 		},
 		dest_dir     => 1,
 		dry_run      => 0,
+		uninst       => 0,
 	);
 	$builder->register_paths(%{ $install_dirs_for{site} });
 	return;
