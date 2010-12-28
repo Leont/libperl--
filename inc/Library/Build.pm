@@ -32,6 +32,11 @@ sub new {
 			my $options = shift;
 			$options->{verbose}--;
 		},
+		config  => sub($) {
+			my (undef, undef, $raw) = @_;
+			my ($key, $value) = split /=/, $raw, 2;
+			$self->config($key, $value);
+		}
 	);
 	return $self;
 }
