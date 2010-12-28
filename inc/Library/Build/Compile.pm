@@ -86,7 +86,7 @@ my %compile_methods = (
 	cbuilder => sub {
 		my $self = shift;
 		require ExtUtils::CBuilder;
-		return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->stash('verbose') < 0)
+		return $self->{builder} ||= ExtUtils::CBuilder->new(quiet => $self->stash('verbose') < 0, config => $self->{config});
 	},
 	create_by_system => sub {
 		my ($self, $exec, $input, $output) = @_;
