@@ -79,20 +79,18 @@ sub mixin {
 	$builder->register_actions(%install_actions);
 
 	$builder->register_argument(
-		install_path => sub {
-			my (undef, undef, $arguments) = @_;
-			my $arg = shift @{$arguments};
+		install_path => sub($) {
+			my (undef, undef, $arg) = @_;
 			my ($name, $value) = $arg =~ / (\w+) = (.*) /x;
 			$builder->register_paths($name => $value);
 		},
-		installdirs  => sub {
-			my (undef, undef, $arguments) = @_;
-			my $type = shift @{$arguments};
+		installdirs  => sub($) {
+			my (undef, undef, $type) = @_;
 			$builder->register_paths(%{ install_dirs_for($builder, $type) });
 			return;
 		},
-		install_base => sub {
-			my (undef, undef, $arguments) = @_;
+		install_base => sub($) {
+			my (undef, undef, $base_path) = @_;
 
 			my %install_base_relpaths = (
 				lib     => ['lib', 'perl5'],
@@ -105,7 +103,6 @@ sub mixin {
 				libhtml => ['html'],
 			);
 
-			my $base_path = shift @{$arguments};
 			my %path_for;
 			for my $typename (keys %install_base_relpaths) {
 				$path_for{$typename} = catdir($base_path, @{ $install_base_relpaths{$typename} });

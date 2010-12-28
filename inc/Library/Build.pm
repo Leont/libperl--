@@ -41,7 +41,16 @@ sub _parse_options {
 		if ($argument =~ / \A -- (.+) \z /xms) {
 			my $cb = $self->{argument_callback}{$1};
 			if ($cb) {
-				$cb->($options, $1, $argument_list);
+				my $proto = prototype $cb;
+				if ($proto eq '') {
+					$cb->($options, $1);
+				}
+				elsif ($proto eq '$') {
+					$cb->($options, $1, shift @{ $argument_list });
+				}
+				else {
+					Carp::croak("unknown prototype for --$1 handler");
+				}
 			}
 			else {
 				Carp::carp("Unknown option '--$1'");
@@ -133,17 +142,17 @@ sub inject_roles {
 }
 
 my @stash_default_callbacks = (
-	sub {
-		my ($options, $name, undef) = @_;
+	sub() {
+		my ($options, $name) = @_;
 		$options->{$name}++;
 	},
-	sub {
-		my ($options, $name, $arguments) = @_;
-		$options->{$name} = shift @{$arguments};
+	sub($) {
+		my ($options, $name, $value) = @_;
+		$options->{$name} = $value;
 	},
-	sub {
-		my ($options, $name, $arguments) = @_;
-		push @{ $options->{$name} }, shift @{$arguments};
+	sub($) {
+		my ($options, $name, $value) = @_;
+		push @{ $options->{$name} }, $value;
 	}
 );
 
