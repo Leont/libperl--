@@ -7,7 +7,6 @@ use warnings;
 our $VERSION = 0.003;
 
 use Carp qw/croak/;
-use Config;
 use ExtUtils::Embed qw/ldopts/;
 use File::Spec::Functions qw/catfile/;
 
@@ -36,11 +35,12 @@ my %examples = (
 
 sub test_map {
 	my $self = shift;
+	my $exe = $self->config('_exe');
 	if ($self->stash('test_file')) {
-		return map { (my $source = $_) =~ s/ .t (?:$Config{_exe})? \z /.C/xms; -e $source ? ($source => $_) : () } @{ $self->stash('test_file') };
+		return map { (my $source = $_) =~ s/ .t (?:$exe)? \z /.C/xms; -e $source ? ($source => $_) : () } @{ $self->stash('test_file') };
 	}
 	else {
-		return map { (my $test = $_) =~ s/ .C \z /.t$Config{_exe}/xms; ( $_ => $test ) } glob portable('t/*.C');
+		return map { (my $test = $_) =~ s/ .C \z /.t$exe/xms; ( $_ => $test ) } glob portable('t/*.C');
 	}
 }
 
@@ -101,13 +101,14 @@ my %action_map = (
 			);
 		}
 		for my $example_name (@{$examples{libraries}}) {
+			my $exe = $builder->config('dlext');
 			$builder->build_library(
 				name         => $example_name,
 				input_files  => [ catfile('examples', "$example_name.C") ],
 				include_dirs => [ portable('blib/headers') ],
 				libs         => [ 'perl++' ],
 				libdirs      => [ portable('blib/so') ],
-				libfile      => catfile('examples', "$example_name\.$Config{dlext}"),
+				libfile      => catfile('examples', "$example_name\.$exe"),
 				'C++'        => 1,
 			);
 		}

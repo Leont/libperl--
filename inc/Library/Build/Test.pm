@@ -6,7 +6,6 @@ use warnings FATAL => 'all';
 
 our $VERSION = '0.003';
 
-use Config;
 use File::Spec::Functions qw/catfile catdir splitdir/;
 use POSIX qw/strftime/;
 use TAP::Harness;
@@ -14,7 +13,7 @@ use TAP::Harness;
 my %test_methods = (
 	run_tests => sub {
 		my ($self, @test_goals) = @_;
-		my $library_var = $self->stash('library_var') || $Config{ldlibpthname};
+		my $library_var = $self->stash('library_var') || $self->config('ldlibpthname');
 		printf "Report %s\n", strftime('%y%m%d-%H:%M', localtime) if $self->stash('verbose') > -2;
 		my $harness = TAP::Harness->new({
 			verbosity => $self->stash('verbose'),
@@ -41,7 +40,8 @@ my %test_actions = (
 		my $builder = shift;
 
 		$builder->dispatch('testbuild');
-		my @tests = defined $builder->stash('test_file') ? @{ $builder->stash('test_file') } : $builder->find_files('t', qr/ \. t (?:$Config{_exe})? \z /xms);
+		my $exe = $builder->config('_exe');
+		my @tests = defined $builder->stash('test_file') ? @{ $builder->stash('test_file') } : $builder->find_files('t', qr/ \. t (?:$exe)? \z /xms);
 		$builder->run_tests(@tests);
 	},
 	testclean => sub {

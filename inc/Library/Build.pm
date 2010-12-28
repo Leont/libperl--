@@ -7,6 +7,7 @@ use warnings FATAL => 'all';
 our $VERSION = 0.003;
 
 use Carp         ();
+use Config '%Config';
 use File::Spec ();
 use Text::ParseWords ();
 
@@ -89,6 +90,16 @@ sub stash {
 		$self->{stash}{$name} = $value;
 	}
 	return $self->{stash}{$name};
+}
+
+sub config {
+	my ($self, $name, $value) = @_;
+	if (@_ > 2) {
+		$self->{config}{$name} = $value;
+	}
+	else {
+		return exists $self->{config}{$name} ? $self->{config}{$name} : $Config{$name};
+	}
 }
 
 sub register_actions {

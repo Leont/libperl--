@@ -8,7 +8,6 @@ our $VERSION = '0.003';
 
 use Archive::Tar;
 use Carp 'croak';
-use Config;
 use ExtUtils::Manifest qw/maniread fullcheck mkmanifest manicopy/;
 $ExtUtils::Manifest::Quiet = 1;
 

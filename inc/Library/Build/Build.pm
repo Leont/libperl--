@@ -7,7 +7,6 @@ use warnings FATAL => 'all';
 our $VERSION = '0.003';
 
 use Carp 'croak';
-use Config;
 use File::Basename qw/basename dirname/;
 use File::Spec::Functions qw/catfile splitdir/;
 use Pod::Man;

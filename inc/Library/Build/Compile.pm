@@ -7,13 +7,12 @@ use warnings FATAL => 'all';
 our $VERSION = '0.003';
 
 use Carp 'croak';
-use Config;
 use File::Basename qw/basename dirname/;
 use File::Spec::Functions qw/catfile catdir splitdir/;
 
-my $compiler = $Config{cc} eq 'cl' ? 'msvc' : 'gcc';
-
 sub compiler_flags {
+	my $builder = shift;
+	my $compiler = $builder->config('cc') eq 'cl' ? 'msvc' : 'gcc';
 	return ($compiler eq 'gcc') ? [ qw/--std=gnu++0x -ggdb3 -DDEBUG -Wall -Wshadow -Wnon-virtual-dtor -Wsign-promo -Wextra -Winvalid-pch/ ] :
 	($compiler eq 'msvc') ? [ qw{/TP /EHsc /Wall} ] :
 	[];
@@ -39,8 +38,9 @@ sub get_input_files {
 }
 
 sub linker_flags {
-	my ($libs, $libdirs, %options) = @_;
+	my ($builder, $libs, $libdirs, %options) = @_;
 	my @elements;
+	my $compiler = $builder->config('cc') eq 'cl' ? 'msvc' : 'gcc';
 	if ($compiler eq 'gcc') {
 		push @elements, map { "-l$_" } @{$libs};
 		push @elements, map { "-L$_" } @{$libdirs};
@@ -113,7 +113,7 @@ my %compile_methods = (
 				object_file          => $object_file,
 				'C++'                => $args{'C++'},
 				include_dirs         => \@input_dirs,
-				extra_compiler_flags => $args{cc_flags} || compiler_flags(),
+				extra_compiler_flags => $args{cc_flags} || compiler_flags($self),
 			);
 		}
 		return values %object_for;
@@ -125,7 +125,7 @@ my %compile_methods = (
 
 		my $output_dir   = $args{output_dir} || 'blib';
 		my $library_file = $args{libfile} || catfile($output_dir, 'so', 'lib' . $self->cbuilder->lib_file($args{name}));
-		my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
+		my $linker_flags = linker_flags($self, $args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
 		$self->create_dir(dirname($library_file));
 		$self->cbuilder->link(
 			lib_file           => $library_file,
@@ -139,7 +139,7 @@ my %compile_methods = (
 		my ($self, %args) = @_;
 
 		my @objects      = $self->build_objects(%args);
-		my $linker_flags = linker_flags($args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
+		my $linker_flags = linker_flags($self, $args{libs}, $args{libdirs}, append => $args{linker_append}, 'C++' => $args{'C++'});
 		$self->create_dir(dirname($args{output}));
 		$self->cbuilder->link_executable(
 			objects            => \@objects,
@@ -151,7 +151,7 @@ my %compile_methods = (
 	},
 	process_cpp => sub {
 		my ($self, $input, $output) = @_;
-		$self->create_by_system([ $Config{cpp}, split(/ /, $Config{ccflags}), '-I' . catdir($Config{archlibexp}, 'CORE') ], $input, $output);
+		$self->create_by_system([ $self->config('cpp'), split(/ /, $self->config('ccflags')), '-I' . catdir($self->config('archlibexp'), 'CORE') ], $input, $output);
 		return;
 	},
 	process_perl => sub {
@@ -168,8 +168,8 @@ sub mixin {
 	$builder->register_dirty(binary  => [qw/_build/]);
 	$builder->register_argument(include_dir => 2);
 	$builder->register_paths(
-		'so'      => (split ' ', $Config{libpth})[0],
-		'headers' => $Config{usrinc},
+		'so'      => (split / /, $builder->config('libpth'))[0],
+		'headers' => $builder->config('usrinc'),
 	);
 	return;
 }

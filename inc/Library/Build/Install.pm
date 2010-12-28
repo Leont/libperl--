@@ -6,54 +6,45 @@ use warnings FATAL => 'all';
 
 our $VERSION = '0.003';
 
-use Config;
 use ExtUtils::Install qw/install uninstall/;
-use ExtUtils::Installed;
 use File::Spec::Functions qw/catfile/;
 
-my %install_dirs_for = (
-	core   => {
-		lib     => $Config{installprivlib},
-		arch    => $Config{installarchlib},
-		bin     => $Config{installbin},
-		script  => $Config{installscript},
-		bindoc  => $Config{installman1dir},
-		libdoc  => $Config{installman3dir},
-		binhtml => $Config{installhtml1dir},
-		libhtml => $Config{installhtml3dir},
-	},
-	site   => {
-		lib     => $Config{installsitelib},
-		arch    => $Config{installsitearch},
-		bin     => $Config{installsitebin},
-		script  => $Config{installsitescript},
-		bindoc  => $Config{installsiteman1dir},
-		libdoc  => $Config{installsiteman3dir},
-		binhtml => $Config{installsitehtml1dir},
-		libhtml => $Config{installsitehtml3dir},
-	},
-	vendor => {
-		lib     => $Config{installvendorlib},
-		arch    => $Config{installvendorarch},
-		bin     => $Config{installvendorbin},
-		script  => $Config{installvendorscript},
-		bindoc  => $Config{installvendorman1dir},
-		libdoc  => $Config{installvendorman3dir},
-		binhtml => $Config{installvendorhtml1dir},
-		libhtml => $Config{installvendorhtml3dir},
-	},
-);
-
-my %install_base_relpaths = (
-	lib     => ['lib', 'perl5'],
-	arch    => ['lib', 'perl5', $Config{archname}],
-	bin     => ['bin'],
-	script  => ['bin'],
-	bindoc  => ['man', 'man1'],
-	libdoc  => ['man', 'man3'],
-	binhtml => ['html'],
-	libhtml => ['html'],
-);
+sub install_dirs_for {
+	my ($builder, $location) = @_;
+	my %install_dirs_for = (
+		core   => {
+			lib     => $builder->config('installprivlib'),
+			arch    => $builder->config('installarchlib'),
+			bin     => $builder->config('installbin'),
+			script  => $builder->config('installscript'),
+			bindoc  => $builder->config('installman1dir'),
+			libdoc  => $builder->config('installman3dir'),
+			binhtml => $builder->config('installhtml1dir'),
+			libhtml => $builder->config('installhtml3dir'),
+		},
+		site   => {
+			lib     => $builder->config('installsitelib'),
+			arch    => $builder->config('installsitearch'),
+			bin     => $builder->config('installsitebin'),
+			script  => $builder->config('installsitescript'),
+			bindoc  => $builder->config('installsiteman1dir'),
+			libdoc  => $builder->config('installsiteman3dir'),
+			binhtml => $builder->config('installsitehtml1dir'),
+			libhtml => $builder->config('installsitehtml3dir'),
+		},
+		vendor => {
+			lib     => $builder->config('installvendorlib'),
+			arch    => $builder->config('installvendorarch'),
+			bin     => $builder->config('installvendorbin'),
+			script  => $builder->config('installvendorscript'),
+			bindoc  => $builder->config('installvendorman1dir'),
+			libdoc  => $builder->config('installvendorman3dir'),
+			binhtml => $builder->config('installvendorhtml1dir'),
+			libhtml => $builder->config('installvendorhtml3dir'),
+		},
+	);
+	return $install_dirs_for{$location};
+}
 
 my %install_methods = (
 	register_paths => sub {
@@ -97,11 +88,23 @@ sub mixin {
 		installdirs  => sub {
 			my (undef, undef, $arguments) = @_;
 			my $type = shift @{$arguments};
-			$builder->register_paths(%{ $install_dirs_for{$type} });
+			$builder->register_paths(%{ install_dirs_for($builder, $type) });
 			return;
 		},
 		install_base => sub {
 			my (undef, undef, $arguments) = @_;
+
+			my %install_base_relpaths = (
+				lib     => ['lib', 'perl5'],
+				arch    => ['lib', 'perl5', $builder->config('archname')],
+				bin     => ['bin'],
+				script  => ['bin'],
+				bindoc  => ['man', 'man1'],
+				libdoc  => ['man', 'man3'],
+				binhtml => ['html'],
+				libhtml => ['html'],
+			);
+
 			my $base_path = shift @{$arguments};
 			my %path_for;
 			for my $typename (keys %install_base_relpaths) {
@@ -113,7 +116,7 @@ sub mixin {
 		dry_run      => 0,
 		uninst       => 0,
 	);
-	$builder->register_paths(%{ $install_dirs_for{site} });
+	$builder->register_paths(%{ install_dirs_for($builder, 'site') });
 	return;
 }
 
