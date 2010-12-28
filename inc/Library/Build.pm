@@ -7,7 +7,7 @@ use warnings FATAL => 'all';
 our $VERSION = 0.003;
 
 use Carp         ();
-use Module::Load ();
+use File::Spec ();
 use Text::ParseWords ();
 
 use Library::Build::Config ();
@@ -152,11 +152,20 @@ sub register_help {
 	return;
 }
 
+my $load = sub {
+	my ($module, $try) = @_;
+	my @parts = split /::/, $module;
+	my $file = $^O eq 'MSWin32' ? join "/", @parts : File::Spec->catfile(@parts);
+	$file .= ".pm";
+	$file = VMS::Filespec::unixify($file) if $^O eq 'VMS';
+	return $try ? eval { require $file } : require $file;
+};
+
 sub mixin {
 	my ($self, @modules) = @_;
 	for my $module (@modules) {
 		next if $self->{mixed_in}{$module}++;
-		Module::Load::load($module);
+		$load->($module, 0);
 		my $method = "$module\::mixin";
 		$self->$method();
 	}

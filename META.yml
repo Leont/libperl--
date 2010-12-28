@@ -14,7 +14,6 @@ requires:
 build_requires:
   Archive::Tar: 0
   ExtUtils::CBuilder: 0.27
-  Module::Load: 0
   TAP::Harness: 3
 configure_requires:
   ExtUtils::CBuilder: 0.27
