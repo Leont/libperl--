@@ -26,7 +26,13 @@ sub new {
 	}
 	bless $self, $new_class;
 	$self->stash(verbose => 0);
-	$self->register_argument(verbose => 0);
+	$self->register_argument(
+		verbose => 0,
+		quiet   => sub () {
+			my $options = shift;
+			$options->{verbose}--;
+		},
+	);
 	return $self;
 }
 
