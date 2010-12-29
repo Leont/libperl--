@@ -107,7 +107,7 @@ my %util_actions = (
 	realclean => sub {
 		my $builder = shift;
 		$builder->dispatch('clean');
-		$builder->remove_tree('Build');
+		$builder->remove_tree('Build', 'MYMETA.yml');
 	},
 );
 
@@ -117,7 +117,6 @@ sub mixin {
 	$builder->inject_roles({ util => \%util_methods });
 	$builder->register_actions(%util_actions);
 	$builder->register_argument(what => 1);
-	$builder->register_dirty(meta => ['MYMETA.yml']);
 	return;
 }
 
