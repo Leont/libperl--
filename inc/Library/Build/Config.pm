@@ -28,7 +28,7 @@ sub slurp {
 
 sub read_config {
 	my $action = shift;
-	my @ret;
+	my %ret;
 
 	FILE:
 	for my $filename (@files) {
@@ -42,7 +42,7 @@ sub read_config {
 		for my $line (split /\n/, $content) {
 			next LINE if $line =~ / \A \s* \z /xms;  # Skip empty lines
 			if (my ($name, $args) = $line =~ m/ \A \s* (\* | [\w.-]+ ) \s+ (.*?) \s* \z /xms) {
-				push @ret, shellwords($args) if $name eq $action or $name eq '*';
+				push @{ $ret{$action} }, shellwords($args);
 			}
 			else {
 				carp "Can't parse line '$line'";
@@ -50,7 +50,7 @@ sub read_config {
 		}
 		last FILE;
 	}
-	return @ret;
+	return \%ret;
 }
 
 1;

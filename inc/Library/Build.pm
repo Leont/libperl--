@@ -82,10 +82,10 @@ sub parse {
 	my $action = @{ $meta_arguments{argv} } ? shift @{ $meta_arguments{argv} } : 'build';
 	$self->stash('action', $action);
 
-	@{ $meta_arguments{config} } = Library::Build::Config::read_config($action);
+	$meta_arguments{qw/config_all config_command/} = @{ Library::Build::Config::read_config($action) }{'*', $action};
 
 	my %options;
-	for my $argument_list (map { $meta_arguments{$_} } qw/config cached envs argv/) {
+	for my $argument_list (map { $meta_arguments{$_} } qw/config_all cached config_command envs argv/) {
 		$self->_parse_options(\%options, $argument_list);
 	}
 	for my $key (keys %options) {
