@@ -80,17 +80,17 @@ sub mixin {
 
 	$builder->register_argument(
 		install_path => sub($) {
-			my (undef, undef, $arg) = @_;
+			my ($arg) = @_;
 			my ($name, $value) = $arg =~ / (\w+) = (.*) /x;
 			$builder->register_paths($name => $value);
 		},
 		installdirs  => sub($) {
-			my (undef, undef, $type) = @_;
+			my ($type) = @_;
 			$builder->register_paths(%{ install_dirs_for($builder, $type) });
 			return;
 		},
 		install_base => sub($) {
-			my (undef, undef, $base_path) = @_;
+			my ($base_path) = @_;
 
 			my %install_base_relpaths = (
 				lib     => ['lib', 'perl5'],

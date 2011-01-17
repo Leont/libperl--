@@ -28,21 +28,21 @@ sub new {
 	$self->stash(verbose => 0);
 	$self->register_argument(
 		verbose => 0,
-		quiet   => sub () {
-			my $options = shift;
-			$options->{verbose}--;
+		quiet   => sub (;$) {
+			my $sub = @_ ? shift : 1;
+			$self->stash('verbose', $self->stash('verbose') - $sub);
 		},
 		config  => sub($) {
-			my (undef, undef, $raw) = @_;
+			my $raw = shift;
 			my ($key, $value) = split /=/, $raw, 2;
 			$self->config($key, $value);
-		}
+		},
 	);
 	return $self;
 }
 
 sub _parse_options {
-	my ($self, $options, $argument_list) = @_;
+	my ($self, $argument_list) = @_;
 	while ($argument_list && @{$argument_list}) {
 		my $argument = shift @{$argument_list};
 		if ($argument eq '--') {
@@ -53,18 +53,25 @@ sub _parse_options {
 			my $cb = $self->{argument_callback}{$1};
 			if ($cb) {
 				my $proto = prototype $cb;
-				if ($proto eq '') {
-					$cb->($options, $1);
+				if (not defined $proto or $proto eq '') {
+					$cb->();
 				}
 				elsif ($proto eq '$') {
-					$cb->($options, $1, shift @{ $argument_list });
+					$cb->(shift @{ $argument_list });
+				}
+				elsif ($proto eq ';$') {
+					my @args = @{$argument_list} && $argument_list->[0] !~ /^--/ ? shift @{ $argument_list } : ();
+					$cb->(@args);
+				}
+				elsif ($proto eq '\@') {
+					$cb->($argument_list);
 				}
 				else {
 					Carp::croak("unknown prototype for --$1 handler");
 				}
 			}
 			else {
-				Carp::carp("Unknown option '--$1'");
+				Carp::croak("Unknown option '--$1'");
 			}
 		}
 		else {
@@ -79,17 +86,13 @@ sub parse {
 	my %meta_arguments = %{$meta_arguments};
 	@{ $meta_arguments{envs} } = Text::ParseWords::shellwords($ENV{PERL_MB_OPT}) if not defined $meta_arguments{envs} and $ENV{PERL_MB_OPT};
 
-	my $action = @{ $meta_arguments{argv} } ? shift @{ $meta_arguments{argv} } : 'build';
+	my $action = @{ $meta_arguments{argv} } && $meta_arguments{argv}[0] !~ / \A -- /x ? shift @{ $meta_arguments{argv} } : 'build';
 	$self->stash('action', $action);
 
 	$meta_arguments{qw/config_all config_command/} = @{ Library::Build::Config::read_config($action) }{'*', $action};
 
-	my %options;
 	for my $argument_list (map { $meta_arguments{$_} } qw/config_all cached config_command envs argv/) {
-		$self->_parse_options(\%options, $argument_list);
-	}
-	for my $key (keys %options) {
-		$self->stash($key, $options{$key});
+		$self->_parse_options($argument_list);
 	}
 	return;
 }
@@ -152,24 +155,26 @@ sub inject_roles {
 	return;
 }
 
-my @stash_default_callbacks = (
-	sub() {
-		my ($options, $name) = @_;
-		$options->{$name}++;
-	},
-	sub($) {
-		my ($options, $name, $value) = @_;
-		$options->{$name} = $value;
-	},
-	sub($) {
-		my ($options, $name, $value) = @_;
-		push @{ $options->{$name} }, $value;
-	}
-);
-
 sub register_argument {
 	my ($self, %arguments) = @_;
 	while (my ($name, $destination) = each %arguments) {
+		my @stash_default_callbacks = (
+			sub(;$) {
+				my $add = @_ ? shift : 1;
+				$self->stash($name, ($self->stash($name) || 0) + $add);
+			},
+			sub($) {
+				my $value = shift;
+				$self->stash($name, $value);
+			},
+			sub($) {
+				my $value = shift;
+				my $elem = $self->stash($name);
+				$elem ||= [];
+				push @{$elem}, $value;
+				$self->stash($name, $elem);
+			}
+		);
 		$self->{argument_callback}{$name} = ref($destination) ? $destination : $stash_default_callbacks[$destination];
 	}
 	return;
