@@ -22,3 +22,4 @@
 #define MAGIC TAIL 
 #endif
 #undef call_list
+#undef seed
