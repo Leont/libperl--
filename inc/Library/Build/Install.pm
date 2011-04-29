@@ -7,7 +7,7 @@ use warnings FATAL => 'all';
 our $VERSION = '0.003';
 
 use ExtUtils::Install qw/install uninstall/;
-use File::Spec::Functions qw/catfile/;
+use File::Spec::Functions qw/catfile catdir/;
 
 sub install_dirs_for {
 	my ($builder, $location) = @_;
