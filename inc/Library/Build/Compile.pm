@@ -166,7 +166,7 @@ sub mixin {
 
 	$builder->inject_roles({ build => \%compile_methods });
 	$builder->register_dirty(binary  => [qw/_build/]);
-	$builder->register_argument(include_dir => 2);
+	$builder->register_argument(map { ($_ => 2) } qw/include_dir extra_compiler_flags extra_linker_flags/);
 	$builder->register_paths(
 		'so'      => (split / /, $builder->config('libpth'))[0],
 		'headers' => $builder->config('usrinc'),
