@@ -24,7 +24,7 @@ sub new {
 	my ($class, @args) = @_;
 	my %args = (
 		argv   => \@ARGV,
-		config => [ map { @{$_} } @{Library::Build::Config::read_config('Build_PL')}{'*', 'Build_PL'} ],
+		config => [ map { @{$_} } grep { $_ }  @{Library::Build::Config::read_config('Build_PL')}{'*', 'Build_PL'} ],
 		@args
 	);
 	return bless \%args, $class;
