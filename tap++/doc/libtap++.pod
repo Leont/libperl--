@@ -11,8 +11,8 @@ libtap++ - C++ unit tests for the Test Anything Protocol
 
   using namespace TAP;
 
-  int foo() {
-    return 1;
+  int foo(int ronkle = 1) {
+    return ronkle;
   }
 
   std::string bar() {
@@ -24,6 +24,11 @@ libtap++ - C++ unit tests for the Test Anything Protocol
     ok(true, "This test passes");
     is(foo(), 1, "foo() should be 1");
     is(bar(), "a string", "bar() should be \"a string\"");
+
+    TODO="Foo is not completely implemented";
+    is(foo(2), 5, "foo(2) should be 5");
+    TODO="";
+
     return exit_status();
   }
 
@@ -185,6 +190,31 @@ Use these very, very, very sparingly.
 
 C<skip> tells the TAP harness that you're skipping a I<number> of tests for the
 given I<reason>.  Note that you have to do the skipping yourself.
+
+=item B<TODO>
+
+  TODO="why"
+  my_tests_here ...
+  TODO=""
+
+C<TODO> is a global string variable that tells TAP harness the reason
+the current test is expected to fail.  When TODO is the empty string,
+then the harness considers that there is no reason for the test to
+fail.  However, when TODO is non-empty, any failing test is not
+counted against the test suite and any succeeding test is reported as
+an unexpected success.
+
+The nice part about todo tests, as opposed to simply commenting out a
+block of tests, is it's like having a programmatic todo list. You know
+how much work is left to be done, you're aware of what bugs there are,
+and you'll know immediately when they're fixed.
+
+Note that TODO manipulates a global variable.  Thus, you should be
+careful to set it to "" before going to another section of the
+program.  An easy mistake to make is to have a failing section of code
+that throws an exception taking you out of the current scope without
+resetting TODO.  Adding a try...finally block around such code fixes
+the problem.
 
 =back
 
