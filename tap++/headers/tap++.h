@@ -11,6 +11,11 @@ namespace TAP {
 		struct no_plan_type {};
 		extern std::ostream* output;
 		extern std::ostream* error;
+
+        	//Return the variant of "Failed test" or "Failed
+	        //(TODO) test" required by whether the current test is
+	        //a todo test
+		char const * failed_test_msg();
 	}
 	class fatal_exception : public std::exception {
 		std::string message;
@@ -82,10 +87,11 @@ namespace TAP {
 	}
 
 	template<typename T, typename U> typename boost::disable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "") {
+		using namespace TAP::details;
 		try {
 			bool ret = ok(left == right, message);
 			if (!ret) {
-				diag("Failed test '", message, "'");
+				diag(failed_test_msg()," '", message, "'");
 				diag("       Got: ", left);
 				diag("  Expected: ", right);
 			}
@@ -93,7 +99,7 @@ namespace TAP {
 		}
 		catch(const std::exception& e) {
 			fail(message);
-			diag("Failed test '", message, "'");
+			diag(failed_test_msg()," '", message, "'");
 			diag("Cought exception '", e.what(), "'");
 			diag("       Got: ", left);
 			diag("  Expected: ", right);
@@ -101,7 +107,7 @@ namespace TAP {
 		}
 		catch(...) {
 			fail(message);
-			diag("Failed test '", message, "'");
+			diag(failed_test_msg()," '", message, "'");
 			diag("Cought unknown exception");
 			diag("       Got: ", left);
 			diag("  Expected: ", right);
@@ -128,10 +134,11 @@ namespace TAP {
 	}
 
 	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "", double epsilon = 0.01) {
+		using namespace TAP::details;
 		try {
 			bool ret = ok(2 * fabs(left - right) / (fabs(left) + fabs(right)) < epsilon);
 			if (!ret) {
-				diag("Failed test '", message, "'");
+				diag(failed_test_msg()," '", message, "'");
 				diag("       Got: ", left);
 				diag("  Expected: ", right);
 			}
@@ -139,7 +146,7 @@ namespace TAP {
 		}
 		catch(const std::exception& e) {
 			fail(message);
-			diag("Failed test '", message, "'");
+			diag(failed_test_msg()," '", message, "'");
 			diag("Cought exception '", e.what(), "'");
 			diag("       Got: ", left);
 			diag("  Expected: ", right);
@@ -147,7 +154,7 @@ namespace TAP {
 		}
 		catch(...) {
 			fail(message);
-			diag("Failed test '", message, "'");
+			diag(failed_test_msg()," '", message, "'");
 			diag("Cought unknown exception");
 			diag("       Got: ", left);
 			diag("  Expected: ", right);
@@ -156,6 +163,7 @@ namespace TAP {
 	}
 
 	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type isnt(const T& left, const U& right, const std::string& message = "", double epsilon = 0.01) {
+		using namespace TAP::details;
 		try {
 			bool ret = 2 * fabs(left - right) / (fabs(left) + fabs(right)) > epsilon;
 			ok(ret, message);
@@ -163,13 +171,13 @@ namespace TAP {
 		}
 		catch(const std::exception& e) {
 			fail(message);
-			diag("Failed test '", message, "'");
+			diag(failed_test_msg()," '", message, "'");
 			diag("Cought exception '", e.what(), "'");
 			return false;
 		}
 		catch(...) {
 			fail(message);
-			diag("Failed test '", message, "'");
+			diag(failed_test_msg()," '", message, "'");
 			diag("Cought unknown exception");
 			return false;
 		}

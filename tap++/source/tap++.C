@@ -62,6 +62,7 @@ namespace TAP {
 		}
 
 	}
+
 	void plan(unsigned tests) throw(fatal_exception) {
 		if (is_planned) {
 			bail_out("Can't plan again!");
@@ -175,6 +176,10 @@ namespace TAP {
 		todo_guard::~todo_guard() throw() {
 			TODO = value;
 		}
+	 	char const * failed_test_msg(){
+		     return is_todo_test()?"Failed (TODO) test":"Failed test";
+		}
+
 	}
 	
 	void skip(const std::string& reason) throw(details::Skip_exception) {
