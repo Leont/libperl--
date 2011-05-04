@@ -23,6 +23,9 @@ namespace TAP {
 				return " # TODO " + TODO;
 			}
 		}
+
+		bool is_todo_test() throw() { return TODO != ""; }
+
 		bool is_planned = false;
 		bool no_planned = false;
 		bool has_output_plan = false;
@@ -120,7 +123,7 @@ namespace TAP {
 	bool ok(bool is_ok, const std::string& message) throw() {
 		const char* hot_or_not = is_ok ? "" : "not ";
 		*details::output << hot_or_not << "ok " << ++counter<< " - " << message << todo_test()  << std::endl;
-		if (!is_ok) {
+		if (!is_ok && !is_todo_test()) {
 			++not_oks;
 		}
 		return is_ok;
@@ -156,7 +159,7 @@ namespace TAP {
 	}
 	namespace details {
 		std::ostream* output = &std::cout;
-		std::ostream* error = &std::cerr;
+		std::ostream* error = &std::cout;
 		static std::stack<unsigned> block_expected;
 		void start_block(unsigned expected) throw() {
 			block_expected.push(encountered() + expected);

@@ -183,7 +183,7 @@ namespace TAP {
 		return ok(!boost::is_convertible<T, U>::value, message);
 	}
 
-	std::string todo;
+	extern std::string TODO; 
 }
 
 #ifdef WANT_TEST_EXTRAS
