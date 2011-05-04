@@ -5,8 +5,8 @@ namespace perl {
 		};
 	}
 
-	template<typename T, typename U> auto typecast_to(U&& u) -> decltype(typecast::typemap<T>::cast_to(u)) {
-		return typecast::typemap<T>::cast_to(u);
+	template<typename T, typename U> auto typecast_to(U&& u) -> decltype(typecast::typemap<T>::cast_to(std::forward<U>(u))) {
+		return typecast::typemap<T>::cast_to(std::forward<U>(u));
 	}
 
 	class lock {

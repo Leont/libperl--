@@ -11,7 +11,7 @@ namespace perl {
 			typedef boost::false_type from_type;
 			typedef boost::true_type to_type;
 
-			static const T& cast_to(const T& t) {
+			static T cast_to(T&& t) {
 				return t;
 			}
 			static const Scalar::Temp cast_from(Interpreter& interp, const T& t) {

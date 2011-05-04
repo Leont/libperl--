@@ -19,7 +19,7 @@ my %test_methods = (
 			verbosity => $self->stash('verbose'),
 			exec => sub {
 				my (undef, $file) = @_;
-				return -B $file ? [ $file ] : [ $^X, '-T', '-I' . catdir(qw/blib lib/), $file ];
+				return -B $file ? [ $file ] : [ $^X, '-I' . catdir(qw/blib lib/), $file ];
 			},
 			merge => 1,
 			color => -t STDOUT,
