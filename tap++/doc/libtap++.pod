@@ -6,7 +6,7 @@ libtap++ - C++ unit tests for the Test Anything Protocol
 
 =head1 SYNOPSIS
 
-  #include <tap++.h>
+  #include <tap++/tap++.h>
   #include <string>
 
   using namespace TAP;
