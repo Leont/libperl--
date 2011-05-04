@@ -198,11 +198,12 @@ given I<reason>.  Note that you have to do the skipping yourself.
   TODO=""
 
 C<TODO> is a global string variable that tells TAP harness the reason
-the current test is expected to fail.  When TODO is the empty string,
-then the harness considers that there is no reason for the test to
-fail.  However, when TODO is non-empty, any failing test is not
-counted against the test suite and any succeeding test is reported as
-an unexpected success.
+the current test is expected to fail.  You set TODO before a block of
+tests that you expect to fail and then unset it afterwards.  When TODO
+is the empty string, then the harness considers that there is no
+reason for the test to fail.  However, when TODO is non-empty, any
+failing test is not counted against the test suite and any succeeding
+test is reported as an unexpected success.
 
 The nice part about todo tests, as opposed to simply commenting out a
 block of tests, is it's like having a programmatic todo list. You know
@@ -212,7 +213,7 @@ and you'll know immediately when they're fixed.
 Note that TODO manipulates a global variable.  Thus, you should be
 careful to set it to "" before going to another section of the
 program.  An easy mistake to make is to have a failing section of code
-that throws an exception taking you out of the current scope without
+that throws an exception, taking you out of the current scope without
 resetting TODO.  Adding a try...finally block around such code fixes
 the problem.
 
