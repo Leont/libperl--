@@ -158,6 +158,11 @@ namespace TAP {
 		}
 		details::error = &new_error;
 	}
+	todo_guard::todo_guard() throw() : value(TODO) {
+	}
+	todo_guard::~todo_guard() throw() {
+		TODO = value;
+	}
 	namespace details {
 		std::ostream* output = &std::cout;
 		std::ostream* error = &std::cout;
@@ -171,12 +176,7 @@ namespace TAP {
 			return ret;
 		}
 
-		todo_guard::todo_guard() throw() : value(TODO) {
-		}
-		todo_guard::~todo_guard() throw() {
-			TODO = value;
-		}
-	 	char const * failed_test_msg(){
+	 	char const * failed_test_msg() throw() {
 		     return is_todo_test()?"Failed (TODO) test":"Failed test";
 		}
 

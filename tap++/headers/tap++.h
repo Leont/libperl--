@@ -195,6 +195,13 @@ namespace TAP {
 	}
 
 	extern std::string TODO; 
+
+	class todo_guard {
+		const std::string value;
+		public:
+		todo_guard() throw();
+		~todo_guard() throw();
+	};
 }
 
 #ifdef WANT_TEST_EXTRAS
@@ -215,12 +222,6 @@ namespace TAP {
 		void start_block(unsigned) throw();
 		unsigned stop_block() throw(fatal_exception);
 
-		class todo_guard {
-			const std::string value;
-			public:
-			todo_guard() throw();
-			~todo_guard() throw();
-		};
 	}
 
 	void skip(const std::string& reason) throw(details::Skip_exception);

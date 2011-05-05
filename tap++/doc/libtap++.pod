@@ -193,9 +193,11 @@ given I<reason>.  Note that you have to do the skipping yourself.
 
 =item B<TODO>
 
+  {
+  todo_guard why;
   TODO="why"
   my_tests_here ...
-  TODO=""
+  }
 
 C<TODO> is a global string variable that tells TAP harness the reason
 the current test is expected to fail.  You set TODO before a block of
@@ -214,8 +216,9 @@ Note that TODO manipulates a global variable.  Thus, you should be
 careful to set it to "" before going to another section of the
 program.  An easy mistake to make is to have a failing section of code
 that throws an exception, taking you out of the current scope without
-resetting TODO.  Adding a try...finally block around such code fixes
-the problem.
+resetting TODO. To make it easier to deal with this in a thread-safe
+manner, the todo_guard class is provided. Objects of this class will
+reset TODO when they fall out of scope.
 
 =back
 
