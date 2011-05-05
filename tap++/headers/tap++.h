@@ -1,3 +1,6 @@
+#ifndef LIB_PERLPP_LIB_TAPPP_TAPPP_H
+#define LIB_PERLPP_LIB_TAPPP_TAPPP_H
+
 #include <iostream>
 #include <string>
 #include <boost/type_traits/is_convertible.hpp>
@@ -319,3 +322,6 @@ namespace TAP {
 	_current_message = NULL
 
 #endif /*WANT_TEST_EXTRAS*/
+
+
+#endif /*LIB_PERLPP_LIB_TAPPP_TAPPP_H*/
