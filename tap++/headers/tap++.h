@@ -18,7 +18,7 @@ namespace TAP {
         	//Return the variant of "Failed test" or "Failed
 	        //(TODO) test" required by whether the current test is
 	        //a todo test
-		char const * failed_test_msg();
+		char const * failed_test_msg() throw();
 	}
 	class fatal_exception : public std::exception {
 		std::string message;
@@ -287,7 +287,7 @@ namespace TAP {
 
 #define BLOCK_START(planned) \
 	try {\
-		details::todo_guard foo##planned;\
+		todo_guard foo##planned;\
 		TAP::details::start_block(planned);
 
 
