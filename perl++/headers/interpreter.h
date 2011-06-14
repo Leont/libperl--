@@ -473,7 +473,7 @@ namespace perl {
 					TRY_OR_THROW(arg_stack.returns(get_magic_object<T>(arg_stack[0])->*ref));
 				}
 				else {
-					TRY_OR_THROW(arg_stack.returns(get_magic_object<T>(arg_stack[0])->*ref = arg_stack[1]));
+					TRY_OR_THROW(arg_stack.returns(get_magic_object<T>(arg_stack[0])->*ref = typecast_to<A>(arg_stack[1])));
 				}
 			}
 		};
