@@ -332,7 +332,7 @@ namespace perl {
 			static void subroutine(interpreter* me_perl, CV* cef) {
 				Argument_stack arg_stack(me_perl);
 				const func_ptr ref = implementation::get_function_pointer<func_ptr>(me_perl, cef);
-				ref(typecast_to<A1>(arg_stack[0], typecast_to<A2>(me_perl, arg_stack[1]), typecast_to<A3>(me_perl, arg_stack[3])));
+				ref(typecast_to<A1>(arg_stack[0], typecast_to<A2>(arg_stack[1]), typecast_to<A3>(arg_stack[3])));
 			}
 		};
 
