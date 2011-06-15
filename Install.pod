@@ -27,7 +27,7 @@ Compiling libperl++ requires a number of dependencies to be fullfilled
 
 =over 2
 
-=item * GCC 4.4 or higher
+=item * GCC 4.5 or higher
 
 GCC support is well tested.
 
