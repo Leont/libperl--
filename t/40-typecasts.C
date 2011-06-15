@@ -27,7 +27,7 @@ namespace perl {
 }
 
 int main() {
-	plan(4);
+	plan(6);
 
 	Interpreter universe;
 
@@ -35,6 +35,12 @@ int main() {
 
 	int foo = typecast_to<int>(scalar);
 	is(foo, 1, "foo == 1");
+
+	const char* foo2 = typecast_to<const char*>(scalar);
+	is(foo2, std::string("1"), "foo2 == \"1\"");
+
+	std::string foo3 = typecast_to<const char*>(scalar);
+	is(foo3, std::string("1"), "foo3 == \"1\"");
 
 	my_type bar = typecast_to<my_type>(scalar);
 	is(bar.value, 1, "bar.value == 1");

@@ -583,7 +583,6 @@ namespace perl {
 				operator long double() const;
 				operator Raw_string() const;
 				operator const std::string() const;
-				operator const char*() const;
 				operator bool() const;
 				bool as_bool() const;
 

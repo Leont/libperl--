@@ -243,9 +243,6 @@ namespace perl {
 	Scalar::Value::operator Raw_string() const {
 		return string_value();
 	}
-	Scalar::Value::operator const char*() const {
-		return operator Raw_string();
-	}
 	Scalar::Value::operator const std::string() const {
 		size_t len;
 		const char* const tmp = SvPVx(get_SV(true), len);

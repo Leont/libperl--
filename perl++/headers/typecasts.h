@@ -18,6 +18,14 @@ namespace perl {
 				return interp.value_of(t);
 			}
 		};
+		template<> struct typemap<const char*> {
+			static const char* cast_to(const Scalar::Value& val) {
+				return static_cast<const char*>(val.operator Raw_string());
+			}
+			static const Scalar::Temp cast_from(Interpreter& interp, const char* str) {
+				return interp.value_of(str);
+			}
+		};
 
 		template<typename T, typename U> struct typemap< std::pair<T, U>, void> {
 			typedef typename boost::mpl::and_<typename is_pushable<T>::type, typename is_pushable<U>::type>::type from_type;
