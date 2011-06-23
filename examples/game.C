@@ -56,7 +56,7 @@ class game {
 		players.push_back(player(name));
 	}
 	player& get_player(const string& name) {
-		list<player>::iterator player_itr = find_if(players.begin(), players.end(), bind(&player::get_name, _1) == name);
+		list<player>::iterator player_itr = find_if(players.begin(), players.end(), boost::lambda::bind(&player::get_name, _1) == name);
 		if (player_itr == players.end())
 			throw game_exception("No such player");
 		return *player_itr;
