@@ -2,8 +2,6 @@
 #include <string>
 #include <list>
 #include <utility>
-#include <boost/lambda/lambda.hpp>
-#include <boost/lambda/bind.hpp>
 
 using namespace perl;
 using namespace std;
@@ -47,8 +45,6 @@ struct game_exception : public std::exception {
 	}
 };
 
-using namespace boost::lambda;
-
 class game {
 	list<player> players;
 	public:
@@ -56,7 +52,7 @@ class game {
 		players.push_back(player(name));
 	}
 	player& get_player(const string& name) {
-		list<player>::iterator player_itr = find_if(players.begin(), players.end(), boost::lambda::bind(&player::get_name, _1) == name);
+		list<player>::iterator player_itr = find_if(players.begin(), players.end(), [name](const player& player) { return player.get_name() == name;} );
 		if (player_itr == players.end())
 			throw game_exception("No such player");
 		return *player_itr;

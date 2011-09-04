@@ -1,5 +1,4 @@
 #include <perl++/perl++.h>
-#include <perl++/lambda.h>
 #include <tap++/tap++.h>
 #include <algorithm>
 #include <map>
