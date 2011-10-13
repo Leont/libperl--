@@ -1,6 +1,10 @@
 #include "internal.h"
 #include <perl++/perl++.h>
 
+#ifndef GvCV_set
+#define GvCV_set(gv, cv) (GvCV(gv) = cv)
+#endif
+
 namespace perl {
 	Glob::Glob(interpreter* _interp, GV* _handle) : interp(_interp), handle(_handle) {
 	}
@@ -39,7 +43,7 @@ namespace perl {
 			SvREFCNT_dec(reinterpret_cast<SV*>(GvCV(handle)));
 		}
 		SvREFCNT_inc(reinterpret_cast<SV*>(other.handle));
-		GvCV(handle) = other.handle;
+		GvCV_set(handle, other.handle);
 		return *this;
 	}
 	Raw_string Glob::name() const {
