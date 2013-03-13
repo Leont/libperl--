@@ -18,10 +18,10 @@ int main() {
 	is(*value, 1u, "*value == 1u");
 	is(*value, 1l, "*value == 1l");
 	is(*value, "1", "*value == \"1\"");
-	is(*value, 1.0, "*value == 1.0");
-	isnt(*value, 2.0, "*value != 2.0");
-	is(*value, 1.0f, "*value == 1.0f");
-	isnt(*value, 2.0f, "*value != 2.0f");
+	is(*value, about(1.0), "*value == 1.0");
+	isnt(*value, about(2.0), "*value != 2.0");
+	is(*value, about(1.0f), "*value == 1.0f");
+	isnt(*value, about(2.0f), "*value != 2.0f");
 
 	*value = 2;
 	note("*value = 2");
@@ -35,10 +35,10 @@ int main() {
 	is(*value, 1u, "*value == 1u");
 	is(*value, 1l, "*value == 1l");
 
-	is(*value, 1.0, "*value == 1.0");
-	isnt(*value, 2.0, "*value != 2.0");
-	is(*value, 1.0f, "*value == 1.0f");
-	isnt(*value, 2.0f, "*value != 2.0f");
+	is(*value, about(1.0), "*value == 1.0");
+	isnt(*value, about(2.0), "*value != 2.0");
+	is(*value, about(1.0f), "*value == 1.0f");
+	isnt(*value, about(2.0f), "*value != 2.0f");
 
 	*value = 2;
 	note("*value = 2");
@@ -52,15 +52,15 @@ int main() {
 	is(*value, 1u, "*value == 1u");
 	is(*value, 1l, "*value == 1l");
 
-	is(*value, 1.0, "*value == 1.0");
-	isnt(*value, 2.0, "*value != 2.0");
-	is(*value, 1.0f, "*value == 1.0f");
-	isnt(*value, 2.0f, "*value != 2.0f");
+	is(*value, about(1.0), "*value == 1.0");
+	isnt(*value, about(2.0), "*value != 2.0");
+	is(*value, about(1.0f), "*value == 1.0f");
+	isnt(*value, about(2.0f), "*value != 2.0f");
 
 	*value = 2.0;
 	note("*value = 2");
 
-	is(*value, 2.0, "*value == 2");
+	is(*value, about(2.0), "*value == 2");
 	}
 //	TEST_END;
 	return exit_status();

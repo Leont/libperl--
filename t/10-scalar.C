@@ -24,10 +24,10 @@ int main() {
 	is(value, 1u, "value == 1u");
 	is(value, 1l, "value == 1l");
 	is(value, "1", "value == \"1\"");
-	is(value, 1.0, "value == 1.0");
-	isnt(value, 2.0, "value != 2.0");
-	is(value, 1.0f, "value == 1.0f");
-	isnt(value, 2.0f, "value != 2.0f");
+	is(value, about(1.0), "value == 1.0");
+	isnt(value, about(2.0), "value != 2.0");
+	is(value, about(1.0f), "value == 1.0f");
+	isnt(value, about(2.0f), "value != 2.0f");
 
 	is(static_cast<int>(value), 1, "(int)value == 1");
 	ok(value > 0, "value > 0");

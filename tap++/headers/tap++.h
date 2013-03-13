@@ -89,7 +89,29 @@ namespace TAP {
 		*details::output << "# " << first << second << third << fourth << fifth << std::endl;
 	}
 
-	template<typename T, typename U> typename boost::disable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "") {
+	template<typename T> struct relative {
+		const T& value;
+		double epsilon;
+		relative(const T& _value, double _epsilon) : value(_value), epsilon(_epsilon) {
+		}
+		template<typename U> bool operator==(const U& left) const {
+			return 2 * fabs(left - value) / (fabs(left) + fabs(value)) < epsilon;
+		}
+		operator const T&() const {
+			return value;
+		}
+	};
+	template<typename T, typename U> bool operator==(const T& left, const relative<U>& right) {
+		return right.operator==(left);
+	}
+	template<typename T, typename U> bool operator!=(const T& left, const relative<U>& right) {
+		return !(left == right);
+	}
+	template<typename T> relative<T> about(const T& value, double epsilon = 0.01) {
+		return relative<T>(value, epsilon);
+	}
+
+	template<typename T, typename U> bool is(const T& left, const U& right, const std::string& message = "") {
 		using namespace TAP::details;
 		try {
 			bool ret = ok(left == right, message);
@@ -118,7 +140,7 @@ namespace TAP {
 		}
 	}
 
-	template<typename T, typename U> typename boost::disable_if<typename boost::is_floating_point<U>::type, bool>::type isnt(const T& left, const U& right, const std::string& message = "") {
+	template<typename T, typename U> bool isnt(const T& left, const U& right, const std::string& message = "") {
 		try {
 			return ok(left != right, message);
 		}
@@ -131,56 +153,6 @@ namespace TAP {
 		catch(...) {
 			fail(message);
 			diag("In test ", message);
-			diag("Cought unknown exception");
-			return false;
-		}
-	}
-
-	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "", double epsilon = 0.01) {
-		using namespace TAP::details;
-		try {
-			bool ret = ok(2 * fabs(left - right) / (fabs(left) + fabs(right)) < epsilon);
-			if (!ret) {
-				diag(failed_test_msg()," '", message, "'");
-				diag("       Got: ", left);
-				diag("  Expected: ", right);
-			}
-			return ret;
-		}
-		catch(const std::exception& e) {
-			fail(message);
-			diag(failed_test_msg()," '", message, "'");
-			diag("Cought exception '", e.what(), "'");
-			diag("       Got: ", left);
-			diag("  Expected: ", right);
-			return false;
-		}
-		catch(...) {
-			fail(message);
-			diag(failed_test_msg()," '", message, "'");
-			diag("Cought unknown exception");
-			diag("       Got: ", left);
-			diag("  Expected: ", right);
-			return false;
-		}
-	}
-
-	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type isnt(const T& left, const U& right, const std::string& message = "", double epsilon = 0.01) {
-		using namespace TAP::details;
-		try {
-			bool ret = 2 * fabs(left - right) / (fabs(left) + fabs(right)) > epsilon;
-			ok(ret, message);
-			return ret;
-		}
-		catch(const std::exception& e) {
-			fail(message);
-			diag(failed_test_msg()," '", message, "'");
-			diag("Cought exception '", e.what(), "'");
-			return false;
-		}
-		catch(...) {
-			fail(message);
-			diag(failed_test_msg()," '", message, "'");
 			diag("Cought unknown exception");
 			return false;
 		}

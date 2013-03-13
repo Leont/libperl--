@@ -606,7 +606,6 @@ namespace perl {
 
 			bool operator==(const Value&, IV);
 			bool operator==(const Value&, UV);
-			bool operator==(const Value&, NV);
 			bool operator==(const Value&, const char*);
 			bool operator==(const Value&, Raw_string);
 			bool operator==(const Value&, const std::string&);

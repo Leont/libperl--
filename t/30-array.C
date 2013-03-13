@@ -36,7 +36,7 @@ int main() {
 
 	array.push(NV_MAX);
 	note("array.push(NV_MAX)");
-	is(array[2], NV_MAX, "array[2] == NV_MAX");
+	is(array[2], about(NV_MAX), "array[2] == NV_MAX");
 
 	array.push("test");
 	note("array.push(\"test\")");
@@ -58,7 +58,7 @@ int main() {
 
 	is(array[0], 1, "array[0] == 1");
 	is(array[1], UV_MAX, "array[1] == UV_MAX");
-	is(array[2], NV_MAX, "array[2] == NV_MAX");
+	is(array[2], about(NV_MAX), "array[2] == NV_MAX");
 	is(array[3], "test", "array[3] == \"test\"");
 	ok(array.exists(4), "exists array[4]");
 	ok(!array[4].defined(), "not: defined array[4]");
@@ -67,7 +67,7 @@ int main() {
 	note("array.push(array)");
 	is(array[5], 1, "array[5] == 1");
 	is(array[6], UV_MAX, "array[6] == UV_MAX");
-	is(array[7], NV_MAX, "array[7] == NV_MAX");
+	is(array[7], about(NV_MAX), "array[7] == NV_MAX");
 	is(array[8], "test", "array[8] == \"test\"");
 	ok(array.exists(9), "exists array[9]");
 	ok(!array[9].defined(), "not: defined array[9]");
@@ -81,7 +81,7 @@ int main() {
 
 	is(array[0], 1, "array[0] == 1");
 	is(array[1], UV_MAX, "array[1] == UV_MAX");
-	is(array[2], NV_MAX, "array[2] == NV_MAX");
+	is(array[2], about(NV_MAX), "array[2] == NV_MAX");
 	is(array[3], "test", "array[3] == \"test\"");
 
 	ok(array.exists(3), "exists array[3]");
