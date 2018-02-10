@@ -139,7 +139,10 @@ namespace TAP {
 	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type is(const T& left, const U& right, const std::string& message = "", double epsilon = 0.01) {
 		using namespace TAP::details;
 		try {
-			bool ret = ok(2 * fabs(left - right) / (fabs(left) + fabs(right)) < epsilon);
+			double left_d = static_cast<double>(left);
+			double right_d = static_cast<double>(right);
+			bool ret = (left_d == right_d) || (2 * fabs(left_d - right_d) / (fabs(left_d) + fabs(right_d)) < epsilon);
+			ok(ret, message);
 			if (!ret) {
 				diag(failed_test_msg()," '", message, "'");
 				diag("       Got: ", left);
@@ -168,7 +171,9 @@ namespace TAP {
 	template<typename T, typename U> typename boost::enable_if<typename boost::is_floating_point<U>::type, bool>::type isnt(const T& left, const U& right, const std::string& message = "", double epsilon = 0.01) {
 		using namespace TAP::details;
 		try {
-			bool ret = 2 * fabs(left - right) / (fabs(left) + fabs(right)) > epsilon;
+			double left_d = static_cast<double>(left);
+			double right_d = static_cast<double>(right);
+			bool ret = (left_d != right_d) && (2 * fabs(left_d - right_d) / (fabs(left_d) + fabs(right_d)) > epsilon);
 			ok(ret, message);
 			return ret;
 		}

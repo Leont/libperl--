@@ -6,10 +6,12 @@ using namespace perl;
 using namespace TAP;
 
 int main() {
-	TEST_START(39);
+	TEST_START(41);
 
 	ok(true, "True is ok");
 	not_ok(false, "False is not ok");
+	is(0, 0, "0 == 0");
+	is(0.0, 0.0, "0.0 == 0.0");
 	is(1, 1, "1 == 1");
 	isnt(1, 2, "1 == 2");
 	is(1.0, 1.0, "1.0 == 1.0");
