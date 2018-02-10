@@ -48,7 +48,8 @@ sub load_module {
 	push @DynaLoader::dl_shared_objects, $file;      # record files loaded
 	push @DynaLoader::dl_modules,        $module;    # record loaded module
 
-	return $sub->($module) or croak "Something went horribly wrong during loading of $module";
+	my $loaded = $sub->($module) or croak "Something went horribly wrong during loading of $module";
+	return $loaded;
 }
 
 1;
