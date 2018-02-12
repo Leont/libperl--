@@ -155,7 +155,7 @@ namespace perl {
 
 	const Regex Interpreter::regex(const String::Value& regexp, Raw_string flags) const {
 		Scalar::Temp temp = implementation::Call_stack(raw_interp.get()).push(regexp, flags).sub_scalar("Embed::Perlpp::regexp");
-		return Regex(std::auto_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), temp.release())));
+		return Regex(std::unique_ptr<Regex::Implementation>(new Regex::Implementation(raw_interp.get(), temp.release())));
 	}
 
 	const Scalar::Temp Interpreter::undef() const {

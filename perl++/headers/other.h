@@ -1,3 +1,5 @@
+#include <memory.h>
+
 namespace perl {
 	class lock;
 
@@ -35,7 +37,7 @@ namespace perl {
 		boost::shared_ptr<Implementation> pattern;
 		friend class Interpreter;
 		friend class implementation::String;
-		Regex(std::auto_ptr<Implementation>);
+		Regex(std::unique_ptr<Implementation>);
 		public:
 		const implementation::scalar::Temp_template<implementation::reference::Nonscalar<Regex> > take_ref() const;
 		const Array::Temp match(const String::Value&, const char* = "") const;

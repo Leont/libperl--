@@ -351,7 +351,7 @@ namespace perl {
 	}
 	const Array::Temp String::Value::match(Raw_string regex_string, const char* flags) const {
 		Scalar::Temp temp = implementation::Call_stack(interp).push(regex_string, flags).sub_scalar("Embed::Perlpp::regexp");
-		perl::Regex regex(std::auto_ptr<implementation::Regex>(new implementation::Regex(interp, temp.release())));
+		perl::Regex regex(std::unique_ptr<implementation::Regex>(new implementation::Regex(interp, temp.release())));
 		return regex.match(*this, flags);
 	}
 	const Array::Temp String::Value::substitute(const perl::Regex& regex, const perl::String::Value& replacement, const char* flags) {

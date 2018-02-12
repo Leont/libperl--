@@ -5,7 +5,7 @@ namespace perl {
 //	const Ref<Regex>::Temp Regex::take_ref() const {
 //	}
 
-	Regex::Regex(std::auto_ptr<Implementation> _pattern) : pattern(_pattern.release()) {
+	Regex::Regex(std::unique_ptr<Implementation> _pattern) : pattern(_pattern.release()) {
 	}
 
 	const Array::Temp Regex::match(const String::Value& string, const char* flags) const {
