@@ -33,6 +33,7 @@ namespace perl {
 			}
 		}
 		interpreter* initialize_interpreter(int argc, const char* argv[]) {
+			initialize_system();
 			interpreter* interp = perl_alloc();
 			perl_construct(interp);
 			PL_exit_flags |= PERL_EXIT_DESTRUCT_END;
