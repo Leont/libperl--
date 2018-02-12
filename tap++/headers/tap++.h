@@ -95,7 +95,8 @@ namespace TAP {
 		relative(const T& _value, double _epsilon) : value(_value), epsilon(_epsilon) {
 		}
 		template<typename U> bool operator==(const U& left) const {
-			return 2 * fabs(left - value) / (fabs(left) + fabs(value)) < epsilon;
+			T portside(left);
+			return 2 * fabs(portside - value) / (fabs(portside) + fabs(value)) < epsilon;
 		}
 		operator const T&() const {
 			return value;
