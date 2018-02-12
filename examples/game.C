@@ -41,8 +41,7 @@ struct game_exception : public std::exception {
 	const char* what() {
 		return message.c_str();
 	}
-	~game_exception() throw() {
-	}
+	~game_exception() = default;
 };
 
 class game {

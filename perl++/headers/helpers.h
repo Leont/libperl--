@@ -50,8 +50,7 @@ namespace perl {
 		const char* what() {
 			return message.c_str();
 		}
-		~Runtime_exception() throw() {
-		}
+		~Runtime_exception() = default;
 	};
 
 	class Out_of_bounds_exception : public Runtime_exception {
