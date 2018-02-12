@@ -36,10 +36,10 @@ const Scalar::Temp eigth(Array args) {
 	return args[0];
 }
 
-void ninth(const char* arg) {
+void ninth(const char*) {
 }
 
-void tenth(const std::string& arg){
+void tenth(const std::string&){
 }
 
 int main() {

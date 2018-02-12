@@ -8,22 +8,21 @@ namespace perl {
 		void* get_magic_ptr(const MAGIC* magic) {
 			return magic->mg_ptr;
 		}
-		void* get_magic_ptr(interpreter* interp, SV* var, int min_length) {
+		void* get_magic_ptr(interpreter*, SV* var, int min_length) {
 			const MAGIC* magic = mg_find(var, PERL_MAGIC_ext);
 			if (magic == NULL || magic->mg_ptr == NULL || ( magic->mg_len < min_length && magic->mg_len != 0 ) ) {
 				throw Runtime_exception("Magic error");
 			}
 			return magic->mg_ptr;
 		}
-		const Raw_string get_magic_string(interpreter* interp, SV* var) {
+		const Raw_string get_magic_string(interpreter*, SV* var) {
 			const MAGIC* tmp = mg_find(var, PERL_MAGIC_ext);
 			return tmp != NULL ? Raw_string(tmp->mg_ptr, tmp->mg_len, false) : Raw_string(NULL, 0, false);
 		}
-		bool has_magic_string(interpreter* interp, SV* var) {
+		bool has_magic_string(interpreter*, SV* var) {
 			return mg_find(var, PERL_MAGIC_ext) != NULL;
 		}
 		bool has_magic_string(const Scalar::Base& var) {
-			interpreter* const interp = var.interp;
 			return mg_find(var.get_SV(false), PERL_MAGIC_ext) != NULL;
 		}
 		void set_magic_string(interpreter* interp, SV* var, Raw_string string) {
@@ -40,7 +39,7 @@ namespace perl {
 			SV* const ret = newRV_noinc(referee);
 			return sv_bless(ret, gv_stashpv(state.classname, true));
 		}
-		void* get_magic_object_impl(interpreter* interp, SV* var, int min_length) {
+		void* get_magic_object_impl(interpreter*, SV* var, int min_length) {
 			MAGIC* tmp = mg_find(SvRV(var), PERL_MAGIC_ext);
 			if (tmp == NULL || tmp->mg_ptr == NULL || tmp->mg_len < min_length) {
 				throw Not_an_object_exception();

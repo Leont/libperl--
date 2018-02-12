@@ -21,7 +21,7 @@ int main() {
 
 	ok(value + 1, "value + 1");
 	not_ok(value - 1, "not: value - 1");
-	ok(value * 1, "value * 1");
+	is(value * 1, 1, "value * 1");
 	ok(value / 1, "value / 1");
 
 	note("++value");
